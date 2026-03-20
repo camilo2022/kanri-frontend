@@ -1,0 +1,212 @@
+@use '@coreui/coreui/scss/coreui' as * with (
+  $enable-deprecation-messages: false
+);
+@use '@coreui/chartjs/scss/coreui-chartjs';
+@use 'vendors/simplebar';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@400;600;700&family=Montserrat:wght@400;600&display=swap');
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+    --font-poppins: 'Poppins', sans-serif;
+    --font-montserrat: 'Montserrat', sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-inter {
+    font-family: var(--font-inter) !important;
+  }
+  .font-poppins {
+    font-family: var(--font-poppins) !important;
+  }
+  .font-montserrat {
+    font-family: var(--font-montserrat) !important;
+  }
+}
+
+body {
+  background-color: var(--cui-tertiary-bg);
+}
+
+.wrapper {
+  width: 100%;
+  padding-inline: var(--cui-sidebar-occupy-start, 0) var(--cui-sidebar-occupy-end, 0);
+  will-change: auto;
+  @include transition(padding 0.15s);
+}
+
+.header > .container-fluid,
+.sidebar-header {
+  min-height: calc(4rem + 1px); // stylelint-disable-line function-disallowed-list
+}
+
+.sidebar-brand-full {
+  margin-left: 3px;
+}
+
+.sidebar-header {
+  .nav-underline-border {
+    --cui-nav-underline-border-link-padding-x: 1rem;
+    --cui-nav-underline-border-gap: 0;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: calc(4rem + 1px); // stylelint-disable-line function-disallowed-list
+  }
+}
+
+.sidebar-toggler {
+  margin-inline-start: auto;
+}
+
+.sidebar-narrow,
+.sidebar-narrow-unfoldable:not(:hover) {
+  .sidebar-toggler {
+    margin-inline-end: auto;
+  }
+}
+
+.header > .container-fluid + .container-fluid {
+  min-height: 3rem;
+}
+
+.footer {
+  min-height: calc(3rem + 1px); // stylelint-disable-line function-disallowed-list
+}
+
+.colored-toast.swal2-icon-info {
+  background-color: #3fc3ee !important;
+}
+
+.colored-toast.swal2-icon-question {
+  background-color: #87adbd !important;
+}
+
+.colored-toast .swal2-title {
+  color: #4a4d4d;
+  font-weight: bold;
+  font-size: 14px;
+  font-family: 'Poppins';
+  text-align: center;
+}
+
+.colored-toast .swal2-close {
+  color: red;
+}
+
+.colored-toast .swal2-html-container {
+  color: red;
+}
+
+.custom-input {
+  &:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+}
+
+/* List.css */
+.action-btn {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:disabled {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed;
+}
+
+.edit-btn {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+.edit-btn:hover:not(:disabled) {
+  background-color: #dbeafe;
+}
+
+.permisos-btn {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+.permisos-btn:hover:not(:disabled) {
+  background-color: #fef3c7;
+}
+
+.delete-btn {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+.delete-btn:hover {
+  background-color: #fee2e2;
+}
+
+.restore-btn {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+.restore-btn:hover {
+  background-color: #dcfce7;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+}
+.sortable-header:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-primary-dark {
+  color: #24247f;
+  border-color: #24247f;
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-dark:hover {
+  background-color: #24247f;
+  color: white;
+}
+
+.btn-primary-add {
+  color: white;
+  background-color: #24247f;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-add:hover {
+  background-color: #1814eb;
+  color: white;
+}
+
+.btn-primary-revolve {
+  color: white;
+  background-color: #16a34a;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-revolve:hover {
+  background-color: #2dd91c;
+  color: white;
+}
+
+@include color-mode(dark) {
+  body {
+    background-color: var(--cui-dark-bg-subtle);
+  }
+
+  .footer {
+    --cui-footer-bg: var(--cui-body-bg);
+  }
+}
