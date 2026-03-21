@@ -53,14 +53,6 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
     setVisibleRole(visibleRole === roleId ? null : roleId)
   }
 
-  const handleSort = (column) => {
-    setParams((prev) => ({
-      ...prev,
-      column: column,
-      dir: prev.column === column && prev.dir === 'asc' ? 'desc' : 'asc',
-    }))
-  }
-
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {
       Toast.fire({
@@ -79,9 +71,9 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
             <span className="fw-bold fs-5 font-montserrat">Detalles del Usuario</span>
           </div>
           <CButton
-            className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-revolve me-2"
             onClick={() => {
-              onChangeView({ name: 'list', title: 'Listar Usuarios', id: null })
+              onChangeView({ name: 'list', title: 'Listar Usuarios', user: null })
             }}
           >
             <ArrowLeftCircle size={16} /> Volver

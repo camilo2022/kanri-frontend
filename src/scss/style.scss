@@ -143,6 +143,14 @@ body {
   background-color: #fef3c7;
 }
 
+.show-btn {
+  background-color: #fffbeb;
+  color: #072d80;
+}
+.show-btn:hover:not(:disabled) {
+  background-color: #fef3c7;
+}
+
 .delete-btn {
   background-color: #fef2f2;
   color: #dc2626;

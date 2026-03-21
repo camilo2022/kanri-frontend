@@ -42,6 +42,8 @@ import {
   cilUser,
   cilUserFemale,
 } from '@coreui/icons'
+import { useDispatch } from 'react-redux'
+import { useEffect } from 'react'
 
 import avatar1 from 'src/assets/images/avatars/1.jpg'
 import avatar2 from 'src/assets/images/avatars/2.jpg'
@@ -55,6 +57,10 @@ import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
 
 const Dashboard = () => {
+  const dispatch = useDispatch()
+  useEffect(() => {
+    dispatch({ type: 'set', action: '' })
+  }, [])
   const progressExample = [
     { title: 'Visits', value: '29.703 Users', percent: 40, color: 'success' },
     { title: 'Unique', value: '24.093 Users', percent: 20, color: 'info' },

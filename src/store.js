@@ -20,7 +20,7 @@ const initialState = {
   theme: 'light',
   user: null,
   navegation: [],
-  action: 'Listar Usuarios',
+  action: '',
   userCmp: null,
 }
 

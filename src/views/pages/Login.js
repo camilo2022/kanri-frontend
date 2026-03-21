@@ -8,9 +8,11 @@ import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import { FaRegCircleUser } from 'react-icons/fa6'
 import { GoLock } from 'react-icons/go'
 import login from '../../assets/images/avatars/login.png'
+import { useDispatch } from 'react-redux'
 
 const Login = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [errors, setErrors] = useState([])
   const [showPassword, setShowPassword] = useState(false)
 
@@ -24,6 +26,13 @@ const Login = () => {
         setErrors([])
         const response = await AuthService.login(values)
         localStorage.setItem('token', response.data.token)
+        const user = await AuthService.user()
+        console.log(user)
+        dispatch({
+          type: 'set',
+          user: user.data.user,
+          navegation: user.data.navegation,
+        })
         Toast.fire({
           icon: 'success',
           title: response.message,

@@ -10,7 +10,7 @@ import * as FaIcons from 'react-icons/fa'
 
 export const AppSidebarNav = ({ items }) => {
   const navLink = (name, icon, indent = false) => {
-    const IconComponent = icon && FaIcons[icon]
+    const IconComponent = (icon && FaIcons[icon]) || FaIcons.FaRegCircle
     return (
       <>
         {IconComponent ? (

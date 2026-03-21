@@ -25,8 +25,10 @@ import {
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
+import { useSelector } from 'react-redux'
 
 export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, restore }) => {
+  const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
     per_page: 10,
@@ -38,7 +40,8 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const currentParams = { ...params, search: searchInput, page: 1 }
+      console.log(params)
+      const currentParams = { ...params, search: searchInput }
       fetchUsers(currentParams)
     }, 500)
 
@@ -131,8 +134,8 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
             className="action-btn edit-btn"
             disabled={
               !!user.deleted_at ||
-              !user.permissions.some((p) => p.name === 'users.find') ||
-              !user.permissions.some((p) => p.name === 'users.update')
+              !user_active?.permissions.some((p) => p.name === 'users.find') ||
+              !user_active?.permissions.some((p) => p.name === 'users.update')
             }
             onClick={() => onChangeView({ name: 'edit', title: 'Editar Usuario', user: user })}
           >
@@ -144,9 +147,10 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
             className="action-btn permisos-btn"
             disabled={
               !!user.deleted_at ||
-              !user.permissions.some((p) => p.name === 'authorization.roles.all') ||
-              !user.permissions.some((p) => p.name === 'users.authorization.assign') ||
-              !user.permissions.some((p) => p.name === 'users.authorization.remove')
+              !user_active?.permissions.some((p) => p.name === 'users.find') ||
+              !user_active?.permissions.some((p) => p.name === 'authorization.roles.all') ||
+              !user_active?.permissions.some((p) => p.name === 'users.authorization.assign') ||
+              !user_active?.permissions.some((p) => p.name === 'users.authorization.remove')
             }
             onClick={() => onChangeView({ name: 'show', title: 'Ver Usuario', user: user })}
           >
@@ -157,7 +161,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
           <CTooltip content="Desactivar" placement="top">
             <button
               className="action-btn delete-btn"
-              disabled={!user.permissions.some((p) => p.name === 'users.delete')}
+              disabled={!user_active?.permissions.some((p) => p.name === 'users.delete')}
               onClick={() => handleConfirmDelete(user)}
             >
               <Trash2 size={18} strokeWidth={1.5} />
@@ -167,7 +171,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
           <CTooltip content="Activar" placement="top">
             <button
               className="action-btn restore-btn"
-              disabled={!user.permissions.some((p) => p.name === 'users.restore')}
+              disabled={!user_active?.permissions.some((p) => p.name === 'users.restore')}
               onClick={() => handleConfirmRestore(user)}
             >
               <RotateCcw size={18} strokeWidth={1.5} />

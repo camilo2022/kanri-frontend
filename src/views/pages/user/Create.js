@@ -55,14 +55,22 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
       if (result.isConfirmed) {
         try {
           const response = await onSubmit(formData)
-          console.log(response)
+          setValidated(true)
           Toast.fire({
             icon: 'success',
             title: response.message,
           })
-          setValidated(true)
+          setTimeout(() => {
+            setFormData({
+              name: '',
+              email: '',
+              password: '',
+              password_confirmation: '',
+            })
+            onChangeView({ name: 'list', title: 'Listar Usuarios', id: null })
+          }, 2510)
         } catch (error) {
-          console.log(error)
+          setValidated(true)
         }
       } else {
         Toast.fire({
