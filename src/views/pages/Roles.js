@@ -5,29 +5,29 @@ import PermissionService from '../../features/authorization/permissions.service'
 import List from './role/List'
 import Edit from './role/Edit'
 import Create from './role/Create'
+import Show from './role/Show'
 
-const Role = () => {
+const Roles = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Roles' })
   const [data, setData] = useState({})
+  const [role, setRole] = useState('')
+  const [permissions, setPermissions] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    /*
-    if (view.name === 'show' && view.user?.id) {
-      findUser(view.user.id)
-      allRoles()
-    }*/
+    if (view.name === 'show' && view.role?.id) {
+      findRole(view.role.id)
+    }
     setLoading(true)
-    //setUser('')
+    setRole('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Roles' })
     }
   }, [view])
 
   const changeView = (newView) => {
-    console.log('Estos en el new', newView)
     setErrors({})
     dispatch({ type: 'set', action: newView.title })
     setView(newView)
@@ -36,17 +36,6 @@ const Role = () => {
   const fetchRoles = async (params) => {
     try {
       const response = await RoleService.all(params)
-      setData(response.data)
-    } catch (error) {
-      console.log(error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchPermissions = async (params) => {
-    try {
-      const response = await PermissionService.all(params)
       setData(response.data)
     } catch (error) {
       console.log(error)
@@ -79,49 +68,26 @@ const Role = () => {
 
   const findRole = async (id) => {
     try {
-      const response = await UserService.find(id)
-      setUser(response.data.user)
-      return response
-    } catch (error) {
-      throw error
-    }
-  }
-  /*
-  const deleteUser = async (id) => {
-    try {
-      const response = await UserService.delete_user(id)
-      const users = await UserService.all()
-      setData(users.data)
+      const response = await RoleService.find(id)
+      setRole(response.data.role)
       return response
     } catch (error) {
       throw error
     }
   }
 
-  const restore = async (id) => {
-    try {
-      const response = await UserService.restore(id)
-      const users = await UserService.all()
-      setData(users.data)
-      return response
-    } catch (error) {
-      throw error
-    }
-  }
-
-  const allRoles = async (params) => {
+  const allPermissions = async (params) => {
     setLoading(true)
     try {
-      const response = await RoleService.all(params)
-      setRoles(response.data.roles)
+      const response = await PermissionService.all(params)
+      setPermissions(response.data)
     } catch (error) {
       setErrors(error.error)
-      console.log(error)
     } finally {
       setLoading(false)
     }
   }
-*/
+
   const renderView = () => {
     switch (view.name) {
       case 'create':
@@ -131,19 +97,19 @@ const Role = () => {
         return (
           <Edit role={view.rol} onChangeView={changeView} onSubmit={editRole} errors={errors} />
         )
-      /*
+
       case 'show':
         return (
           <Show
-            user={user}
+            role={role}
+            loading={loading}
             onChangeView={changeView}
             errors={errors}
-            roles={roles}
-            assign={assign}
-            remove={remove}
+            permissions={permissions}
+            allPermissions={allPermissions}
           />
         )
-*/
+
       default:
         return (
           <List data={data} loading={loading} fetchRoles={fetchRoles} onChangeView={changeView} />
@@ -154,4 +120,4 @@ const Role = () => {
   return <div>{renderView()}</div>
 }
 
-export default Role
+export default Roles

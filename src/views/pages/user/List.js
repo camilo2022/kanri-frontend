@@ -278,6 +278,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
         <CButton
           variant="outline"
           className="me-2 font-poppins btn-primary-dark"
+          disabled={!user_active?.permissions.some((p) => p.name === 'users.store')}
           onClick={() => onChangeView({ name: 'create', title: 'Crear Usuario', usuario: null })}
         >
           <CirclePlus /> Agregar Usuario
@@ -340,43 +341,43 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
           </div>
         </CCol>
 
-        <CCol xs={12} md={8} className="d-flex justify-content-md-end mt-md-0 font-poppins">
-          <CPagination size="sm" aria-label="Navegación de páginas" className="mt-2">
+        <CCol xs={12} md={8} className="d-flex justify-content-md-end mt-2 mt-md-0 font-poppins">
+          <CPagination size="sm" aria-label="Navegación de páginas">
             <CPaginationItem
               disabled={currentPage === 1}
-              onClick={() => setParams({ ...params, page: 1 })}
+              onClick={() => setParams((prev) => ({ ...prev, page: 1 }))}
             >
-              <ChevronsLeft size={13} />
+              <ChevronsLeft size={14} />
+            </CPaginationItem>
+            <CPaginationItem
+              disabled={currentPage === 1}
+              onClick={() => setParams((prev) => ({ ...prev, page: prev.page - 1 }))}
+            >
+              <ChevronLeft size={14} />
             </CPaginationItem>
             {start > 1 && <CPaginationItem disabled>...</CPaginationItem>}
-            <CPaginationItem
-              disabled={currentPage === 1}
-              onClick={() => setParams({ ...params, page: currentPage - 1 })}
-            >
-              <ChevronLeft size={13} />
-            </CPaginationItem>
-            {pages.map((page) => (
+            {pages.map((p) => (
               <CPaginationItem
-                key={page}
-                active={page === currentPage}
-                onClick={() => setParams({ ...params, page })}
-                style={{ cursor: 'pointer', fontSize: '10px' }}
+                key={p}
+                active={p === currentPage}
+                onClick={() => setParams((prev) => ({ ...prev, page: p }))}
+                style={{ cursor: 'pointer' }}
               >
-                {page}
+                {p}
               </CPaginationItem>
             ))}
-            <CPaginationItem
-              disabled={currentPage === totalPages}
-              onClick={() => setParams({ ...params, page: currentPage + 1 })}
-            >
-              <ChevronRight size={13} />
-            </CPaginationItem>
             {end < totalPages && <CPaginationItem disabled>...</CPaginationItem>}
             <CPaginationItem
               disabled={currentPage === totalPages}
-              onClick={() => setParams({ ...params, page: totalPages })}
+              onClick={() => setParams((prev) => ({ ...prev, page: prev.page + 1 }))}
             >
-              <ChevronsRight size={13} />
+              <ChevronRight size={14} />
+            </CPaginationItem>
+            <CPaginationItem
+              disabled={currentPage === totalPages}
+              onClick={() => setParams((prev) => ({ ...prev, page: totalPages }))}
+            >
+              <ChevronsRight size={14} />
             </CPaginationItem>
           </CPagination>
         </CCol>

@@ -10,7 +10,7 @@ import {
   CInputGroup,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { UserRound, Mail, Lock, Save, ArrowLeftCircle, BadgeCheck, BadgeAlert } from 'lucide-react'
+import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 
@@ -84,7 +84,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <UserRound size={15} /> Nombre
+            <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
@@ -113,7 +113,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
         </CCol>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <Mail size={15} /> Título
+            <TextInitial size={15} /> Título
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
@@ -142,7 +142,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
         </CCol>
         <CCol md={12} className="mb-4">
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <Lock size={15} /> Descripción
+            <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CInputGroup>

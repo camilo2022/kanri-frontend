@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { API_URL } from '../../base'
-import { getConfig } from '../../axiosConfig'
+import { API_URL } from '../base'
+import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {
-    const response = await axios.get(`${API_URL}/authorization/permissions/all`, {
+    const response = await axios.get(`${API_URL}/navegation/modules/all`, {
       ...getConfig(),
       params: params,
     })
@@ -19,11 +19,7 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await axios.post(
-      `${API_URL}/authorization/permissions/store`,
-      data,
-      getConfig(),
-    )
+    const response = await axios.post(`${API_URL}/navegation/modules/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -36,7 +32,7 @@ const store = async (data) => {
 const update = async (id, data) => {
   try {
     const response = await axios.put(
-      `${API_URL}/authorization/permissions/update/${id}`,
+      `${API_URL}/navegation/modules/update/${id}`,
       data,
       getConfig(),
     )
@@ -51,7 +47,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await axios.get(`${API_URL}/authorization/permissions/find/${id}`, getConfig())
+    const response = await axios.get(`${API_URL}/navegation/modules/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -61,11 +57,11 @@ const find = async (id) => {
   }
 }
 
-const PermissionService = {
+const ModuleService = {
   all,
   store,
   update,
   find,
 }
 
-export default PermissionService
+export default ModuleService

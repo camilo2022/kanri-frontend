@@ -26,13 +26,16 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
+  Boxes,
+  CirclePile,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
+import * as FaIcons from 'react-icons/fa'
 
-export const List = ({ data, loading, fetchRoles, onChangeView }) => {
+export const List = ({ data, loading, fetchModules, onChangeView }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -46,45 +49,92 @@ export const List = ({ data, loading, fetchRoles, onChangeView }) => {
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchRoles(currentParams)
+      fetchModules(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
   }, [searchInput, params.page, params.per_page, params.column, params.dir])
 
-  const formattedData = data?.roles?.map((rol) => ({
-    ...rol,
-    acciones: (
-      <div className="d-flex gap-2 justify-content-center">
-        <CTooltip content="Visualizar" placement="top">
-          <button
-            className="action-btn show-btn"
-            disabled={
-              !!rol.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.roles.find') ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.permissions.all')
-            }
-            onClick={() => onChangeView({ name: 'show', title: 'Ver Rol', role: rol })}
-          >
-            <Eye size={18} strokeWidth={1.5} />
-          </button>
-        </CTooltip>
-        <CTooltip content="Editar" placement="top">
-          <button
-            className="action-btn edit-btn"
-            disabled={
-              !!rol.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.roles.find') ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.roles.update')
-            }
-            onClick={() => onChangeView({ name: 'edit', title: 'Editar Rol', rol: rol })}
-          >
-            <Pencil size={18} strokeWidth={1.5} />
-          </button>
-        </CTooltip>
-      </div>
-    ),
-  }))
+  const formattedData = data?.modules?.map((modulo) => {
+    const icon = modulo.icon
+    const IconComponent = (icon && FaIcons[icon]) || FaIcons.FaRegCircle
+    console.log(modulo)
+    return {
+      ...modulo,
+      icono: (
+        <>
+          {IconComponent ? (
+            <span className="nav-icon">
+              <IconComponent />
+            </span>
+          ) : (
+            <span className="nav-icon">
+              <span className="nav-icon-bullet"></span>
+            </span>
+          )}
+        </>
+      ),
+      acciones: (
+        <div className="d-flex gap-2 justify-content-center">
+          <CTooltip content="Editar" placement="top">
+            <button
+              className="action-btn edit-btn"
+              disabled={
+                !!modulo.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.modules.find') ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.modules.update')
+              }
+              onClick={() => onChangeView({ name: 'edit', title: 'Editar Módulo', module: modulo })}
+            >
+              <Pencil size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          <CTooltip content="Visualizar" placement="top">
+            <button
+              className="action-btn permisos-btn"
+              disabled={
+                !!modulo.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.all') ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.find') ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.store') ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.update') ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.delete') ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.restore')
+              }
+              onClick={() => onChangeView({ name: 'show', title: 'Ver Módulo', module: modulo })}
+            >
+              <Boxes size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          {modulo.deleted_at === null ? (
+            <CTooltip content="Desactivar" placement="top">
+              <button
+                className="action-btn delete-btn"
+                disabled={
+                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.delete')
+                }
+                onClick={() => handleConfirmDelete(user)}
+              >
+                <Trash2 size={18} strokeWidth={1.5} />
+              </button>
+            </CTooltip>
+          ) : (
+            <CTooltip content="Activar" placement="top">
+              <button
+                className="action-btn restore-btn"
+                disabled={
+                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.restore')
+                }
+                onClick={() => handleConfirmRestore(user)}
+              >
+                <RotateCcw size={18} strokeWidth={1.5} />
+              </button>
+            </CTooltip>
+          )}
+        </div>
+      ),
+    }
+  })
 
   const handleSort = (column) => {
     setParams((prev) => ({
@@ -116,24 +166,8 @@ export const List = ({ data, loading, fetchRoles, onChangeView }) => {
       ),
     },
     {
-      key: 'title',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('title')}>
-          Titulo{' '}
-          {params.column === 'title' &&
-            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
-    },
-    {
-      key: 'description',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
-          Descripción{' '}
-          {params.column === 'description' &&
-            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
+      key: 'icono',
+      label: <div className="sortable-header text-center">Icono</div>,
     },
     {
       key: 'acciones',
@@ -170,13 +204,13 @@ export const List = ({ data, loading, fetchRoles, onChangeView }) => {
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Roles</span>
+          <span className="fw-bold fs-5 font-montserrat">Módulos</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar rol..."
+              placeholder="Buscar módulo..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -184,10 +218,10 @@ export const List = ({ data, loading, fetchRoles, onChangeView }) => {
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'authorization.roles.store')}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Rol' })}
+            disabled={!user_active?.permissions.some((p) => p.name === 'navegation.modules.store')}
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Módulo' })}
           >
-            <CirclePlus /> Agregar Rol
+            <CirclePlus /> Agregar Módulo
           </CButton>
         </div>
 
@@ -206,7 +240,7 @@ export const List = ({ data, loading, fetchRoles, onChangeView }) => {
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Cargando...</span>
                   </div>
-                  <p className="mt-2 font-poppins">Buscando Roles...</p>
+                  <p className="mt-2 font-poppins">Buscando Módulos...</p>
                 </td>
               </tr>
             ) : formattedData?.length > 0 ? (

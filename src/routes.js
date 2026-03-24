@@ -18,7 +18,9 @@ import React, { useState } from 'react'
 // Dashboard
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const User = React.lazy(() => import('./views/pages/Users'))
-const Roles = React.lazy(() => import('./views/pages/Role'))
+const Roles = React.lazy(() => import('./views/pages/Roles'))
+const Permissions = React.lazy(() => import('./views/pages/Permissions'))
+const Modules = React.lazy(() => import('./views/pages/Modules'))
 
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
@@ -92,6 +94,9 @@ const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/users', name: 'Usuarios', element: User },
   { path: '/roles', name: 'Roles', element: Roles },
+  { path: '/permissions', name: 'Permisos', element: Permissions },
+  { path: '/modules', name: 'Módulos', element: Modules },
+
   /*{ path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },
   { path: '/base', name: 'Base', element: Cards, exact: true },
