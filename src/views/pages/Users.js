@@ -23,7 +23,9 @@ const Users = () => {
     }
     setLoading(true)
     setUser('')
-    dispatch({ type: 'set', action: 'Listar Usuarios' })
+    if (view.name === 'list') {
+      dispatch({ type: 'set', action: 'Listar Usuarios' })
+    }
   }, [view])
 
   const changeView = (newView) => {
@@ -79,8 +81,6 @@ const Users = () => {
   const deleteUser = async (id) => {
     try {
       const response = await UserService.delete_user(id)
-      const users = await UserService.all()
-      setData(users.data)
       return response
     } catch (error) {
       throw error
@@ -90,8 +90,6 @@ const Users = () => {
   const restore = async (id) => {
     try {
       const response = await UserService.restore(id)
-      const users = await UserService.all()
-      setData(users.data)
       return response
     } catch (error) {
       throw error

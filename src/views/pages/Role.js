@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import RoleService from '../../features/authorization/roles.service'
-import List from './authorization/List'
-import Edit from './authorization/Edit'
-import Create from './authorization/Create'
+import PermissionService from '../../features/authorization/permissions.service'
+import List from './role/List'
+import Edit from './role/Edit'
+import Create from './role/Create'
 
-const Authorization = () => {
+const Role = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Roles' })
   const [data, setData] = useState({})
-  const [roles, setRoles] = useState({})
-  const [user, setUser] = useState()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
@@ -22,17 +21,19 @@ const Authorization = () => {
     }*/
     setLoading(true)
     //setUser('')
-    dispatch({ type: 'set', action: 'Listar Roles' })
+    if (view.name === 'list') {
+      dispatch({ type: 'set', action: 'Listar Roles' })
+    }
   }, [view])
 
   const changeView = (newView) => {
+    console.log('Estos en el new', newView)
     setErrors({})
-    setView(newView)
     dispatch({ type: 'set', action: newView.title })
+    setView(newView)
   }
 
   const fetchRoles = async (params) => {
-    console.log(params)
     try {
       const response = await RoleService.all(params)
       setData(response.data)
@@ -42,6 +43,18 @@ const Authorization = () => {
       setLoading(false)
     }
   }
+
+  const fetchPermissions = async (params) => {
+    try {
+      const response = await PermissionService.all(params)
+      setData(response.data)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const createRole = async (data) => {
     try {
       const response = await RoleService.store(data)
@@ -108,27 +121,6 @@ const Authorization = () => {
       setLoading(false)
     }
   }
-
-  const assign = async (id, permission_id) => {
-    try {
-      const response = await UserService.assign(id, permission_id)
-      setUser(response.data.user)
-      return response
-    } catch (error) {
-      setErrors(error.error)
-      throw error
-    }
-  }
-
-  const remove = async (id, permission_id) => {
-    try {
-      const response = await UserService.remove(id, permission_id)
-      setUser(response.data.user)
-      return response
-    } catch (error) {
-      throw error
-    }
-  }
 */
   const renderView = () => {
     switch (view.name) {
@@ -154,7 +146,7 @@ const Authorization = () => {
 */
       default:
         return (
-          <List data={data} loading={loading} fetchUsers={fetchRoles} onChangeView={changeView} />
+          <List data={data} loading={loading} fetchRoles={fetchRoles} onChangeView={changeView} />
         )
     }
   }
@@ -162,4 +154,4 @@ const Authorization = () => {
   return <div>{renderView()}</div>
 }
 
-export default Authorization
+export default Role

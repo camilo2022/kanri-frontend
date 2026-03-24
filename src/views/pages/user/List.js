@@ -21,6 +21,10 @@ import {
   ChevronUp,
   ChevronDown,
   CirclePlus,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -40,7 +44,6 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      console.log(params)
       const currentParams = { ...params, search: searchInput }
       fetchUsers(currentParams)
     }, 500)
@@ -75,6 +78,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
       if (result.isConfirmed) {
         try {
           await deleteUser(user.id)
+          fetchUsers(params)
         } catch (error) {
           console.error(error)
         }
@@ -113,6 +117,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
       if (result.isConfirmed) {
         try {
           restore(user.id)
+          fetchUsers(params)
         } catch (error) {
           console.error(error)
         }
@@ -231,6 +236,30 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     },
   ]
 
+  const totalPages = data?.meta?.pagination?.total_pages || 1
+  const currentPage = params.page
+
+  const getPages = () => {
+    const pages = []
+    const maxVisible = 5
+
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+    let end = start + maxVisible - 1
+
+    if (end > totalPages) {
+      end = totalPages
+      start = Math.max(1, end - maxVisible + 1)
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+
+    return { pages, start, end }
+  }
+
+  const { pages, start, end } = getPages()
+
   return (
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
@@ -312,23 +341,42 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
         </CCol>
 
         <CCol xs={12} md={8} className="d-flex justify-content-md-end mt-md-0 font-poppins">
-          <CPagination aria-label="Navegación de páginas" className="mt-2">
+          <CPagination size="sm" aria-label="Navegación de páginas" className="mt-2">
             <CPaginationItem
-              disabled={params.page === 1}
-              onClick={() => setParams({ ...params, page: params.page - 1 })}
-              style={{ cursor: 'pointer' }}
+              disabled={currentPage === 1}
+              onClick={() => setParams({ ...params, page: 1 })}
             >
-              <span aria-hidden="true">&laquo;</span>
+              <ChevronsLeft size={13} />
             </CPaginationItem>
-            <CPaginationItem style={{ background: '#24247F', color: 'white' }}>
-              {params.page}
-            </CPaginationItem>
+            {start > 1 && <CPaginationItem disabled>...</CPaginationItem>}
             <CPaginationItem
-              disabled={data?.meta?.pagination?.total_pages === params.page}
-              onClick={() => setParams({ ...params, page: params.page + 1 })}
-              style={{ cursor: 'pointer' }}
+              disabled={currentPage === 1}
+              onClick={() => setParams({ ...params, page: currentPage - 1 })}
             >
-              <span aria-hidden="true">&raquo;</span>
+              <ChevronLeft size={13} />
+            </CPaginationItem>
+            {pages.map((page) => (
+              <CPaginationItem
+                key={page}
+                active={page === currentPage}
+                onClick={() => setParams({ ...params, page })}
+                style={{ cursor: 'pointer', fontSize: '10px' }}
+              >
+                {page}
+              </CPaginationItem>
+            ))}
+            <CPaginationItem
+              disabled={currentPage === totalPages}
+              onClick={() => setParams({ ...params, page: currentPage + 1 })}
+            >
+              <ChevronRight size={13} />
+            </CPaginationItem>
+            {end < totalPages && <CPaginationItem disabled>...</CPaginationItem>}
+            <CPaginationItem
+              disabled={currentPage === totalPages}
+              onClick={() => setParams({ ...params, page: totalPages })}
+            >
+              <ChevronsRight size={13} />
             </CPaginationItem>
           </CPagination>
         </CCol>
