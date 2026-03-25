@@ -57,11 +57,41 @@ const find = async (id) => {
   }
 }
 
+const delete_module = async (id) => {
+  try {
+    const response = await axios.delete(`${API_URL}/navegation/modules/delete/${id}`, getConfig())
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
+const restore = async (id) => {
+  try {
+    const response = await axios.patch(
+      `${API_URL}/navegation/modules/restore/${id}`,
+      {},
+      getConfig(),
+    )
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const ModuleService = {
   all,
   store,
   update,
   find,
+  delete_module,
+  restore,
 }
 
 export default ModuleService

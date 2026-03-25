@@ -22,6 +22,8 @@ import {
   TextInitial,
   CirclePile,
   Search,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
@@ -30,6 +32,8 @@ import * as FaIcons from 'react-icons/fa'
 const Create = ({ onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const iconsPerPage = 80
   const [formData, setFormData] = useState({
     name: '',
     icon: '',
@@ -87,15 +91,20 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     }))
   }
 
-  const iconList = Object.keys(FaIcons)
-    .filter((iconName) => iconName.toLowerCase().includes(searchTerm.toLowerCase()))
-    .slice(0, 50)
+  const filteredIcons = Object.keys(FaIcons).filter((iconName) =>
+    iconName.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
-  const selectIcon = (iconName) => {
-    setFormData({ ...formData, icon: iconName })
+  const indexOfLastIcon = currentPage * iconsPerPage
+  const indexOfFirstIcon = indexOfLastIcon - iconsPerPage
+  const currentIcons = filteredIcons.slice(indexOfFirstIcon, indexOfLastIcon)
+
+  const totalPages = Math.ceil(filteredIcons.length / iconsPerPage)
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
   }
-
-  const SelectedIcon = formData.icon ? FaIcons[formData.icon] : null
 
   return (
     <CCard className="mb-4 p-4 shadow-sm border-0">
@@ -139,19 +148,35 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             Icono
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
-          <CDropdown className="w-100">
-            <CInputGroup>
-              <CInputGroupText className="bg-white">
-                {SelectedIcon ? (
-                  <SelectedIcon size={20} className="text-primary" />
+          <CDropdown className="w-100" autoClose="outside">
+            <CInputGroup
+              className={`${errors?.icon ? 'is-invalid' : ''}
+                          ${!errors?.icon && formData.icon && validated ? 'is-valid' : ''}`}
+            >
+              <CInputGroupText
+                className={`
+                  bg-white
+                  ${errors?.icon ? 'border-danger text-danger' : ''}
+                  ${!errors?.icon && formData.icon && validated ? 'border-success text-success' : ''}
+                `}
+              >
+                {formData.icon ? (
+                  (() => {
+                    const Icon = FaIcons[formData.icon]
+                    return <Icon size={20} className="text-primary" />
+                  })()
                 ) : (
-                  <Search size={18} />
+                  <Search size={18} className="text-muted" />
                 )}
               </CInputGroupText>
 
               <CDropdownToggle
                 caret={false}
-                className="form-control text-start font-montserrat d-flex align-items-center justify-content-between"
+                className={`
+                  form-control text-start font-montserrat d-flex align-items-center justify-content-between
+                  ${errors?.icon ? 'is-invalid' : ''}
+                  ${!errors?.icon && formData.icon && validated ? 'is-valid' : ''}
+                `}
                 variant="outline"
               >
                 {formData.icon || 'Selecciona un icono...'}
@@ -163,42 +188,83 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
               style={{ maxHeight: '300px', overflowY: 'auto' }}
             >
               <CFormInput
-                placeholder="Buscar icono..."
-                className="mb-3 sticky-top"
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Escribe para filtrar (ej: home, user...)"
+                className="mb-3 sticky-top shadow-sm"
+                value={searchTerm}
+                onChange={handleSearch}
+                onClick={(e) => e.stopPropagation()}
               />
-              <div className="d-flex flex-wrap gap-2 justify-content-center">
-                {iconList.map((iconName) => {
-                  const IconComponent = FaIcons[iconName]
-                  return (
-                    <CButton
-                      key={iconName}
-                      variant="ghost"
-                      className={`p-2 rounded-2 ${formData.icon === iconName ? 'bg-primary text-white' : 'text-secondary'}`}
-                      title={iconName}
-                      onClick={() => selectIcon(iconName)}
-                    >
-                      <IconComponent size={22} />
-                    </CButton>
-                  )
-                })}
+              <div
+                className="d-flex flex-wrap gap-2 justify-content-center mb-3"
+                style={{ minHeight: '150px' }}
+              >
+                {currentIcons.length > 0 ? (
+                  currentIcons.map((iconName) => {
+                    const IconComponent = FaIcons[iconName]
+                    return (
+                      <CButton
+                        key={iconName}
+                        variant="ghost"
+                        className={`p-2 rounded-3 ${formData.icon === iconName ? 'bg-primary text-white' : 'btn-light'}`}
+                        title={iconName}
+                        onClick={() => setFormData({ ...formData, icon: iconName })}
+                      >
+                        <IconComponent size={22} />
+                      </CButton>
+                    )
+                  })
+                ) : (
+                  <div className="text-muted small p-4">No se encontraron iconos.</div>
+                )}
               </div>
+              {totalPages > 1 && (
+                <div
+                  className="d-flex align-items-center justify-content-between border-top pt-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <CButton
+                    size="sm"
+                    variant="ghost"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    <ChevronsLeft size={16} />
+                  </CButton>
+
+                  <span className="text-muted small font-poppins">
+                    Pág. <strong>{currentPage}</strong> de {totalPages}
+                  </span>
+
+                  <CButton
+                    size="sm"
+                    variant="ghost"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    <ChevronsRight size={16} />
+                  </CButton>
+                </div>
+              )}
             </CDropdownMenu>
           </CDropdown>
-          <CFormFeedback invalid>
-            {errors?.title?.map((error, index) => (
-              <div key={index} className="d-flex align-items-center gap-1">
-                <BadgeAlert size={13} />
-                <small className="font-inter">{error}</small>
-              </div>
-            ))}
-          </CFormFeedback>
-          <CFormFeedback valid>
-            <div className="d-flex align-items-center gap-1">
-              <BadgeCheck size={13} />
-              <small className="font-inter">Dato Válido</small>
+          {errors?.icon && (
+            <div className="invalid-feedback d-block">
+              {errors.icon.map((error, index) => (
+                <div key={index} className="d-flex align-items-center gap-1">
+                  <BadgeAlert size={13} />
+                  <small className="font-inter">{error}</small>
+                </div>
+              ))}
             </div>
-          </CFormFeedback>
+          )}
+          {!errors?.icon && formData.icon && validated && (
+            <div className="valid-feedback d-block">
+              <div className="d-flex align-items-center gap-1">
+                <BadgeCheck size={13} />
+                <small className="font-inter">Dato válido</small>
+              </div>
+            </div>
+          )}
         </CCol>
         <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
           <CButton

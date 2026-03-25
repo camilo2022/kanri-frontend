@@ -12,9 +12,9 @@ import {
   CDropdown,
   CDropdownToggle,
   CDropdownMenu,
+  CFormSelect,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { useEffect } from 'react'
 import {
   Save,
   ArrowLeftCircle,
@@ -25,12 +25,13 @@ import {
   Search,
   ChevronsLeft,
   ChevronsRight,
+  Link,
 } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '../../../../components/Toast'
 import Swal from 'sweetalert2'
 import * as FaIcons from 'react-icons/fa'
 
-const Edit = ({ module, onChangeView, onSubmit, errors }) => {
+const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
   const [validated, setValidated] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -38,35 +39,29 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
   const [formData, setFormData] = useState({
     name: '',
     icon: '',
+    url: '',
+    permission_id: '',
+    module_id: moduleId,
   })
-
-  useEffect(() => {
-    if (module) {
-      setFormData({
-        name: module.name || '',
-        icon: module.icon || '',
-      })
-    }
-  }, [module])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Editar Módulo',
+      title: 'Crear Submódulo',
       html: `<div style="font-size:14px">
-              Se guardará la nueva información del módulo en el sistema.<br/>
+              Se guardará la información del submódulo en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, actualizar',
+      confirmButtonText: 'Si, crear',
       cancelButtonText: 'Cancelar',
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(module.id, formData)
+          const response = await onSubmit(formData)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -76,8 +71,10 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
             setFormData({
               name: '',
               icon: '',
+              url: '',
+              permission_id: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Módulos' })
+            onChangeView({ name: 'list', title: 'Listar Submódulos' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -119,12 +116,13 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Editar Módulo</span>
+        <span className="fw-bold fs-5 font-montserrat">Crear Submódulo</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -154,6 +152,7 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <CirclePile size={15} />
             Icono
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CDropdown className="w-100" autoClose="outside">
             <CInputGroup
@@ -189,6 +188,7 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
                 {formData.icon || 'Selecciona un icono...'}
               </CDropdownToggle>
             </CInputGroup>
+
             <CDropdownMenu
               className="w-100 p-3 shadow border-0 rounded-3"
               style={{ maxHeight: '300px', overflowY: 'auto' }}
@@ -272,6 +272,98 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
             </div>
           )}
         </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <Link size={15} />
+            URL
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CFormInput
+            type="text"
+            name="url"
+            value={formData.url}
+            onChange={(e) => {
+              let value = e.target.value
+              value = value.replace(/^\/+/, '')
+              value = '/' + value
+              handleChange({
+                target: {
+                  name: 'url',
+                  value,
+                },
+              })
+            }}
+            invalid={!!errors?.url}
+            valid={!errors?.url && formData.url !== '' && validated}
+            className="font-montserrat"
+          />
+          <CFormFeedback invalid>
+            {errors?.url?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={8}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <CirclePile size={15} />
+            Permiso Asociado
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CInputGroup>
+            <CFormSelect
+              className="font-inter"
+              name="permission_id"
+              value={formData.permission_id}
+              onChange={handleChange}
+              disabled={!Array.isArray(roles)}
+              invalid={!!errors?.permission_id}
+              valid={!errors?.permission_id && formData.permission_id !== '' && validated}
+            >
+              {Array.isArray(roles) ? (
+                <>
+                  <option value="">Seleccione un permiso</option>
+
+                  {roles.map((role) => (
+                    <optgroup key={role.id} label={role.name}>
+                      {role.permissions?.map((perm) => (
+                        <option key={perm.id} value={perm.id}>
+                          {perm.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </>
+              ) : (
+                <option disabled>Cargando roles...</option>
+              )}
+            </CFormSelect>
+            <CFormFeedback invalid>
+              {errors?.permission_id?.map((error, index) => (
+                <div key={index} className="d-flex align-items-center gap-1">
+                  <BadgeAlert size={13} />
+                  <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                    {error}
+                  </small>
+                </div>
+              ))}
+            </CFormFeedback>
+            <CFormFeedback valid>
+              <div className="d-flex align-items-center gap-1">
+                <BadgeCheck size={13} />
+                <small className="font-inter">Dato Válido</small>
+              </div>
+            </CFormFeedback>
+          </CInputGroup>
+        </CCol>
         <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
           <CButton
             className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
@@ -281,7 +373,9 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
           </CButton>
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Roles' })}
+            onClick={() => {
+              onChangeView({ name: 'list', title: 'Listar Módulos' })
+            }}
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>
@@ -291,4 +385,4 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
   )
 }
 
-export default Edit
+export default Create

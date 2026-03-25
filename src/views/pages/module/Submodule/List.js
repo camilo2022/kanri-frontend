@@ -15,27 +15,33 @@ import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
 import {
   Pencil,
-  ShieldCheck,
   Trash2,
   RotateCcw,
   ChevronUp,
   ChevronDown,
   CirclePlus,
-  Eye,
   ChevronsLeft,
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
   Boxes,
-  CirclePile,
+  ArrowLeftCircle,
 } from 'lucide-react'
-import no_data from '../../../assets/images/no-data.png'
+import no_data from '../../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '../../../../components/Toast'
 import { useSelector } from 'react-redux'
 import * as FaIcons from 'react-icons/fa'
 
-export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, restore }) => {
+export const List = ({
+  data,
+  loading,
+  moduleId,
+  fetchSubmodules,
+  onChangeView,
+  deleteSubmodule,
+  restore,
+}) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -49,19 +55,19 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchModules(currentParams)
+      fetchSubmodules(moduleId, currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, params.page, params.per_page, params.column, params.dir])
+  }, [searchInput, moduleId, params.page, params.per_page, params.column, params.dir])
 
-  const handleConfirmDelete = (module) => {
+  const handleConfirmDelete = (submodule) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Módulo</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Submódulo</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar el módulo <strong>${module.name}</strong>.<br/>
+          Estás a punto de desactivar el submódulo <strong>${submodule.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -80,8 +86,8 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteModule(module.id)
-          fetchModules(params)
+          await deleteSubmodule(submodule.id)
+          fetchSubmodules(moduleId, params)
         } catch (error) {
           console.error(error)
         }
@@ -94,12 +100,13 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
     })
   }
 
-  const handleConfirmRestore = (module) => {
+  const handleConfirmRestore = (submodule) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Módulo</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Submódulo</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar el módulo <strong>${module.name}</strong>.<br/>
+          Estás a punto de activar el submódulo <strong>${submodule.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -118,8 +125,8 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(module.id)
-          fetchModules(params)
+          await restore(submodule.id)
+          fetchSubmodules(moduleId, params)
         } catch (error) {
           console.error(error)
         }
@@ -132,11 +139,11 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
     })
   }
 
-  const formattedData = data?.modules?.map((modulo) => {
-    const icon = modulo.icon
+  const formattedData = data?.submodules?.map((submodulo) => {
+    const icon = submodulo.icon
     const IconComponent = (icon && FaIcons[icon]) || FaIcons.FaRegCircle
     return {
-      ...modulo,
+      ...submodulo,
       icono: (
         <>
           {IconComponent ? (
@@ -156,40 +163,25 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
             <button
               className="action-btn edit-btn"
               disabled={
-                !!modulo.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.modules.find') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.modules.update')
+                !!submodulo.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.find') ||
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.update')
               }
-              onClick={() => onChangeView({ name: 'edit', title: 'Editar Módulo', module: modulo })}
+              onClick={() =>
+                onChangeView({ name: 'edit', title: 'Editar Submódulo', submodule: submodulo })
+              }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          <CTooltip content="Visualizar" placement="top">
-            <button
-              className="action-btn permisos-btn"
-              disabled={
-                !!modulo.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.all') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.find') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.store') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.update') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.delete') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.restore')
-              }
-              onClick={() => onChangeView({ name: 'show', title: 'Submódulos', module: modulo })}
-            >
-              <Boxes size={18} strokeWidth={1.5} />
-            </button>
-          </CTooltip>
-          {modulo.deleted_at === null ? (
+          {submodulo.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
                 disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.delete')
+                  !user_active?.permissions.some((p) => p.name === 'navegation.submodules.delete')
                 }
-                onClick={() => handleConfirmDelete(modulo)}
+                onClick={() => handleConfirmDelete(submodulo)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -199,9 +191,9 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
               <button
                 className="action-btn restore-btn"
                 disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.restore')
+                  !user_active?.permissions.some((p) => p.name === 'navegation.submodules.restore')
                 }
-                onClick={() => handleConfirmRestore(modulo)}
+                onClick={() => handleConfirmRestore(submodulo)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -280,7 +272,7 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Módulos</span>
+          <span className="fw-bold fs-5 font-montserrat">Submódulos</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
@@ -291,14 +283,26 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
-          <CButton
-            variant="outline"
-            className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'navegation.modules.store')}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Módulo' })}
-          >
-            <CirclePlus /> Agregar Módulo
-          </CButton>
+          <div className="d-flex">
+            <CButton
+              className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
+              onClick={() => {
+                onChangeView({ name: 'back', title: 'Listar Módulos' })
+              }}
+            >
+              <ArrowLeftCircle size={16} /> Volver
+            </CButton>
+            <CButton
+              variant="outline"
+              className="me-2 font-poppins btn-primary-dark"
+              disabled={
+                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.store')
+              }
+              onClick={() => onChangeView({ name: 'create', title: 'Crear Submódulo' })}
+            >
+              <CirclePlus /> Agregar Submódulo
+            </CButton>
+          </div>
         </div>
 
         <CTable hover responsive align="middle" className="text-center font-inter">
@@ -316,7 +320,7 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Cargando...</span>
                   </div>
-                  <p className="mt-2 font-poppins">Buscando Módulos...</p>
+                  <p className="mt-2 font-poppins">Buscando Submódulos...</p>
                 </td>
               </tr>
             ) : formattedData?.length > 0 ? (

@@ -23,7 +23,7 @@ import { Route, Routes } from 'react-router-dom'
 import { CContainer, CSpinner } from '@coreui/react'
 import { useLocation, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import AuthService from '../features/auth.service'
+import AuthService from '../services/auth.service'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
 
 // routes config

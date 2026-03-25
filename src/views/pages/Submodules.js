@@ -1,32 +1,32 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import PermissionService from '../../services/permissions.service'
+import SubmoduleService from '../../services/submodules.service'
 import RoleService from '../../services/roles.service'
-import List from './permission/List'
-import Create from './permission/Create'
-import Edit from './permission/Edit'
+import Modules from './Modules'
+import List from './module/Submodule/List'
+import Edit from './module/Submodule/Edit'
+import Create from './module/Submodule/Create'
 
-const Permissions = () => {
+const Submodules = ({ module }) => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Permisos' })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Submódulos' })
   const [data, setData] = useState({})
-  const [permission, setPermission] = useState('')
+  const [submodule, setSubmodule] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [roles, setRoles] = useState({})
 
   useEffect(() => {
-    if (view.name === 'create') {
+    if (view.name === 'create' || view.name === 'edit') {
       allRoles()
     }
-    if (view.name === 'edit') {
-      findPermission(view.permission.id)
-      allRoles()
+    if (view.name === 'show' && view.submodule?.id) {
+      findSubmodule(view.submodule.id)
     }
     setLoading(true)
-    setPermission('')
+    setSubmodule('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Permisos' })
+      dispatch({ type: 'set', action: 'Listar Submódulos' })
     }
   }, [view])
 
@@ -36,9 +36,9 @@ const Permissions = () => {
     setView(newView)
   }
 
-  const fetchPermissions = async (params) => {
+  const fetchSubmodules = async (module_id, params) => {
     try {
-      const response = await PermissionService.all(params)
+      const response = await SubmoduleService.all(module_id, params)
       setData(response.data)
     } catch (error) {
       console.log(error)
@@ -47,9 +47,9 @@ const Permissions = () => {
     }
   }
 
-  const createPermission = async (data) => {
+  const createSubmodule = async (data) => {
     try {
-      const response = await PermissionService.store(data)
+      const response = await SubmoduleService.store(data)
       setErrors({})
       return response
     } catch (error) {
@@ -58,9 +58,9 @@ const Permissions = () => {
     }
   }
 
-  const editPermission = async (id, data) => {
+  const editSubmodule = async (module_id, data) => {
     try {
-      const response = await PermissionService.update(id, data)
+      const response = await SubmoduleService.update(module_id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -69,10 +69,28 @@ const Permissions = () => {
     }
   }
 
-  const findPermission = async (id) => {
+  const findSubmodule = async (id) => {
     try {
-      const response = await PermissionService.find(id)
-      setPermission(response.data.permission)
+      const response = await SubmoduleService.find(id)
+      setSubmodule(response.data.submodule)
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const deleteSubmodule = async (id) => {
+    try {
+      const response = await SubmoduleService.delete_submodule(id)
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const restore = async (id) => {
+    try {
+      const response = await SubmoduleService.restore(id)
       return response
     } catch (error) {
       throw error
@@ -98,30 +116,37 @@ const Permissions = () => {
         return (
           <Create
             onChangeView={changeView}
-            onSubmit={createPermission}
+            onSubmit={createSubmodule}
             errors={errors}
             roles={roles}
+            moduleId={module.id}
           />
         )
 
       case 'edit':
         return (
           <Edit
-            roles={roles}
-            permission={permission}
+            submodule={view.submodule}
             onChangeView={changeView}
-            onSubmit={editPermission}
+            onSubmit={editSubmodule}
             errors={errors}
+            roles={roles}
           />
         )
+
+      case 'back':
+        return <Modules />
 
       default:
         return (
           <List
             data={data}
             loading={loading}
-            fetchPermissions={fetchPermissions}
+            moduleId={module.id}
+            fetchSubmodules={fetchSubmodules}
             onChangeView={changeView}
+            deleteSubmodule={deleteSubmodule}
+            restore={restore}
           />
         )
     }
@@ -130,4 +155,4 @@ const Permissions = () => {
   return <div>{renderView()}</div>
 }
 
-export default Permissions
+export default Submodules

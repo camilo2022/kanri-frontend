@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { API_URL } from '../../base'
-import { getConfig } from '../../axiosConfig'
+import { API_URL } from '../base'
+import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {

@@ -1,27 +1,25 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import RoleService from '../../features/authorization/roles.service'
-import PermissionService from '../../features/authorization/permissions.service'
-import ModuleService from '../../features/modules.service'
+import ModuleService from '../../services/modules.service'
 import List from './module/List'
 import Edit from './module/Edit'
 import Create from './module/Create'
+import Submodules from './Submodules'
 
 const Modules = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Módulos' })
   const [data, setData] = useState({})
-  const [role, setRole] = useState('')
-  const [permissions, setPermissions] = useState({})
+  const [module, setModule] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (view.name === 'show' && view.role?.id) {
-      findRole(view.role.id)
+    if (view.name === 'show' && view.module?.id) {
+      findModule(view.module.id)
     }
     setLoading(true)
-    setRole('')
+    setModule('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Módulos' })
     }
@@ -55,9 +53,9 @@ const Modules = () => {
     }
   }
 
-  const editRole = async (id, data) => {
+  const editModule = async (id, data) => {
     try {
-      const response = await RoleService.update(id, data)
+      const response = await ModuleService.update(id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -66,25 +64,31 @@ const Modules = () => {
     }
   }
 
-  const findRole = async (id) => {
+  const findModule = async (id) => {
     try {
-      const response = await RoleService.find(id)
-      setRole(response.data.role)
+      const response = await ModuleService.find(id)
+      setModule(response.data.module)
       return response
     } catch (error) {
       throw error
     }
   }
 
-  const allPermissions = async (params) => {
-    setLoading(true)
+  const deleteModule = async (id) => {
     try {
-      const response = await PermissionService.all(params)
-      setPermissions(response.data)
+      const response = await ModuleService.delete_module(id)
+      return response
     } catch (error) {
-      setErrors(error.error)
-    } finally {
-      setLoading(false)
+      throw error
+    }
+  }
+
+  const restore = async (id) => {
+    try {
+      const response = await ModuleService.restore(id)
+      return response
+    } catch (error) {
+      throw error
     }
   }
 
@@ -95,20 +99,16 @@ const Modules = () => {
 
       case 'edit':
         return (
-          <Edit role={view.rol} onChangeView={changeView} onSubmit={editRole} errors={errors} />
+          <Edit
+            module={view.module}
+            onChangeView={changeView}
+            onSubmit={editModule}
+            errors={errors}
+          />
         )
 
       case 'show':
-        return (
-          <Show
-            role={role}
-            loading={loading}
-            onChangeView={changeView}
-            errors={errors}
-            permissions={permissions}
-            allPermissions={allPermissions}
-          />
-        )
+        return <Submodules module={module} />
 
       default:
         return (
@@ -117,6 +117,8 @@ const Modules = () => {
             loading={loading}
             fetchModules={fetchModules}
             onChangeView={changeView}
+            deleteModule={deleteModule}
+            restore={restore}
           />
         )
     }

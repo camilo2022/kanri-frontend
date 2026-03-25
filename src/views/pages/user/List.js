@@ -116,7 +116,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          restore(user.id)
+          await restore(user.id)
           fetchUsers(params)
         } catch (error) {
           console.error(error)
@@ -132,6 +132,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
 
   const formattedData = data?.users?.map((user) => ({
     ...user,
+    name: `${user?.employee?.person?.names || ''} ${user?.employee?.person?.last_names || ''}`,
     acciones: (
       <div className="d-flex gap-2 justify-content-center">
         <CTooltip content="Editar" placement="top">

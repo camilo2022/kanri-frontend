@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CButton, CCol, CForm, CFormInput, CInputGroup, CInputGroupText, CRow } from '@coreui/react'
-import AuthService from '../../features/auth.service'
+import AuthService from '../../services/auth.service'
 import { useFormik } from 'formik'
 import { Toast } from '../../components/Toast'
 import { IoMdEye, IoMdEyeOff } from 'react-icons/io'

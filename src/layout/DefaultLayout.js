@@ -30,7 +30,7 @@ import {
   CCardTitle,
   CSpinner,
 } from '@coreui/react'
-import AuthService from '../features/auth.service'
+import AuthService from '../services/auth.service'
 
 /**
  * DefaultLayout functional component

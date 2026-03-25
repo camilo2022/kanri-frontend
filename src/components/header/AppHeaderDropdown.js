@@ -31,7 +31,7 @@ const AppHeaderDropdown = () => {
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
         <div className="d-flex align-items-center">
           <div className="d-flex flex-column text-end me-2 lh-1">
-            <span className="fw-semibold font-poppins">{user?.name}</span>
+            <span className="fw-semibold font-poppins">{user?.employee?.person.names}  {user?.employee?.person.last_names}</span>
             <small className="text-medium-emphasis font-inter">{user?.email}</small>
           </div>
           <CAvatar style={{ background: '#24247F' }} size="md">

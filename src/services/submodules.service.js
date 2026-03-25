@@ -2,9 +2,10 @@ import axios from 'axios'
 import { API_URL } from '../base'
 import { getConfig } from '../axiosConfig'
 
-const all = async (params) => {
+const all = async (module_id, params) => {
   try {
-    const response = await axios.get(`${API_URL}/users/all`, {
+    console.log(module_id)
+    const response = await axios.get(`${API_URL}/navegation/modules/submodules/all/${module_id}`, {
       ...getConfig(),
       params: params,
     })
@@ -19,7 +20,11 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await axios.post(`${API_URL}/users/store`, data, getConfig())
+    const response = await axios.post(
+      `${API_URL}/navegation/modules/submodules/store`,
+      data,
+      getConfig(),
+    )
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -31,7 +36,11 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await axios.put(`${API_URL}/users/update/${id}`, data, getConfig())
+    const response = await axios.put(
+      `${API_URL}/navegation/modules/submodules/update/${id}`,
+      data,
+      getConfig(),
+    )
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -43,7 +52,10 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await axios.get(`${API_URL}/users/find/${id}`, getConfig())
+    const response = await axios.get(
+      `${API_URL}/navegation/modules/submodules/find/${id}`,
+      getConfig(),
+    )
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -53,9 +65,12 @@ const find = async (id) => {
   }
 }
 
-const delete_user = async (id) => {
+const delete_submodule = async (id) => {
   try {
-    const response = await axios.delete(`${API_URL}/users/delete/${id}`, getConfig())
+    const response = await axios.delete(
+      `${API_URL}/navegation/modules/submodules/delete/${id}`,
+      getConfig(),
+    )
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -67,21 +82,9 @@ const delete_user = async (id) => {
 
 const restore = async (id) => {
   try {
-    const response = await axios.patch(`${API_URL}/users/restore/${id}`, {}, getConfig())
-    return response.data
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw error.response.data
-    }
-    throw { message: 'Error desconocido' }
-  }
-}
-
-const assign = async (id, permission_id) => {
-  try {
-    const response = await axios.post(
-      `${API_URL}/users/authorization/assign/${id}`,
-      { permission_id },
+    const response = await axios.patch(
+      `${API_URL}/navegation/modules/restore/${id}`,
+      {},
       getConfig(),
     )
     return response.data
@@ -93,31 +96,13 @@ const assign = async (id, permission_id) => {
   }
 }
 
-const remove = async (id, permission_id) => {
-  try {
-    const response = await axios.post(
-      `${API_URL}/users/authorization/remove/${id}`,
-      { permission_id },
-      getConfig(),
-    )
-    return response.data
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw error.response.data
-    }
-    throw { message: 'Error desconocido' }
-  }
-}
-
-const UserService = {
+const SubmoduleService = {
   all,
   store,
   update,
   find,
-  assign,
-  remove,
-  delete_user,
+  delete_submodule,
   restore,
 }
 
-export default UserService
+export default SubmoduleService
