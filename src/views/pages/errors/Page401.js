@@ -1,7 +1,4 @@
-import React from 'react'
-import { CButton, CCard, CCardBody, CCardImage, CCardText, CCardTitle } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilMagnifyingGlass } from '@coreui/icons'
+import { CButton, CCard, CCardBody, CCardText, CCardTitle } from '@coreui/react'
 
 const Page401 = () => {
   return (

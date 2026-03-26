@@ -29,7 +29,6 @@ import {
 import { Toast } from '../../../components/Toast'
 
 const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {
-  console.log('Estos son los errores', errors)
   const [params, setParams] = useState({
     search: '',
     per_page: 10,
@@ -37,17 +36,8 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
     column: 'id',
     dir: 'asc',
   })
-  const [searchInput, setSearchInput] = useState('')
-  const [selectedRole, setSelectedRole] = useState(null)
-  const [visibleRole, setVisibleRole] = useState(null)
-  const allPermsInRole = roles.permissions || []
-  console.log(roles)
-  const areAllActive =
-    allPermsInRole.length > 0 &&
-    allPermsInRole.every((p) => user?.permissions?.some((up) => up.id === p.id))
 
-  const areSomeActive =
-    allPermsInRole.some((p) => user?.permissions?.some((up) => up.id === p.id)) && !areAllActive
+  const [visibleRole, setVisibleRole] = useState(null)
 
   const toggleRole = (roleId) => {
     setVisibleRole(visibleRole === roleId ? null : roleId)
@@ -89,7 +79,7 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
                 <CFormInput
                   type="text"
                   name="name"
-                  value={user?.name || ''}
+                  value={`${user?.employee?.person?.names || ''} ${user?.employee?.person?.last_names || ''} | ${user?.employee?.person?.document || ''} | ${user?.employee?.position?.name || ''}`}
                   disabled
                   className="font-montserrat"
                 />
@@ -173,9 +163,8 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
                                 <th style={{ width: '35%' }}>Descripción</th>
                                 <th style={{ width: '2%' }} className="text-center">
                                   <div className="d-flex gap-2 align-items-center justify-content-center">
-                                    Estado
                                     <div className="d-flex flex-column align-items-center justify-content-center">
-                                      <CFormCheck
+                                      <CFormSwitch
                                         id={`check-all-${role.id}`}
                                         style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
                                         checked={role.permissions.every((p) =>
@@ -194,7 +183,6 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
                                               (p) =>
                                                 !user?.permissions?.some((up) => up.id === p.id),
                                             )
-
                                             missingPermissions.forEach((permission) => {
                                               assign(user.id, permission.id)
                                             })

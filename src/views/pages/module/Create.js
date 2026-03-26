@@ -56,7 +56,6 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          console.log(formData)
           const response = await onSubmit(formData)
           setValidated(true)
           Toast.fire({

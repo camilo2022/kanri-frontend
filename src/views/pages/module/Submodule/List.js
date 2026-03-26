@@ -41,6 +41,7 @@ export const List = ({
   onChangeView,
   deleteSubmodule,
   restore,
+  errors,
 }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
@@ -60,6 +61,15 @@ export const List = ({
 
     return () => clearTimeout(handler)
   }, [searchInput, moduleId, params.page, params.per_page, params.column, params.dir])
+
+  useEffect(() => {
+    if (Object.keys(errors).length !== 0) {
+      Toast.fire({
+        icon: 'error',
+        title: errors.message,
+      })
+    }
+  }, [errors])
 
   const handleConfirmDelete = (submodule) => {
     Swal.fire({
@@ -164,8 +174,12 @@ export const List = ({
               className="action-btn edit-btn"
               disabled={
                 !!submodulo.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.find') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.update')
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.find',
+                ) ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.update',
+                )
               }
               onClick={() =>
                 onChangeView({ name: 'edit', title: 'Editar Submódulo', submodule: submodulo })
@@ -179,7 +193,9 @@ export const List = ({
               <button
                 className="action-btn delete-btn"
                 disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.submodules.delete')
+                  !user_active?.permissions.some(
+                    (p) => p.name === 'navegation.modules.submodules.delete',
+                  )
                 }
                 onClick={() => handleConfirmDelete(submodulo)}
               >
@@ -191,7 +207,9 @@ export const List = ({
               <button
                 className="action-btn restore-btn"
                 disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.submodules.restore')
+                  !user_active?.permissions.some(
+                    (p) => p.name === 'navegation.modules.submodules.restore',
+                  )
                 }
                 onClick={() => handleConfirmRestore(submodulo)}
               >
@@ -296,7 +314,9 @@ export const List = ({
               variant="outline"
               className="me-2 font-poppins btn-primary-dark"
               disabled={
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.store')
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.store',
+                )
               }
               onClick={() => onChangeView({ name: 'create', title: 'Crear Submódulo' })}
             >

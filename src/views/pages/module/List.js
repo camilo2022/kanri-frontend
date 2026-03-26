@@ -35,7 +35,16 @@ import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
 import * as FaIcons from 'react-icons/fa'
 
-export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, restore }) => {
+export const List = ({
+  data,
+  loading,
+  fetchModules,
+  onChangeView,
+  deleteModule,
+  restore,
+  errors,
+}) => {
+  console.log('Errores en list', errors)
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -54,6 +63,15 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
 
     return () => clearTimeout(handler)
   }, [searchInput, params.page, params.per_page, params.column, params.dir])
+
+  useEffect(() => {
+    if (Object.keys(errors).length !== 0) {
+      Toast.fire({
+        icon: 'error',
+        title: errors.message,
+      })
+    }
+  }, [errors])
 
   const handleConfirmDelete = (module) => {
     Swal.fire({
@@ -170,12 +188,24 @@ export const List = ({ data, loading, fetchModules, onChangeView, deleteModule, 
               className="action-btn permisos-btn"
               disabled={
                 !!modulo.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.all') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.find') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.store') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.update') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.delete') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.submodules.restore')
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.all',
+                ) ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.find',
+                ) ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.store',
+                ) ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.update',
+                ) ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.delete',
+                ) ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'navegation.modules.submodules.restore',
+                )
               }
               onClick={() => onChangeView({ name: 'show', title: 'Submódulos', module: modulo })}
             >

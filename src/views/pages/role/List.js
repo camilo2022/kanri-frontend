@@ -32,7 +32,7 @@ import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
 
-export const List = ({ data, loading, fetchRoles, onChangeView }) => {
+export const List = ({ data, loading, fetchRoles, onChangeView, errors }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -51,6 +51,15 @@ export const List = ({ data, loading, fetchRoles, onChangeView }) => {
 
     return () => clearTimeout(handler)
   }, [searchInput, params.page, params.per_page, params.column, params.dir])
+
+  useEffect(() => {
+    if (Object.keys(errors).length !== 0) {
+      Toast.fire({
+        icon: 'error',
+        title: errors.message,
+      })
+    }
+  }, [errors])
 
   const formattedData = data?.roles?.map((rol) => ({
     ...rol,

@@ -1,10 +1,9 @@
-import axios from 'axios'
-import { API_URL } from '../base'
+import api from '../API/api'
 import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {
-    const response = await axios.get(`${API_URL}/authorization/roles/all`, {
+    const response = await api.get(`/authorization/roles/all`, {
       ...getConfig(),
       params: params,
     })
@@ -19,7 +18,7 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await axios.post(`${API_URL}/authorization/roles/store`, data, getConfig())
+    const response = await api.post(`/authorization/roles/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -31,11 +30,7 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await axios.put(
-      `${API_URL}/authorization/roles/update/${id}`,
-      data,
-      getConfig(),
-    )
+    const response = await api.put(`/authorization/roles/update/${id}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -47,7 +42,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await axios.get(`${API_URL}/authorization/roles/find/${id}`, getConfig())
+    const response = await api.get(`/authorization/roles/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {

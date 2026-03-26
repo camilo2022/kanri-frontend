@@ -26,11 +26,12 @@ import {
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
+import Select from 'react-select'
 
 const Edit = ({ user, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
+    employee_id: '',
     email: '',
     password: '',
     password_confirmation: '',
@@ -39,7 +40,7 @@ const Edit = ({ user, onChangeView, onSubmit, errors }) => {
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || '',
+        employee_id: user.employee.id || '',
         email: user.email || '',
         password: '',
         password_confirmation: '',
@@ -49,6 +50,58 @@ const Edit = ({ user, onChangeView, onSubmit, errors }) => {
 
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfir, setShowPasswordConfir] = useState(false)
+  const isInvalid = !!errors?.employee_id
+  const isValid = !errors?.employee_id && formData.employee_id !== '' && validated
+  const employees = [
+    {
+      id: 1,
+      person: {
+        names: 'Maria Zaray',
+        last_names: 'Cortez Castro',
+        document: '1234567890',
+      },
+      position: {
+        id: 5,
+        name: 'Frontend Developer',
+        area: {
+          id: 2,
+          name: 'Tecnología',
+        },
+      },
+    },
+    {
+      id: 2,
+      person: {
+        names: 'Juan',
+        last_names: 'Pérez Gómez',
+        document: '987654321',
+      },
+      position: {
+        id: 3,
+        name: 'Backend Developer',
+        area: {
+          id: 2,
+          name: 'Tecnología',
+        },
+      },
+    },
+    {
+      id: 3,
+      person: {
+        names: 'Laura',
+        last_names: 'Rodríguez',
+        document: '456123789',
+      },
+      position: {
+        id: 7,
+        name: 'Diseñadora UX/UI',
+        area: {
+          id: 4,
+          name: 'Diseño',
+        },
+      },
+    },
+  ]
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -75,7 +128,7 @@ const Edit = ({ user, onChangeView, onSubmit, errors }) => {
           })
           setTimeout(() => {
             setFormData({
-              name: '',
+              employee_id: '',
               email: '',
               password: '',
               password_confirmation: '',
@@ -112,27 +165,73 @@ const Edit = ({ user, onChangeView, onSubmit, errors }) => {
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={8}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <UserRound size={15} /> Nombre Completo
+            <UserRound size={15} /> Empleado
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
-          <CFormInput
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            invalid={!!errors?.name}
-            valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+          <Select
+            name="employee_id"
+            value={
+              Array.isArray(employees)
+                ? (employees
+                    .map((employee) => ({
+                      value: employee.id,
+                      label: `${employee?.person?.names || ''} ${employee?.person?.last_names || ''} | ${employee?.person?.document || ''} | ${employee?.position?.name || ''}`,
+                    }))
+                    .find((opt) => opt.value === formData.employee_id) ?? null)
+                : null
+            }
+            onChange={(selected) =>
+              handleChange({
+                target: {
+                  name: 'employee_id',
+                  value: selected?.value || '',
+                },
+              })
+            }
+            invalid={!!errors?.employee_id}
+            valid={!errors?.employee_id && formData.employee_id !== '' && validated}
+            options={
+              Array.isArray(employees)
+                ? employees.map((employee) => ({
+                    value: employee.id,
+                    label: `${employee?.person?.names || ''} ${employee?.person?.last_names || ''} | ${employee?.person?.document || ''} | ${employee?.position?.name || ''}`,
+                  }))
+                : []
+            }
+            isDisabled={!Array.isArray(employees)}
+            isSearchable
+            className="w-100 font-montserrat"
+            placeholder={null}
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            styles={{
+              control: (base) => ({
+                ...base,
+                borderColor: isInvalid ? '#dc3545' : isValid ? '#198754' : '#dbdfe6',
+                boxShadow: 'none',
+                borderRadius: '0.375rem',
+              }),
+              menuPortal: (base) => ({
+                ...base,
+                zIndex: 9999,
+                fontFamily: 'sans-serif',
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 9999,
+              }),
+            }}
           />
-          <CFormFeedback invalid>
-            {errors?.name?.map((error, index) => (
+          <CFormFeedback invalid className={isInvalid ? 'd-block' : 'd-none'}>
+            {errors?.employee_id?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>
               </div>
             ))}
           </CFormFeedback>
-          <CFormFeedback valid>
+
+          <CFormFeedback valid className={isValid ? 'd-block' : 'd-none'}>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />
               <small className="font-inter">Dato Válido</small>

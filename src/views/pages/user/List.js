@@ -31,7 +31,7 @@ import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
 
-export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, restore }) => {
+export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, restore, errors }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -39,6 +39,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     page: 1,
     column: 'id',
     dir: 'asc',
+    with_trashed: true,
   })
   const [searchInput, setSearchInput] = useState('')
 
@@ -51,13 +52,22 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     return () => clearTimeout(handler)
   }, [searchInput, params.page, params.per_page, params.column, params.dir])
 
+  useEffect(() => {
+    if (Object.keys(errors).length !== 0) {
+      Toast.fire({
+        icon: 'error',
+        title: errors.message,
+      })
+    }
+  }, [errors])
+
   const handleConfirmDelete = (user) => {
     Swal.fire({
       title:
         '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Usuario</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-        Estás a punto de desactivar a <strong>${user.name}</strong>.<br/>
+        Estás a punto de desactivar a <strong>${user.employee.person.names} ${user.employee.person.last_names}</strong>.<br/>
         El usuario ya no podrá acceder al sistema.
         <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
       </div>`,
@@ -66,7 +76,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
       showCancelButton: true,
       buttonsStyling: false,
       customClass: {
-        confirmButton: 'btn btn-danger px-4 py-2 mx-2 shadow-sm fw-bold font-poppins',
+        confirmButton: 'btn btn-danger px-4 py-2 mx-2 shadow-sm fw-bold font-poppins text-white',
         cancelButton: 'btn btn-light px-4 py-2 mx-2 shadow-sm fw-bold font-poppins',
         popup: 'rounded-4 border-0 shadow-lg',
       },
@@ -79,6 +89,10 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
         try {
           await deleteUser(user.id)
           fetchUsers(params)
+          Toast.fire({
+            icon: 'success',
+            title: 'Usuario desactivado con exito',
+          })
         } catch (error) {
           console.error(error)
         }
@@ -96,7 +110,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
       title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Usuario</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-        Estás a punto de activar a <strong>${user.name}</strong>.<br/>
+        Estás a punto de activar a <strong>${user.employee.person.names} ${user.employee.person.last_names}</strong>.<br/>
         El usuario volvera a acceder al sistema.
         <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
       </div>`,
@@ -105,7 +119,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
       showCancelButton: true,
       buttonsStyling: false,
       customClass: {
-        confirmButton: 'btn btn-success px-4 py-2 mx-2 shadow-sm fw-bold font-poppins',
+        confirmButton: 'btn btn-success px-4 py-2 mx-2 shadow-sm fw-bold font-poppins text-white',
         cancelButton: 'btn btn-light px-4 py-2 mx-2 shadow-sm fw-bold font-poppins',
         popup: 'rounded-4 border-0 shadow-lg',
       },
@@ -118,6 +132,10 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
         try {
           await restore(user.id)
           fetchUsers(params)
+          Toast.fire({
+            icon: 'success',
+            title: 'Usuario activado con exito',
+          })
         } catch (error) {
           console.error(error)
         }

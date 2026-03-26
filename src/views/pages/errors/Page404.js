@@ -1,39 +1,26 @@
-import React from 'react'
-import {
-  CButton,
-  CCol,
-  CContainer,
-  CFormInput,
-  CInputGroup,
-  CInputGroupText,
-  CRow,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilMagnifyingGlass } from '@coreui/icons'
+import { CButton, CCard, CCardBody, CCardText, CCardTitle } from '@coreui/react'
 
 const Page404 = () => {
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
-      <CContainer>
-        <CRow className="justify-content-center">
-          <CCol md={6}>
-            <div className="clearfix">
-              <h1 className="float-start display-3 me-4">404</h1>
-              <h4 className="pt-3">Oops! You{"'"}re lost.</h4>
-              <p className="text-body-secondary float-start">
-                The page you are looking for was not found.
-              </p>
-            </div>
-            <CInputGroup className="input-prepend">
-              <CInputGroupText>
-                <CIcon icon={cilMagnifyingGlass} />
-              </CInputGroupText>
-              <CFormInput type="text" placeholder="What are you looking for?" />
-              <CButton color="info">Search</CButton>
-            </CInputGroup>
-          </CCol>
-        </CRow>
-      </CContainer>
+    <div className="bg-body-tertiary min-vh-100 d-flex align-items-center justify-content-center">
+      <CCard style={{ width: '22rem' }} className="text-center p-4 gap-3">
+        <CCardBody>
+          <CCardTitle className="display-1 fw-bold font-poppins" style={{ color: '#24247F' }}>
+            404
+          </CCardTitle>
+          <CCardText className="fs-5 fw-bold font-poppins">Ruta no encontrada</CCardText>
+          <CCardText style={{ color: '#C3C6C6', fontSize: '12px' }} className="font-inter">
+            Esta ruta no esta registrada
+          </CCardText>
+          <CButton
+            style={{ background: '#24247F', color: 'white' }}
+            href="/dashboard"
+            className="font-poppins"
+          >
+            Volver al Inicio
+          </CButton>
+        </CCardBody>
+      </CCard>
     </div>
   )
 }

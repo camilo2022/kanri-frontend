@@ -27,7 +27,6 @@ const Login = () => {
         const response = await AuthService.login(values)
         localStorage.setItem('token', response.data.token)
         const user = await AuthService.user()
-        console.log(user)
         dispatch({
           type: 'set',
           user: user.data.user,

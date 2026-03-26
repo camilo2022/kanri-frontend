@@ -22,6 +22,8 @@ import AuthService from './services/auth.service'
 import { useDispatch } from 'react-redux'
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
+import { useNavigate } from 'react-router-dom'
+import setupInterceptors from './API/interceptors'
 
 // We use those styles to show code examples, you should remove them in your application.
 import './scss/examples.scss'
@@ -67,6 +69,7 @@ const App = () => {
   const token = localStorage.getItem('token')
   const [valid, setValid] = useState(null)
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const checkToken = async () => {
@@ -82,7 +85,6 @@ const App = () => {
         setValid(false)
       }
     }
-
     checkToken()
     const urlParams = new URLSearchParams(window.location.href.split('?')[1])
     const theme = urlParams.get('theme') && urlParams.get('theme').match(/^[A-Za-z0-9\s]+/)[0]
@@ -97,6 +99,10 @@ const App = () => {
     setColorMode(storedTheme)
   }, [])
 
+  useEffect(() => {
+    setupInterceptors(navigate)
+  }, [])
+
   if (valid === null) {
     return (
       <div className="min-vh-100 d-flex justify-content-center align-items-center">
@@ -106,24 +112,21 @@ const App = () => {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={token && valid ? <Navigate to="/dashboard" /> : <Login />} />
-        <Route exact path="/register" name="Register Page" element={<Register />} />
-        <Route exact path="/401" name="Page 401" element={<Page401 />} />
-        <Route exact path="/404" name="Page 404" element={<Page404 />} />
-        <Route exact path="/500" name="Page 500" element={<Page500 />} />
-        <Route
-          path="*"
-          name="Inicio"
-          element={
-            <PrivateRoute>
-              <DefaultLayout />
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={token && valid ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route exact path="/register" name="Register Page" element={<Register />} />
+      <Route exact path="/404" name="Page 404" element={<Page404 />} />
+      <Route exact path="/500" name="Page 500" element={<Page500 />} />
+      <Route
+        path="/*"
+        element={
+          <PrivateRoute>
+            <DefaultLayout />
+          </PrivateRoute>
+        }
+      />
+      <Route path="*" element={<Page404 />} />
+    </Routes>
   )
 }
 

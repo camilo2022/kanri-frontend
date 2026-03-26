@@ -41,7 +41,8 @@ const Permissions = () => {
       const response = await PermissionService.all(params)
       setData(response.data)
     } catch (error) {
-      console.log(error)
+      setErrors(error.error)
+      throw error
     } finally {
       setLoading(false)
     }
@@ -122,6 +123,7 @@ const Permissions = () => {
             loading={loading}
             fetchPermissions={fetchPermissions}
             onChangeView={changeView}
+            errors={errors}
           />
         )
     }

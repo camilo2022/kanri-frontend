@@ -31,6 +31,8 @@ import {
   CSpinner,
 } from '@coreui/react'
 import AuthService from '../services/auth.service'
+import { useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
 /**
  * DefaultLayout functional component
@@ -47,6 +49,14 @@ import AuthService from '../services/auth.service'
  */
 const DefaultLayout = () => {
   const [valid, setValid] = useState(null)
+  const location = useLocation()
+  const currentPath = location.pathname
+  const navegation = useSelector((state) => state.navegation)
+
+  const hasAccess = navegation?.some((n) =>
+    n.submodules?.some((s) => currentPath.startsWith(s.url.startsWith('/') ? s.url : `/${s.url}`)),
+  )
+
   useEffect(() => {
     const checkToken = async () => {
       try {
@@ -75,9 +85,9 @@ const DefaultLayout = () => {
             <CCardTitle className="display-1 fw-bold font-poppins" style={{ color: '#24247F' }}>
               401
             </CCardTitle>
-            <CCardText className="fs-5 fw-bold font-poppins">No autorizado</CCardText>
+            <CCardText className="fs-5 fw-bold font-poppins">No autenticado</CCardText>
             <CCardText style={{ color: '#C3C6C6', fontSize: '12px' }} className="font-inter">
-              No estas autorizado para acceder a esta página
+              No estas autenticado para acceder a esta página
             </CCardText>
             <CButton
               style={{ background: '#24247F', color: 'white' }}
@@ -85,6 +95,31 @@ const DefaultLayout = () => {
               className="font-poppins"
             >
               Iniciar Sesión
+            </CButton>
+          </CCardBody>
+        </CCard>
+      </div>
+    )
+  }
+
+  if (!hasAccess && currentPath !== '/dashboard' && currentPath !== '/profile') {
+    return (
+      <div className="bg-body-tertiary min-vh-100 d-flex align-items-center justify-content-center">
+        <CCard style={{ width: '22rem' }} className="text-center p-4 gap-3">
+          <CCardBody>
+            <CCardTitle className="display-1 fw-bold font-poppins" style={{ color: '#24247F' }}>
+              403
+            </CCardTitle>
+            <CCardText className="fs-5 fw-bold font-poppins">No autorizado</CCardText>
+            <CCardText style={{ color: '#C3C6C6', fontSize: '12px' }} className="font-inter">
+              No cuentas con el permiso para acceder a esta página
+            </CCardText>
+            <CButton
+              style={{ background: '#24247F', color: 'white' }}
+              href="/dashboard"
+              className="font-poppins"
+            >
+              Ir al inicio
             </CButton>
           </CCardBody>
         </CCard>

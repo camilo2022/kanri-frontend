@@ -15,9 +15,9 @@
 
 import React, { useState } from 'react'
 
-// Dashboard
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
-const User = React.lazy(() => import('./views/pages/Users'))
+const Profile = React.lazy(() => import('./views/pages/Profile'))
+const Users = React.lazy(() => import('./views/pages/Users'))
 const Roles = React.lazy(() => import('./views/pages/Roles'))
 const Permissions = React.lazy(() => import('./views/pages/Permissions'))
 const Modules = React.lazy(() => import('./views/pages/Modules'))
@@ -92,7 +92,8 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '/users', name: 'Usuarios', element: User },
+  { path: '/profile', name: 'Profile', element: Profile },
+  { path: '/users', name: 'Usuarios', element: Users },
   { path: '/roles', name: 'Roles', element: Roles },
   { path: '/permissions', name: 'Permisos', element: Permissions },
   { path: '/modules', name: 'Módulos', element: Modules },

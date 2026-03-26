@@ -35,12 +35,12 @@ const Users = () => {
   }
 
   const fetchUsers = async (params) => {
-    console.log(params)
     try {
       const response = await UserService.all(params)
       setData(response.data)
     } catch (error) {
-      console.log(error)
+      setErrors(error.error)
+      throw error
     } finally {
       setLoading(false)
     }
@@ -161,6 +161,7 @@ const Users = () => {
             onChangeView={changeView}
             deleteUser={deleteUser}
             restore={restore}
+            errors={errors}
           />
         )
     }

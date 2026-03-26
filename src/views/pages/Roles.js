@@ -38,7 +38,8 @@ const Roles = () => {
       const response = await RoleService.all(params)
       setData(response.data)
     } catch (error) {
-      console.log(error)
+      setErrors(error.error)
+      throw error
     } finally {
       setLoading(false)
     }
@@ -112,7 +113,13 @@ const Roles = () => {
 
       default:
         return (
-          <List data={data} loading={loading} fetchRoles={fetchRoles} onChangeView={changeView} />
+          <List
+            data={data}
+            loading={loading}
+            fetchRoles={fetchRoles}
+            onChangeView={changeView}
+            errors={errors}
+          />
         )
     }
   }

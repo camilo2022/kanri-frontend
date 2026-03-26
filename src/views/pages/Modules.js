@@ -36,7 +36,8 @@ const Modules = () => {
       const response = await ModuleService.all(params)
       setData(response.data)
     } catch (error) {
-      console.log(error)
+      setErrors(error.error)
+      throw error
     } finally {
       setLoading(false)
     }
@@ -119,6 +120,7 @@ const Modules = () => {
             onChangeView={changeView}
             deleteModule={deleteModule}
             restore={restore}
+            errors={errors}
           />
         )
     }

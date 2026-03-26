@@ -41,7 +41,8 @@ const Submodules = ({ module }) => {
       const response = await SubmoduleService.all(module_id, params)
       setData(response.data)
     } catch (error) {
-      console.log(error)
+      setErrors(error.error)
+      throw error
     } finally {
       setLoading(false)
     }

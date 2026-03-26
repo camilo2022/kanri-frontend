@@ -25,6 +25,7 @@ import { useLocation, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import AuthService from '../services/auth.service'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
+import Page404 from '../views/pages/errors/Page404'
 
 // routes config
 import routes from '../routes'
@@ -63,6 +64,7 @@ const AppContent = () => {
             )
           })}
           <Route path="/" element={<Navigate to="dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </Suspense>
     </CContainer>

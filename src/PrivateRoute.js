@@ -1,6 +1,5 @@
 import { Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { CSpinner } from '@coreui/react'
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token')

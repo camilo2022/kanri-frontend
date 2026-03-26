@@ -27,7 +27,7 @@ import {
 import no_data from '../../../assets/images/no-data.png'
 import { useSelector } from 'react-redux'
 
-export const List = ({ data, loading, fetchPermissions, onChangeView }) => {
+export const List = ({ data, loading, fetchPermissions, onChangeView, errors }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -46,6 +46,15 @@ export const List = ({ data, loading, fetchPermissions, onChangeView }) => {
 
     return () => clearTimeout(handler)
   }, [searchInput, params.page, params.per_page, params.column, params.dir])
+
+  useEffect(() => {
+    if (Object.keys(errors).length !== 0) {
+      Toast.fire({
+        icon: 'error',
+        title: errors.message,
+      })
+    }
+  }, [errors])
 
   const formattedData = data?.permissions?.map((permiso) => ({
     ...permiso,
