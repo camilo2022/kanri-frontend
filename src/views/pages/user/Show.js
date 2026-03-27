@@ -25,6 +25,7 @@ import {
   CircleX,
   ArrowLeftCircle,
   UserRound,
+  FileText,
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 
@@ -106,9 +107,21 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
 
               {!Array.isArray(roles) ? (
                 <div className="text-center">
-                  <CSpinner />
-                  <br />
-                  <span>Cargando roles...</span>
+                  <div className="d-flex flex-column align-items-center justify-content-center">
+                    <div className="data-loader-container mb-3">
+                      <div className="radar-circle"></div>
+                      <div className="radar-scanner"></div>
+                      <FileText size={30} className="text-primary radar-icon" />
+                    </div>
+                    <div className="loader-text-wrapper">
+                      <span className="loader-text">Cargando Datos...</span>
+                    </div>
+                    <div className="loader-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
                 </div>
               ) : roles.length === 0 ? (
                 <tr>

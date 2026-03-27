@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import UserService from '../../services/users.service'
 import RoleService from '../../services/roles.service'
+import EmployeeService from '../../services/employees.service'
 import List from './user/List'
 import Create from './user/Create'
 import Edit from './user/Edit'
@@ -12,6 +13,7 @@ const Users = () => {
   const [view, setView] = useState({ name: 'list', title: 'Listar Usuario', user: null })
   const [data, setData] = useState({})
   const [roles, setRoles] = useState({})
+  const [employees, setEmployees] = useState({})
   const [user, setUser] = useState()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -20,6 +22,9 @@ const Users = () => {
     if (view.name === 'show' && view.user?.id) {
       findUser(view.user.id)
       allRoles()
+    }
+    if (view.name === 'create') {
+      allEmployees()
     }
     setLoading(true)
     setUser('')
@@ -103,7 +108,18 @@ const Users = () => {
       setRoles(response.data.roles)
     } catch (error) {
       setErrors(error.error)
-      console.log(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const allEmployees = async (params) => {
+    setLoading(true)
+    try {
+      const response = await EmployeeService.all(params)
+      setEmployees(response.data.employees)
+    } catch (error) {
+      setErrors(error.error)
     } finally {
       setLoading(false)
     }
@@ -133,7 +149,14 @@ const Users = () => {
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return <Create onChangeView={changeView} onSubmit={createUser} errors={errors} />
+        return (
+          <Create
+            onChangeView={changeView}
+            onSubmit={createUser}
+            errors={errors}
+            employees={employees}
+          />
+        )
 
       case 'edit':
         return (

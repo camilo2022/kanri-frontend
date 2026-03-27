@@ -1,22 +1,9 @@
-import React from 'react'
-import {
-  CRow,
-  CCol,
-  CCard,
-  CCardBody,
-  CFormLabel,
-  CFormInput,
-  CButton,
-  CTable,
-  CBadge,
-  CForm,
-} from '@coreui/react'
+import { CRow, CCol, CCard, CCardBody, CButton, CTable, CBadge, CForm } from '@coreui/react'
 import {
   User,
   IdCard,
   Mail,
   Briefcase,
-  Hospital,
   Droplets,
   Building,
   ArrowRightCircle,
@@ -26,30 +13,45 @@ import {
   CalendarFold,
   VenusAndMars,
   Phone,
+  ShieldCheck,
+  Lock,
+  Fingerprint,
+  Info,
+  Settings,
 } from 'lucide-react'
-import { IoMdArrowDropright } from 'react-icons/io'
 import { useSelector } from 'react-redux'
+import dayjs from 'dayjs'
+import { useEffect, useState } from 'react'
+import RoleService from '../../services/roles.service'
 
 const Profile = () => {
   const user = useSelector((state) => state.user)
-  console.log(user)
-  // Datos de ejemplo para visualizar
-  const defaultUser = {
-    name: 'Nathaniel Poole',
-    document: '1090123456',
-    email: 'n.poole@microsoft.com',
-    position: 'Software Engineer Senior',
-    arl: 'SURA',
-    bloodType: 'A+',
-    eps: 'Compensar',
-    salary: '$12.000.000 COP',
-    startDate: '15-May-2022',
-  }
+  const [role, setRole] = useState()
+  const [permissions, setPermissions] = useState([])
+  const [loadingPermissions, setLoadingPermissions] = useState(false)
 
-  // Usar datos reales si están disponibles, si no, usar de ejemplo
-  const data = defaultUser
+  useEffect(() => {
+    if (user?.roles?.length > 0 && !role) {
+      setRole(user.roles[0])
+    }
+  }, [user])
 
-  // Función para generar las iniciales
+  useEffect(() => {
+    if (!role) return
+    const getPermissions = async () => {
+      setLoadingPermissions(true)
+      try {
+        const infoRole = await RoleService.find(role.id)
+        setPermissions(infoRole.data.role.permissions)
+      } catch (err) {
+        console.log(err)
+      } finally {
+        setLoadingPermissions(false)
+      }
+    }
+    getPermissions()
+  }, [role])
+
   const getInitials = (name) => {
     return name
       ? name
@@ -259,9 +261,12 @@ const Profile = () => {
                   </CCol>
                 </CRow>
               </div>
-              <div className="d-grid gap-2 mt-4">
-                <CButton color="outline-secondary" className="font-poppins btn-sm" variant="ghost">
-                  <FileText size={16} className="me-1" /> Ver Hoja de Vida
+              <div className="d-flex justify-content-end pt-3">
+                <CButton
+                  className="d-flex align-items-center gap-2 font-poppins btn-primary-add px-4"
+                  onClick={() => console.log('Actualizar perfil')}
+                >
+                  Actualizar Perfil <ArrowRightCircle size={18} />
                 </CButton>
               </div>
             </CCardBody>
@@ -271,13 +276,18 @@ const Profile = () => {
         <CCol md={6} className="mb-4">
           <CCard className="h-100 p-4 shadow-sm border-0 bg-white">
             <CCardBody>
-              <div className="d-flex align-items-center gap-2 mb-4 text-primary fw-bold font-montserrat">
+              <div
+                className="d-flex align-items-center gap-2 mb-4 fw-bold font-montserrat"
+                style={{
+                  color: '#0934a8',
+                }}
+              >
                 <Building size={18} />
-                <span className="fs-6">Detalles de Contratación & Salud</span>
+                <span className="fs-6">Detalles de Contratación y Salud</span>
               </div>
 
               <CForm className="row g-4 font-inter">
-                <CCol md={6}>
+                <CCol md={12}>
                   <CCard className="bg-light p-3 border-0 rounded-3 h-100">
                     <div className="d-flex align-items-center gap-2 mb-3 text-secondary fw-bold">
                       <Droplets size={16} /> Salud
@@ -285,62 +295,181 @@ const Profile = () => {
                     <CTable borderless small className="small m-0">
                       <tbody>
                         <tr>
-                          <td className="text-muted fw-medium py-1">Tipo de Sangre:</td>
-                          <td className="py-1">
-                            <CBadge color="danger" shape="pill">
-                              {data.bloodType}
-                            </CBadge>
-                          </td>
+                          <td className="text-muted fw-medium py-1">ARL:</td>
+                          <td className="py-1">{user.employee.arl.name}</td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">EPS:</td>
-                          <td className="py-1">{data.eps}</td>
+                          <td className="py-1">{user.employee.eps.name}</td>
                         </tr>
                         <tr>
-                          <td className="text-muted fw-medium py-1">ARL:</td>
-                          <td className="py-1">{data.arl}</td>
+                          <td className="text-muted fw-medium py-1">Fondo de Pensión:</td>
+                          <td className="py-1">{user.employee.pension_fund.name}</td>
+                        </tr>
+                        <tr>
+                          <td className="text-muted fw-medium py-1">Fondo de Compensación:</td>
+                          <td className="py-1">{user.employee.compensation_fund.name}</td>
                         </tr>
                       </tbody>
                     </CTable>
                   </CCard>
                 </CCol>
 
-                {/* --- SECCIÓN 2: CONTRATO --- */}
-                <CCol md={6}>
+                <CCol md={12}>
                   <CCard className="bg-light p-3 border-0 rounded-3 h-100">
-                    <div className="d-flex align-items-center gap-2 mb-3 text-secondary fw-bold">
+                    <div className="d-flex align-items-center gap-2 mb-3 fw-bold">
                       <FileText size={16} /> Contrato
                     </div>
                     <CTable borderless small className="small m-0">
                       <tbody>
                         <tr>
                           <td className="text-muted fw-medium py-1">Cargo Actual:</td>
-                          <td className="py-1 fw-medium text-dark text-break">{data.position}</td>
+                          <td className="py-1 fw-medium text-dark text-break">
+                            {user.employee.position.name}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="text-muted fw-medium py-1">Área:</td>
+                          <td className="py-1">{user.employee.position.area[0].name}</td>
+                        </tr>
+                        <tr>
+                          <td className="text-muted fw-medium py-1">Centro de Operación:</td>
+                          <td className="py-1">{user.employee.operation_center}</td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Fecha de Inicio:</td>
-                          <td className="py-1">{data.startDate}</td>
+                          <td className="py-1">
+                            {dayjs(user.employee.start_date).format('DD/MM/YYYY')}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="text-muted fw-medium py-1">Salario Mensual:</td>
-                          <td className="py-1 fw-bold text-success">{data.salary}</td>
+                          <td className="text-muted fw-medium py-1">Fecha Fin:</td>
+                          <td className="py-1">{user.employee.end_date || 'No Aplica'}</td>
                         </tr>
                       </tbody>
                     </CTable>
                   </CCard>
                 </CCol>
-
-                {/* Botón de Acción Principal (Estilo similar a tu imagen) */}
-                <div className="d-flex justify-content-end mt-5 pt-3 border-top">
-                  <CButton
-                    className="d-flex align-items-center gap-2 font-poppins btn-primary-add px-4"
-                    onClick={() => console.log('Actualizar perfil')}
-                  >
-                    Actualizar Perfil <ArrowRightCircle size={18} />
-                  </CButton>
-                </div>
               </CForm>
             </CCardBody>
+          </CCard>
+        </CCol>
+
+        <CCol md={12} className="mb-2">
+          <CCard className="shadow-sm border-0 bg-white p-4">
+            <div
+              className="d-flex align-items-center gap-2 mb-4 fw-bold font-montserrat"
+              style={{
+                color: '#0934a8',
+              }}
+            >
+              <ShieldCheck size={20} />
+              <span>Seguridad y Accesos</span>
+            </div>
+            <CRow>
+              <CCol md={3} className="border-end">
+                <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
+                  <Fingerprint size={14} /> Roles Asignados
+                </div>
+                <div className="d-flex flex-column gap-2">
+                  {user.roles.map((r) => (
+                    <div
+                      key={r.id}
+                      onClick={() => setRole(r)}
+                      className={`p-2 border rounded-3 bg-white shadow-sm permission-card ${role?.id === r.id ? 'active' : ''}`}
+                      style={{
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div className="d-flex align-items-start gap-2">
+                        <div className="p-1 bg-light rounded text-primary">
+                          <ShieldCheck size={14} />
+                        </div>
+                        <div style={{ lineHeight: '1.2' }}>
+                          <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.8rem' }}>
+                            {r?.title}
+                          </div>
+                          <div
+                            className="text-muted mb-1"
+                            style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                          >
+                            {r?.name}
+                          </div>
+                          <div
+                            className="text-secondary"
+                            style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
+                          >
+                            {r?.description || 'Sin descripción disponible'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CCol>
+
+              <CCol md={9} className="ps-4">
+                <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
+                  <Lock size={14} /> Detalle de Permisos para {role?.title}
+                </div>
+
+                <div className="permissions-container">
+                  {!loadingPermissions ? (
+                    <CRow className="g-3">
+                      {permissions.map((p, index) =>
+                        user?.permissions?.some((up) => up.id === p.id) ? (
+                          <CCol
+                            key={p.id}
+                            sm={4}
+                            lg={4}
+                            className="permission-card-wrapper"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                          >
+                            <div className="permission-card h-100 p-2 border rounded-3 bg-white shadow-sm">
+                              <div className="d-flex align-items-start gap-2">
+                                <div className="p-1 bg-light rounded text-primary">
+                                  <ShieldCheck size={14} />
+                                </div>
+                                <div style={{ lineHeight: '1.2' }}>
+                                  <div
+                                    className="fw-bold text-dark mb-1"
+                                    style={{ fontSize: '0.8rem' }}
+                                  >
+                                    {p.title || formatTitle(p.name)}
+                                  </div>
+                                  <div
+                                    className="text-muted mb-1"
+                                    style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                                  >
+                                    {p.name}
+                                  </div>
+                                  <div
+                                    className="text-secondary"
+                                    style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
+                                  >
+                                    {p.description || 'Sin descripción disponible'}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CCol>
+                        ) : null,
+                      )}
+                    </CRow>
+                  ) : (
+                    <div className="d-flex flex-column align-items-center justify-content-center py-5">
+                      <div className="gears-container mb-3">
+                        <Settings size={40} className="gear gear-large text-primary" />
+                        <Settings size={24} className="gear gear-small text-secondary" />
+                      </div>
+                      <span className="text-muted font-montserrat fw-bold small ls-1">
+                        SINCRONIZANDO PERMISOS...
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CCol>
+            </CRow>
           </CCard>
         </CCol>
       </CRow>

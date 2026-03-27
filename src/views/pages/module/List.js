@@ -15,19 +15,17 @@ import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
 import {
   Pencil,
-  ShieldCheck,
   Trash2,
   RotateCcw,
   ChevronUp,
   ChevronDown,
   CirclePlus,
-  Eye,
   ChevronsLeft,
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
   Boxes,
-  CirclePile,
+  FileText,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -44,7 +42,6 @@ export const List = ({
   restore,
   errors,
 }) => {
-  console.log('Errores en list', errors)
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -52,6 +49,7 @@ export const List = ({
     page: 1,
     column: 'id',
     dir: 'asc',
+    with_trashed: true,
   })
   const [searchInput, setSearchInput] = useState('')
 
@@ -100,6 +98,10 @@ export const List = ({
         try {
           await deleteModule(module.id)
           fetchModules(params)
+          Toast.fire({
+            icon: 'success',
+            title: 'Módulo desactivado con exito',
+          })
         } catch (error) {
           console.error(error)
         }
@@ -138,6 +140,10 @@ export const List = ({
         try {
           await restore(module.id)
           fetchModules(params)
+          Toast.fire({
+            icon: 'success',
+            title: 'Módulo activado con exito',
+          })
         } catch (error) {
           console.error(error)
         }
@@ -342,11 +348,22 @@ export const List = ({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} className="text-center p-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Cargando...</span>
+                <td colSpan="5" className="py-5 border-0">
+                  <div className="d-flex flex-column align-items-center justify-content-center">
+                    <div className="data-loader-container mb-3">
+                      <div className="radar-circle"></div>
+                      <div className="radar-scanner"></div>
+                      <FileText size={30} className="text-primary radar-icon" />
+                    </div>
+                    <div className="loader-text-wrapper">
+                      <span className="loader-text">Cargando Datos...</span>
+                    </div>
+                    <div className="loader-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
                   </div>
-                  <p className="mt-2 font-poppins">Buscando Módulos...</p>
                 </td>
               </tr>
             ) : formattedData?.length > 0 ? (

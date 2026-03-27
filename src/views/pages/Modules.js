@@ -80,6 +80,7 @@ const Modules = () => {
       const response = await ModuleService.delete_module(id)
       return response
     } catch (error) {
+      setErrors(error.error)
       throw error
     }
   }
@@ -89,6 +90,7 @@ const Modules = () => {
       const response = await ModuleService.restore(id)
       return response
     } catch (error) {
+      setErrors(error.error)
       throw error
     }
   }

@@ -1,17 +1,12 @@
 import api from './api'
 
-const setupInterceptors = (navigate) => {
+const setupInterceptors = (onServerError) => {
   api.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.response) {
-        const status = error.response.status
-
-        if (status === 500) {
-          navigate('/500')
-        }
+      if (error.response?.status === 500) {
+        onServerError(true)
       }
-
       return Promise.reject(error)
     },
   )

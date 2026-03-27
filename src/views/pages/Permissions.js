@@ -87,7 +87,6 @@ const Permissions = () => {
       setRoles(response.data.roles)
     } catch (error) {
       setErrors(error.error)
-      console.log(error)
     } finally {
       setLoading(false)
     }

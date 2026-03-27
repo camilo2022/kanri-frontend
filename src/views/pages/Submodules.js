@@ -76,6 +76,7 @@ const Submodules = ({ module }) => {
       setSubmodule(response.data.submodule)
       return response
     } catch (error) {
+      setErrors(error.error)
       throw error
     }
   }
@@ -85,6 +86,7 @@ const Submodules = ({ module }) => {
       const response = await SubmoduleService.delete_submodule(id)
       return response
     } catch (error) {
+      setErrors(error.error)
       throw error
     }
   }
@@ -94,6 +96,7 @@ const Submodules = ({ module }) => {
       const response = await SubmoduleService.restore(id)
       return response
     } catch (error) {
+      setErrors(error.error)
       throw error
     }
   }
@@ -105,7 +108,6 @@ const Submodules = ({ module }) => {
       setRoles(response.data.roles)
     } catch (error) {
       setErrors(error.error)
-      console.log(error)
     } finally {
       setLoading(false)
     }
@@ -148,6 +150,7 @@ const Submodules = ({ module }) => {
             onChangeView={changeView}
             deleteSubmodule={deleteSubmodule}
             restore={restore}
+            errors={errors}
           />
         )
     }

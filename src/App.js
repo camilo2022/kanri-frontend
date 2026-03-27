@@ -33,11 +33,7 @@ const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
 
 // Pages
 const Login = React.lazy(() => import('./views/pages/Login'))
-
 const Register = React.lazy(() => import('./views/pages/register/Register'))
-const Page401 = React.lazy(() => import('./views/pages/errors/Page401'))
-const Page404 = React.lazy(() => import('./views/pages/errors/Page404'))
-const Page500 = React.lazy(() => import('./views/pages/errors/Page500'))
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 
@@ -115,8 +111,6 @@ const App = () => {
     <Routes>
       <Route path="/" element={token && valid ? <Navigate to="/dashboard" /> : <Login />} />
       <Route exact path="/register" name="Register Page" element={<Register />} />
-      <Route exact path="/404" name="Page 404" element={<Page404 />} />
-      <Route exact path="/500" name="Page 500" element={<Page500 />} />
       <Route
         path="/*"
         element={
@@ -125,7 +119,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-      <Route path="*" element={<Page404 />} />
     </Routes>
   )
 }

@@ -27,7 +27,8 @@ import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
 
-const Create = ({ onChangeView, onSubmit, errors }) => {
+const Create = ({ onChangeView, onSubmit, errors, employees }) => {
+  console.log('Estos son los empleados', employees)
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     employee_id: '',
@@ -39,56 +40,6 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   const [showPasswordConfir, setShowPasswordConfir] = useState(false)
   const isInvalid = !!errors?.employee_id
   const isValid = !errors?.employee_id && formData.employee_id !== '' && validated
-  const employees = [
-    {
-      id: 1,
-      person: {
-        names: 'Maria Zaray',
-        last_names: 'Cortez Castro',
-        document: '1234567890',
-      },
-      position: {
-        id: 5,
-        name: 'Frontend Developer',
-        area: {
-          id: 2,
-          name: 'Tecnología',
-        },
-      },
-    },
-    {
-      id: 2,
-      person: {
-        names: 'Juan',
-        last_names: 'Pérez Gómez',
-        document: '987654321',
-      },
-      position: {
-        id: 3,
-        name: 'Backend Developer',
-        area: {
-          id: 2,
-          name: 'Tecnología',
-        },
-      },
-    },
-    {
-      id: 3,
-      person: {
-        names: 'Laura',
-        last_names: 'Rodríguez',
-        document: '456123789',
-      },
-      position: {
-        id: 7,
-        name: 'Diseñadora UX/UI',
-        area: {
-          id: 4,
-          name: 'Diseño',
-        },
-      },
-    },
-  ]
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -143,6 +94,12 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     }))
   }
 
+  const customFilterOption = (option, rawInput) => {
+    const words = rawInput.toLowerCase().split(' ')
+    const label = option.label.toLowerCase()
+    return words.every((word) => label.includes(word))
+  }
+
   return (
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
@@ -150,7 +107,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Crear Usuario</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={8}>
+        <CCol md={12}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <UserRound size={15} /> Empleado
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -160,7 +117,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             value={
               Array.isArray(employees)
                 ? (employees
-                    .map((employee) => ({
+                    ?.map((employee) => ({
                       value: employee.id,
                       label: `${employee?.person?.names || ''} ${employee?.person?.last_names || ''} | ${employee?.person?.document || ''} | ${employee?.position?.name || ''}`,
                     }))
@@ -187,6 +144,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             }
             isDisabled={!Array.isArray(employees)}
             isSearchable
+            filterOption={customFilterOption}
             className="w-100 font-montserrat"
             placeholder={null}
             menuPortalTarget={document.body}
@@ -254,7 +212,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6} className="mb-4">
+        <CCol md={4} className="mb-4">
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <Lock size={15} /> Contraseña
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -296,7 +254,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             </CFormFeedback>
           </CInputGroup>
         </CCol>
-        <CCol md={6} className="mb-4">
+        <CCol md={4} className="mb-4">
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <Lock size={15} /> Confirmación Contraseña
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>

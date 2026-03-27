@@ -11,20 +11,17 @@ import * as FaIcons from 'react-icons/fa'
 export const AppSidebarNav = ({ items }) => {
   const navLink = (name, icon, indent = false) => {
     const IconComponent = (icon && FaIcons[icon]) || FaIcons.FaRegCircle
-    console.log(indent)
     return (
       <>
-        {IconComponent ? (
-          <span className="nav-icon">
+        <span className="nav-icon" style={{ paddingLeft: indent ? '10px' : '0' }}>
+          {IconComponent ? (
             <IconComponent />
-          </span>
-        ) : indent ? (
-          <span className="nav-icon">
-            <span className="nav-icon-bullet">{console.log('Ingreso aqui')}</span>
-          </span>
-        ) : null}
+          ) : indent ? (
+            <span className="nav-icon-bullet"></span>
+          ) : null}
+        </span>
 
-        {name && name}
+        {name}
       </>
     )
   }

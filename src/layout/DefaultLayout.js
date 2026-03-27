@@ -33,6 +33,8 @@ import {
 import AuthService from '../services/auth.service'
 import { useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import setupInterceptors from '../API/interceptors'
+import routes from '../routes'
 
 /**
  * DefaultLayout functional component
@@ -52,6 +54,8 @@ const DefaultLayout = () => {
   const location = useLocation()
   const currentPath = location.pathname
   const navegation = useSelector((state) => state.navegation)
+  const [serverError, setServerError] = useState(false)
+  const [error, setError] = useState(false)
 
   const hasAccess = navegation?.some((n) =>
     n.submodules?.some((s) => currentPath.startsWith(s.url.startsWith('/') ? s.url : `/${s.url}`)),
@@ -68,6 +72,38 @@ const DefaultLayout = () => {
     }
     checkToken()
   }, [])
+
+  useEffect(() => {
+    setupInterceptors(setServerError)
+  }, [])
+
+  useEffect(() => {
+    if (serverError) {
+      setError(true)
+    }
+  }, [serverError])
+
+  if (error) {
+    return (
+      <div className="bg-body-tertiary min-vh-100 d-flex align-items-center justify-content-center">
+        <CCard style={{ width: '22rem' }} className="text-center p-4 gap-3">
+          <CCardBody>
+            <CCardTitle className="display-1 fw-bold font-poppins" style={{ color: '#24247F' }}>
+              500
+            </CCardTitle>
+            <CCardText className="fs-5 fw-bold font-poppins">Error en el Sistema</CCardText>
+            <CButton
+              style={{ background: '#24247F', color: 'white' }}
+              href="/dashboard"
+              className="font-poppins"
+            >
+              Ir al inicio
+            </CButton>
+          </CCardBody>
+        </CCard>
+      </div>
+    )
+  }
 
   if (valid === null) {
     return (
@@ -120,6 +156,31 @@ const DefaultLayout = () => {
               className="font-poppins"
             >
               Ir al inicio
+            </CButton>
+          </CCardBody>
+        </CCard>
+      </div>
+    )
+  }
+
+  if (!routes.find((route) => route.path === currentPath)) {
+    return (
+      <div className="bg-body-tertiary min-vh-100 d-flex align-items-center justify-content-center">
+        <CCard style={{ width: '22rem' }} className="text-center p-4 gap-3">
+          <CCardBody>
+            <CCardTitle className="display-1 fw-bold font-poppins" style={{ color: '#24247F' }}>
+              404
+            </CCardTitle>
+            <CCardText className="fs-5 fw-bold font-poppins">Ruta no encontrada</CCardText>
+            <CCardText style={{ color: '#C3C6C6', fontSize: '12px' }} className="font-inter">
+              Esta ruta no esta registrada
+            </CCardText>
+            <CButton
+              style={{ background: '#24247F', color: 'white' }}
+              href="/dashboard"
+              className="font-poppins"
+            >
+              Volver al Inicio
             </CButton>
           </CCardBody>
         </CCard>

@@ -24,6 +24,7 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 
@@ -204,9 +205,21 @@ const Show = ({ role, loading, onChangeView, errors, permissions = [], allPermis
 
               {!Array.isArray(permissions.permissions) ? (
                 <div className="text-center">
-                  <CSpinner />
-                  <br />
-                  <span>Cargando permisos...</span>
+                  <div className="d-flex flex-column align-items-center justify-content-center">
+                    <div className="data-loader-container mb-3">
+                      <div className="radar-circle"></div>
+                      <div className="radar-scanner"></div>
+                      <FileText size={30} className="text-primary radar-icon" />
+                    </div>
+                    <div className="loader-text-wrapper">
+                      <span className="loader-text">Cargando Datos...</span>
+                    </div>
+                    <div className="loader-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
                 </div>
               ) : permissions.permissions.length === 0 ? (
                 <tr>
@@ -224,14 +237,25 @@ const Show = ({ role, loading, onChangeView, errors, permissions = [], allPermis
                         ))}
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="font-inter">
                       {loading ? (
                         <tr>
-                          <td colSpan={columns.length} className="text-center p-5">
-                            <div className="spinner-border text-primary" role="status">
-                              <span className="visually-hidden">Cargando...</span>
+                          <td colSpan={columns.length} className="py-5 border-0">
+                            <div className="d-flex flex-column align-items-center justify-content-center">
+                              <div className="data-loader-container mb-3">
+                                <div className="radar-circle"></div>
+                                <div className="radar-scanner"></div>
+                                <FileText size={30} className="text-primary radar-icon" />
+                              </div>
+                              <div className="loader-text-wrapper">
+                                <span className="loader-text">Cargando Datos...</span>
+                              </div>
+                              <div className="loader-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                              </div>
                             </div>
-                            <p className="mt-2 font-poppins">Buscando Permisos...</p>
                           </td>
                         </tr>
                       ) : permissions?.permissions?.length > 0 ? (

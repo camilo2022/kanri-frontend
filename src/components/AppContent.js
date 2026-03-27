@@ -20,12 +20,8 @@
 
 import React, { Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { CContainer, CSpinner } from '@coreui/react'
-import { useLocation, Navigate, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import AuthService from '../services/auth.service'
-import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import Page404 from '../views/pages/errors/Page404'
+import { CSpinner } from '@coreui/react'
+import { Navigate } from 'react-router-dom'
 
 // routes config
 import routes from '../routes'
@@ -43,11 +39,8 @@ import routes from '../routes'
  * @returns {React.ReactElement} Content container with routed views
  */
 const AppContent = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
-
   return (
-    <CContainer className="px-4" lg>
+    <div className="px-5 mb-4">
       <Suspense fallback={<CSpinner color="primary" />}>
         <Routes>
           {routes.map((route, idx) => {
@@ -64,10 +57,9 @@ const AppContent = () => {
             )
           })}
           <Route path="/" element={<Navigate to="dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </Suspense>
-    </CContainer>
+    </div>
   )
 }
 
