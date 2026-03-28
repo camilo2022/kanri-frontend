@@ -26,6 +26,7 @@ import RoleService from '../../services/roles.service'
 
 const Profile = () => {
   const user = useSelector((state) => state.user)
+  console.log(user)
   const [role, setRole] = useState()
   const [permissions, setPermissions] = useState([])
   const [loadingPermissions, setLoadingPermissions] = useState(false)
@@ -90,11 +91,12 @@ const Profile = () => {
                 {user.employee.person.names} {user.employee.person.last_names}
               </h5>
               <div className="text-primary font-inter small fw-medium mb-3">
-                <Briefcase size={14} className="me-1" /> {user.employee.position.name}
+                <Briefcase size={14} className="me-1" />{' '}
+                {user.employee.position?.name || 'No aplica'}
               </div>
               <CBadge color="light" className="text-muted font-inter fw-medium mb-3" shape="pill">
                 <MapPinHouse size={14} className="me-1" />
-                {user.employee.position.area[0].name}
+                {user.employee.position?.area[0].name || 'No aplica'}
               </CBadge>
 
               <div
@@ -209,11 +211,11 @@ const Profile = () => {
                             </div>
                           </td>
                           <td className="py-1 text-dark">
-                            {user.employee.person.gender.name === 'F'
+                            {user.employee.person.gender?.name === 'F'
                               ? 'Femenino'
-                              : user.employee.person.gender.name === 'M'
+                              : user.employee.person.gender?.name === 'M'
                                 ? 'Masculino'
-                                : user.employee.person.gender.name}
+                                : user.employee.person.gender?.name || 'No aplica'}
                           </td>
                         </tr>
                         <tr className="align-items-center">
@@ -252,7 +254,7 @@ const Profile = () => {
                           </td>
                           <td className="py-1">
                             <CBadge color="danger" shape="pill">
-                              {user.employee.person.blood_type.name}
+                              {user.employee.person.blood_type?.name || 'No aplica'}
                             </CBadge>
                           </td>
                         </tr>
@@ -296,19 +298,23 @@ const Profile = () => {
                       <tbody>
                         <tr>
                           <td className="text-muted fw-medium py-1">ARL:</td>
-                          <td className="py-1">{user.employee.arl.name}</td>
+                          <td className="py-1">{user.employee.arl?.name || 'No aplica'}</td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">EPS:</td>
-                          <td className="py-1">{user.employee.eps.name}</td>
+                          <td className="py-1">{user.employee.eps?.name || 'No aplica'}</td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Fondo de Pensión:</td>
-                          <td className="py-1">{user.employee.pension_fund.name}</td>
+                          <td className="py-1">
+                            {user.employee.pension_fund?.name || 'No aplica'}
+                          </td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Fondo de Compensación:</td>
-                          <td className="py-1">{user.employee.compensation_fund.name}</td>
+                          <td className="py-1">
+                            {user.employee.compensation_fund?.name || 'No aplica'}
+                          </td>
                         </tr>
                       </tbody>
                     </CTable>
@@ -325,16 +331,18 @@ const Profile = () => {
                         <tr>
                           <td className="text-muted fw-medium py-1">Cargo Actual:</td>
                           <td className="py-1 fw-medium text-dark text-break">
-                            {user.employee.position.name}
+                            {user.employee.position?.name || 'No aplica'}
                           </td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Área:</td>
-                          <td className="py-1">{user.employee.position.area[0].name}</td>
+                          <td className="py-1">
+                            {user.employee.position?.area[0].name || 'No aplica'}
+                          </td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Centro de Operación:</td>
-                          <td className="py-1">{user.employee.operation_center}</td>
+                          <td className="py-1">{user.employee.operation_center || 'No aplica'}</td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Fecha de Inicio:</td>
@@ -367,48 +375,61 @@ const Profile = () => {
               <span>Seguridad y Accesos</span>
             </div>
             <CRow>
-              <CCol md={3} className="border-end">
+              <CCol md={6} className="border-end">
                 <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
                   <Fingerprint size={14} /> Roles Asignados
                 </div>
                 <div className="d-flex flex-column gap-2">
-                  {user.roles.map((r) => (
-                    <div
-                      key={r.id}
-                      onClick={() => setRole(r)}
-                      className={`p-2 border rounded-3 bg-white shadow-sm permission-card ${role?.id === r.id ? 'active' : ''}`}
-                      style={{
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div className="d-flex align-items-start gap-2">
-                        <div className="p-1 bg-light rounded text-primary">
-                          <ShieldCheck size={14} />
+                  <CRow className="g-3">
+                    {user.roles.map((r, index) => (
+                      <CCol
+                        key={r.id}
+                        sm={4}
+                        lg={3}
+                        className="permission-card-wrapper"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div
+                          key={r.id}
+                          onClick={() => setRole(r)}
+                          className={`h-100 p-2 border rounded-3 bg-white shadow-sm permission-card ${role?.id === r.id ? 'active' : ''}`}
+                          style={{
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <div className="d-flex align-items-start gap-2">
+                            <div className="p-1 bg-light rounded text-primary">
+                              <ShieldCheck size={14} />
+                            </div>
+                            <div style={{ lineHeight: '1.2' }}>
+                              <div
+                                className="fw-bold text-dark mb-1"
+                                style={{ fontSize: '0.8rem' }}
+                              >
+                                {r?.title}
+                              </div>
+                              <div
+                                className="text-muted mb-1"
+                                style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                              >
+                                {r?.name}
+                              </div>
+                              <div
+                                className="text-secondary"
+                                style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
+                              >
+                                {r?.description || 'Sin descripción disponible'}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ lineHeight: '1.2' }}>
-                          <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.8rem' }}>
-                            {r?.title}
-                          </div>
-                          <div
-                            className="text-muted mb-1"
-                            style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
-                          >
-                            {r?.name}
-                          </div>
-                          <div
-                            className="text-secondary"
-                            style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
-                          >
-                            {r?.description || 'Sin descripción disponible'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      </CCol>
+                    ))}
+                  </CRow>
                 </div>
               </CCol>
 
-              <CCol md={9} className="ps-4">
+              <CCol md={6} className="ps-4">
                 <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
                   <Lock size={14} /> Detalle de Permisos para {role?.title}
                 </div>
@@ -420,8 +441,8 @@ const Profile = () => {
                         user?.permissions?.some((up) => up.id === p.id) ? (
                           <CCol
                             key={p.id}
-                            sm={4}
-                            lg={4}
+                            sm={12}
+                            lg={6}
                             className="permission-card-wrapper"
                             style={{ animationDelay: `${index * 50}ms` }}
                           >

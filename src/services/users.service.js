@@ -1,5 +1,3 @@
-import axios from 'axios'
-import { API_URL } from '../base'
 import api from '../API/api'
 import { getConfig } from '../axiosConfig'
 
@@ -23,6 +21,7 @@ const store = async (data) => {
     const response = await api.post(`/users/store`, data, getConfig())
     return response.data
   } catch (error) {
+    console.log(error)
     if (error.response && error.response.data) {
       throw error.response.data
     }
@@ -71,6 +70,7 @@ const restore = async (id) => {
     const response = await api.patch(`/users/restore/${id}`, {}, getConfig())
     return response.data
   } catch (error) {
+    console.log(error)
     if (error.response && error.response.data) {
       throw error.response.data
     }

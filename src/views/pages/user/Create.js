@@ -28,7 +28,6 @@ import Swal from 'sweetalert2'
 import Select from 'react-select'
 
 const Create = ({ onChangeView, onSubmit, errors, employees }) => {
-  console.log('Estos son los empleados', employees)
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     employee_id: '',

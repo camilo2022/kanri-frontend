@@ -21,6 +21,7 @@ const Users = React.lazy(() => import('./views/pages/Users'))
 const Roles = React.lazy(() => import('./views/pages/Roles'))
 const Permissions = React.lazy(() => import('./views/pages/Permissions'))
 const Modules = React.lazy(() => import('./views/pages/Modules'))
+const People = React.lazy(() => import('./views/pages/People'))
 
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
@@ -97,6 +98,7 @@ const routes = [
   { path: '/roles', name: 'Roles', element: Roles },
   { path: '/permissions', name: 'Permisos', element: Permissions },
   { path: '/modules', name: 'Módulos', element: Modules },
+  { path: '/people', name: 'Personas', element: People },
 
   /*{ path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },
