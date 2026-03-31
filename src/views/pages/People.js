@@ -1,29 +1,36 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import PeopleService from '../../services/people.service'
+import GenderService from '../../services/gender.service'
+import BloodTypeService from '../../services/blood_types.service'
 import List from './people/List'
-//import Create from './people/Create'
-//import Edit from './people/Edit'
+import Create from './people/Create'
+import Edit from './people/Edit'
 
 const People = () => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Usuario', user: null })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Personas', user: null })
   const [data, setData] = useState({})
-  const [roles, setRoles] = useState({})
-  const [employees, setEmployees] = useState({})
-  const [user, setUser] = useState()
+  const [genders, setGenders] = useState({})
+  const [bloodTypes, setBloodTypes] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
+  const [person, setPerson] = useState()
 
   useEffect(() => {
-    if (view.name === 'show' && view.user?.id) {
+    if (view.name === 'edit' && view.person?.id) {
+      findPerson(view.person.id)
+      allGender()
+      allBloodType()
     }
     if (view.name === 'create') {
+      allGender()
+      allBloodType()
     }
+    setPerson('')
     setLoading(true)
-    setUser('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Usuarios' })
+      dispatch({ type: 'set', action: 'Listar Personas' })
     }
   }, [view])
 
@@ -44,10 +51,44 @@ const People = () => {
       setLoading(false)
     }
   }
-  /*
-  const createUser = async (data) => {
+
+  const createPerson = async (data) => {
     try {
-      const response = await UserService.store(data)
+      const response = await PeopleService.store(data)
+      setErrors({})
+      return response
+    } catch (error) {
+      console.log(error)
+      setErrors(error.errors)
+      throw error
+    }
+  }
+
+  const allGender = async (params) => {
+    try {
+      const response = await GenderService.all(params)
+      setGenders(response.data.genders)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const allBloodType = async (params) => {
+    try {
+      const response = await BloodTypeService.all(params)
+      setBloodTypes(response.data.blood_types)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const editPerson = async (id, data) => {
+    try {
+      const response = await PeopleService.update(id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -56,30 +97,21 @@ const People = () => {
     }
   }
 
-  const editUser = async (id, data) => {
+  const findPerson = async (id) => {
     try {
-      const response = await UserService.update(id, data)
-      setErrors({})
-      return response
-    } catch (error) {
-      setErrors(error.errors)
-      throw error
-    }
-  }
-
-  const findUser = async (id) => {
-    try {
-      const response = await UserService.find(id)
-      setUser(response.data.user)
+      const response = await PeopleService.find(id)
+      setPerson(response.data.person)
       return response
     } catch (error) {
       throw error
+    } finally {
+      setLoading(false)
     }
   }
 
-  const deleteUser = async (id) => {
+  const deletePerson = async (id) => {
     try {
-      const response = await UserService.delete_user(id)
+      const response = await PeopleService.delete_person(id)
       return response
     } catch (error) {
       throw error
@@ -88,89 +120,39 @@ const People = () => {
 
   const restore = async (id) => {
     try {
-      const response = await UserService.restore(id)
+      const response = await PeopleService.restore(id)
       return response
     } catch (error) {
       throw error
     }
   }
 
-  const allRoles = async (params) => {
-    setLoading(true)
-    try {
-      const response = await RoleService.all(params)
-      setRoles(response.data.roles)
-    } catch (error) {
-      setErrors(error.error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const allEmployees = async (params) => {
-    setLoading(true)
-    try {
-      const response = await EmployeeService.all(params)
-      setEmployees(response.data.employees)
-    } catch (error) {
-      setErrors(error.error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const assign = async (id, permission_id) => {
-    try {
-      const response = await UserService.assign(id, permission_id)
-      setUser(response.data.user)
-      return response
-    } catch (error) {
-      setErrors(error.error)
-      throw error
-    }
-  }
-
-  const remove = async (id, permission_id) => {
-    try {
-      const response = await UserService.remove(id, permission_id)
-      setUser(response.data.user)
-      return response
-    } catch (error) {
-      throw error
-    }
-  }
-*/
   const renderView = () => {
-    switch (
-      view.name /*
+    switch (view.name) {
       case 'create':
         return (
           <Create
             onChangeView={changeView}
-            onSubmit={createUser}
+            onSubmit={createPerson}
             errors={errors}
-            employees={employees}
+            genders={genders}
+            bloodTypes={bloodTypes}
           />
         )
 
       case 'edit':
         return (
-          <Edit user={view.user} onChangeView={changeView} onSubmit={editUser} errors={errors} />
-        )
-
-      case 'show':
-        return (
-          <Show
-            user={user}
+          <Edit
+            person={person}
             onChangeView={changeView}
+            onSubmit={editPerson}
             errors={errors}
-            roles={roles}
-            assign={assign}
-            remove={remove}
+            genders={genders}
+            bloodTypes={bloodTypes}
+            loading={loading}
           />
         )
-*/
-    ) {
+
       default:
         return (
           <List
@@ -178,8 +160,8 @@ const People = () => {
             loading={loading}
             fetchPeople={fetchPeople}
             onChangeView={changeView}
-            //deleteUser={deleteUser}
-            // restore={restore}
+            deletePerson={deletePerson}
+            restore={restore}
             errors={errors}
           />
         )

@@ -15,11 +15,10 @@ const all = async (params) => {
     throw { message: 'Error desconocido' }
   }
 }
-/*
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/users/store`, data, getConfig())
+    const response = await api.post(`/employees/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -31,7 +30,7 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(`/users/update/${id}`, data, getConfig())
+    const response = await api.put(`/employees/update/${id}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -43,7 +42,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await api.get(`/users/find/${id}`, getConfig())
+    const response = await api.get(`/employees/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -52,7 +51,7 @@ const find = async (id) => {
     throw { message: 'Error desconocido' }
   }
 }
-
+/*
 const delete_user = async (id) => {
   try {
     const response = await api.delete(`/users/delete/${id}`, getConfig())
@@ -110,15 +109,15 @@ const remove = async (id, permission_id) => {
 }
   */
 
-const EmployeeService = {
-  all /*
+const EmployeesService = {
+  all,
   store,
   update,
-  find,
+  find /*
   assign,
   remove,
   delete_user,
   restore,*/,
 }
 
-export default EmployeeService
+export default EmployeesService

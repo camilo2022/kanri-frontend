@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import UserService from '../../services/users.service'
 import RoleService from '../../services/roles.service'
-import EmployeeService from '../../services/employees.service'
+import EmployeesService from '../../services/employees.service'
 import List from './user/List'
 import Create from './user/Create'
 import Edit from './user/Edit'
@@ -116,7 +116,7 @@ const Users = () => {
   const allEmployees = async (params) => {
     setLoading(true)
     try {
-      const response = await EmployeeService.all(params)
+      const response = await EmployeesService.all(params)
       setEmployees(response.data.employees)
     } catch (error) {
       setErrors(error.error)

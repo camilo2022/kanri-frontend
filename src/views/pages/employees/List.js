@@ -26,13 +26,26 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Eye,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 
-export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, restore, errors }) => {
+dayjs.extend(utc)
+
+export const List = ({
+  data,
+  loading,
+  fetchEmployees,
+  onChangeView,
+  deleteEmployee,
+  restore,
+  errors,
+}) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -47,11 +60,23 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchUsers(currentParams)
+      fetchEmployees(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, params.page, params.per_page, params.column, params.dir])
+  }, [params.page, params.per_page, params.column, params.dir, params.search])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setParams((prev) => ({
+        ...prev,
+        search: searchInput,
+        page: 1,
+      }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchInput])
 
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {
@@ -62,14 +87,14 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     }
   }, [errors])
 
-  const handleConfirmDelete = (user) => {
+  const handleConfirmDelete = (employee) => {
     Swal.fire({
       title:
         '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Usuario</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-        Estás a punto de desactivar a <strong>${user.employee.person.names} ${user.employee.person.last_names}</strong>.<br/>
-        El usuario ya no podrá acceder al sistema.
+        Estás a punto de desactivar a <strong>${employee.person.names} ${employee.person.last_names}</strong>.<br/>
+        Este empleado ya no podrá acceder al sistema.
         <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
       </div>`,
       icon: 'warning',
@@ -88,11 +113,11 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteUser(user.id)
-          fetchUsers(params)
+          await deleteEmployee(employee.id)
+          fetchEmployees(params)
           Toast.fire({
             icon: 'success',
-            title: 'Usuario desactivado con exito',
+            title: 'Empleado desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -106,13 +131,13 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     })
   }
 
-  const handleConfirmRestore = (user) => {
+  const handleConfirmRestore = (person) => {
     Swal.fire({
       title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Usuario</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-        Estás a punto de activar a <strong>${user.employee.person.names} ${user.employee.person.last_names}</strong>.<br/>
-        El usuario volvera a acceder al sistema.
+        Estás a punto de activar a <strong>${employee.person.names} ${employee.person.last_names}</strong>.<br/>
+        Este empleado volvera a acceder al sistema.
         <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
       </div>`,
       icon: 'warning',
@@ -131,11 +156,11 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(user.id)
-          fetchUsers(params)
+          await restore(employee.id)
+          fetchEmployees(params)
           Toast.fire({
             icon: 'success',
-            title: 'Usuario activado con exito',
+            title: 'Empleado activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -149,45 +174,77 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     })
   }
 
-  const formattedData = data?.users?.map((user) => ({
-    ...user,
-    name: `${user?.employee?.person?.names || ''} ${user?.employee?.person?.last_names || ''}`,
+  const formattedData = data?.employees?.map((employee) => ({
+    ...employee,
+    photo: (
+      <div className="d-flex justify-content-center align-items-center">
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2px solid #f0f0f0',
+            backgroundColor: '#f8f9fa',
+          }}
+        >
+          {employee.person.photo ? (
+            <img
+              src={employee.person.photo.path}
+              alt="profile"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <div className="d-flex align-items-center justify-content-center h-100 text-muted">
+              <small className="fw-bold">{employee.person.names?.charAt(0)}</small>
+            </div>
+          )}
+        </div>
+      </div>
+    ),
+    document: employee.person.document,
+    name: `${employee.person.names || ''} ${employee.person.last_names || ''}`,
+    position: employee.position?.name || 'No Aplica',
+    area: employee.position?.area[0].name || 'No Aplica',
+    arl: employee.arl?.name || 'No Aplica',
+    eps: employee.eps?.name || 'No Aplica',
     acciones: (
       <div className="d-flex gap-2 justify-content-center">
         <CTooltip content="Editar" placement="top">
           <button
             className="action-btn edit-btn"
             disabled={
-              !!user.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'users.find') ||
-              !user_active?.permissions.some((p) => p.name === 'users.update')
+              !!employee.deleted_at ||
+              !user_active?.permissions.some((p) => p.name === 'employees.find') ||
+              !user_active?.permissions.some((p) => p.name === 'employees.update')
             }
-            onClick={() => onChangeView({ name: 'edit', title: 'Editar Usuario', user: user })}
+            onClick={() =>
+              onChangeView({ name: 'edit', title: 'Editar Empleado', employee: employee })
+            }
           >
             <Pencil size={18} strokeWidth={1.5} />
           </button>
         </CTooltip>
-        <CTooltip content="Gestionar permisos" placement="top">
+        <CTooltip content="Visualizar" placement="top">
           <button
-            className="action-btn permisos-btn"
+            className="action-btn show-btn"
             disabled={
-              !!user.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'users.find') ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.roles.all') ||
-              !user_active?.permissions.some((p) => p.name === 'users.authorization.assign') ||
-              !user_active?.permissions.some((p) => p.name === 'users.authorization.remove')
+              !!employee.deleted_at ||
+              !user_active?.permissions.some((p) => p.name === 'employees.find')
             }
-            onClick={() => onChangeView({ name: 'show', title: 'Ver Usuario', user: user })}
+            onClick={() =>
+              onChangeView({ name: 'show', title: 'Visualizar Empleado', employee: employee })
+            }
           >
-            <ShieldCheck size={18} strokeWidth={1.5} />
+            <Eye size={18} strokeWidth={1.5} />
           </button>
         </CTooltip>
-        {user.deleted_at === null ? (
+        {employee.deleted_at === null ? (
           <CTooltip content="Desactivar" placement="top">
             <button
               className="action-btn delete-btn"
-              disabled={!user_active?.permissions.some((p) => p.name === 'users.delete')}
-              onClick={() => handleConfirmDelete(user)}
+              disabled={!user_active?.permissions.some((p) => p.name === 'employees.delete')}
+              onClick={() => handleConfirmDelete(employee)}
             >
               <Trash2 size={18} strokeWidth={1.5} />
             </button>
@@ -196,8 +253,8 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
           <CTooltip content="Activar" placement="top">
             <button
               className="action-btn restore-btn"
-              disabled={!user_active?.permissions.some((p) => p.name === 'users.restore')}
-              onClick={() => handleConfirmRestore(user)}
+              disabled={!user_active?.permissions.some((p) => p.name === 'employees.restore')}
+              onClick={() => handleConfirmRestore(employee)}
             >
               <RotateCcw size={18} strokeWidth={1.5} />
             </button>
@@ -217,32 +274,36 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
 
   const columns = [
     {
-      key: 'id',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('id')}>
-          #{' '}
-          {params.column === 'id' &&
-            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
+      key: 'photo',
+      label: <div className="text-center">Foto</div>,
+    },
+    {
+      key: 'document',
+      label: <div className="sortable-header text-center">Documento</div>,
     },
     {
       key: 'name',
-      label: <div className="sortable-header text-center">Nombre</div>,
+      label: <div className="sortable-header text-center">Nombre Completo</div>,
     },
     {
-      key: 'email',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('email')}>
-          Email{' '}
-          {params.column === 'email' &&
-            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
+      key: 'area',
+      label: <div className="sortable-header text-center">Área</div>,
+    },
+    {
+      key: 'position',
+      label: <div className="sortable-header text-center">Cargo</div>,
+    },
+    {
+      key: 'arl',
+      label: <div className="sortable-header text-center">ARL</div>,
+    },
+    {
+      key: 'eps',
+      label: <div className="sortable-header text-center">EPS</div>,
     },
     {
       key: 'acciones',
-      label: <div className="sortable-header text-center">Aciones</div>,
+      label: <div className="sortable-header text-center">Aciones </div>,
     },
   ]
 
@@ -274,13 +335,13 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Usuarios</span>
+        <span className="fw-bold fs-5 font-montserrat">Empleados</span>
       </div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex gap-2 w-50 ms-4">
           <CFormInput
             className="custom-input"
-            placeholder="Buscar usuario..."
+            placeholder="Buscar empleado..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
@@ -288,10 +349,15 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
         <CButton
           variant="outline"
           className="me-2 font-poppins btn-primary-dark"
-          disabled={!user_active?.permissions.some((p) => p.name === 'users.store')}
-          onClick={() => onChangeView({ name: 'create', title: 'Crear Usuario', usuario: null })}
+          disabled={!user_active?.permissions.some((p) => p.name === 'employees.store')}
+          style={{
+            cursor: !user_active?.permissions.some((p) => p.name === 'employees.store')
+              ? 'not-allowed'
+              : 'pointer',
+          }}
+          onClick={() => onChangeView({ name: 'create', title: 'Crear Empleado' })}
         >
-          <CirclePlus /> Agregar Usuario
+          <CirclePlus /> Agregar Empleado
         </CButton>
       </div>
 
@@ -306,7 +372,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan="5" className="py-5 border-0">
+              <td colSpan={columns.length} className="py-5 border-0">
                 <div className="d-flex flex-column align-items-center justify-content-center">
                   <div className="data-loader-container mb-3">
                     <div className="radar-circle"></div>

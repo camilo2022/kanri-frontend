@@ -26,7 +26,6 @@ import RoleService from '../../services/roles.service'
 
 const Profile = () => {
   const user = useSelector((state) => state.user)
-  console.log(user)
   const [role, setRole] = useState()
   const [permissions, setPermissions] = useState([])
   const [loadingPermissions, setLoadingPermissions] = useState(false)
@@ -385,7 +384,7 @@ const Profile = () => {
                       <CCol
                         key={r.id}
                         sm={4}
-                        lg={3}
+                        lg={4}
                         className="permission-card-wrapper"
                         style={{ animationDelay: `${index * 50}ms` }}
                       >

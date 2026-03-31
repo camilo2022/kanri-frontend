@@ -37,7 +37,15 @@ import utc from 'dayjs/plugin/utc'
 
 dayjs.extend(utc)
 
-export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, restore, errors }) => {
+export const List = ({
+  data,
+  loading,
+  fetchPeople,
+  onChangeView,
+  deletePerson,
+  restore,
+  errors,
+}) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -56,7 +64,19 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, params.page, params.per_page, params.column, params.dir])
+  }, [params.page, params.per_page, params.column, params.dir, params.search])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setParams((prev) => ({
+        ...prev,
+        search: searchInput,
+        page: 1,
+      }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchInput])
 
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {
@@ -67,15 +87,14 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
     }
   }, [errors])
 
-  /*
-  const handleConfirmDelete = (user) => {
+  const handleConfirmDelete = (person) => {
     Swal.fire({
       title:
         '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Usuario</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-        Estás a punto de desactivar a <strong>${user.employee.person.names} ${user.employee.person.last_names}</strong>.<br/>
-        El usuario ya no podrá acceder al sistema.
+        Estás a punto de desactivar a <strong>${person.names} ${person.last_names}</strong>.<br/>
+        Esta persona ya no podrá acceder al sistema.
         <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
       </div>`,
       icon: 'warning',
@@ -94,11 +113,11 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteUser(user.id)
-          fetchUsers(params)
+          await deletePerson(person.id)
+          fetchPeople(params)
           Toast.fire({
             icon: 'success',
-            title: 'Usuario desactivado con exito',
+            title: 'Persona desactivada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -112,13 +131,13 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
     })
   }
 
-  const handleConfirmRestore = (user) => {
+  const handleConfirmRestore = (person) => {
     Swal.fire({
       title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Usuario</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-        Estás a punto de activar a <strong>${user.employee.person.names} ${user.employee.person.last_names}</strong>.<br/>
-        El usuario volvera a acceder al sistema.
+        Estás a punto de activar a <strong>${person.names} ${person.last_names}</strong>.<br/>
+        Esta persona volvera a acceder al sistema.
         <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
       </div>`,
       icon: 'warning',
@@ -137,11 +156,11 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(user.id)
-          fetchUsers(params)
+          await restore(person.id)
+          fetchPeople(params)
           Toast.fire({
             icon: 'success',
-            title: 'Usuario activado con exito',
+            title: 'Persona activada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -154,16 +173,37 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
       }
     })
   }
-*/
+
   const formattedData = data?.people?.map((person) => ({
     ...person,
+    photo: (
+      <div className="d-flex justify-content-center align-items-center">
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2px solid #f0f0f0',
+            backgroundColor: '#f8f9fa',
+          }}
+        >
+          {person.photo ? (
+            <img
+              src={person.photo.path}
+              alt="profile"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <div className="d-flex align-items-center justify-content-center h-100 text-muted">
+              <small className="fw-bold">{person.names?.charAt(0)}</small>
+            </div>
+          )}
+        </div>
+      </div>
+    ),
     name: `${person.names || ''} ${person.last_names || ''}`,
-    gender:
-      person.gender?.name === 'F'
-        ? 'Femenino'
-        : person.gender?.name === 'M'
-          ? 'Masculino'
-          : 'No Aplica',
+    gender: person.gender?.description || 'No Aplica',
     blood_type: person.blood_type ? person.blood_type?.name : 'No Aplica',
     birth_date: dayjs.utc(person.birth_date).format('DD/MM/YYYY'),
     acciones: (
@@ -176,20 +216,9 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
               !user_active?.permissions.some((p) => p.name === 'people.find') ||
               !user_active?.permissions.some((p) => p.name === 'people.update')
             }
-            onClick={() => onChangeView({ name: 'edit', title: 'Editar Persona', user: user })}
+            onClick={() => onChangeView({ name: 'edit', title: 'Editar Persona', person: person })}
           >
             <Pencil size={18} strokeWidth={1.5} />
-          </button>
-        </CTooltip>
-        <CTooltip content="Visualizar" placement="top">
-          <button
-            className="action-btn show-btn"
-            disabled={
-              !!person.deleted_at || !user_active?.permissions.some((p) => p.name === 'people.find')
-            }
-            onClick={() => onChangeView({ name: 'show', title: 'Ver Usuario', user: user })}
-          >
-            <Eye size={18} strokeWidth={1.5} />
           </button>
         </CTooltip>
         {person.deleted_at === null ? (
@@ -197,7 +226,7 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
             <button
               className="action-btn delete-btn"
               disabled={!user_active?.permissions.some((p) => p.name === 'people.delete')}
-              //onClick={() => handleConfirmDelete(user)}
+              onClick={() => handleConfirmDelete(person)}
             >
               <Trash2 size={18} strokeWidth={1.5} />
             </button>
@@ -207,7 +236,7 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
             <button
               className="action-btn restore-btn"
               disabled={!user_active?.permissions.some((p) => p.name === 'people.restore')}
-              //onClick={() => handleConfirmRestore(user)}
+              onClick={() => handleConfirmRestore(person)}
             >
               <RotateCcw size={18} strokeWidth={1.5} />
             </button>
@@ -226,6 +255,10 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
   }
 
   const columns = [
+    {
+      key: 'photo',
+      label: <div className="text-center">Foto</div>,
+    },
     {
       key: 'document',
       label: (
@@ -268,31 +301,15 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
     },
     {
       key: 'gender',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('gender')}>
-          Género{' '}
-          {params.column === 'gender' &&
-            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
+      label: <div className="sortable-header text-center">Género</div>,
     },
     {
       key: 'blood_type',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('blood_type')}>
-          T. Sangre{' '}
-          {params.column === 'blood_type' &&
-            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
+      label: <div className="sortable-header text-center">T. Sangre</div>,
     },
     {
       key: 'acciones',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('email')}>
-          Aciones{' '}
-        </div>
-      ),
+      label: <div className="sortable-header text-center">Aciones </div>,
     },
   ]
 
@@ -344,7 +361,7 @@ export const List = ({ data, loading, fetchPeople, onChangeView, deleteUser, res
               ? 'not-allowed'
               : 'pointer',
           }}
-          onClick={() => onChangeView({ name: 'create', title: 'Crear Usuario', usuario: null })}
+          onClick={() => onChangeView({ name: 'create', title: 'Crear Persona' })}
         >
           <CirclePlus /> Agregar Persona
         </CButton>

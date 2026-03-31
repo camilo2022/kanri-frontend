@@ -30,13 +30,6 @@ import {
 import { Toast } from '../../../components/Toast'
 
 const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {
-  const [params, setParams] = useState({
-    search: '',
-    per_page: 10,
-    page: 1,
-    column: 'id',
-    dir: 'asc',
-  })
 
   const [visibleRole, setVisibleRole] = useState(null)
 
