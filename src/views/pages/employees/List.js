@@ -90,7 +90,7 @@ export const List = ({
   const handleConfirmDelete = (employee) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Usuario</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Empleado</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
         Estás a punto de desactivar a <strong>${employee.person.names} ${employee.person.last_names}</strong>.<br/>
@@ -131,9 +131,10 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (person) => {
+  const handleConfirmRestore = (employee) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Usuario</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Empleado</span>',
       html: `
       <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
         Estás a punto de activar a <strong>${employee.person.names} ${employee.person.last_names}</strong>.<br/>

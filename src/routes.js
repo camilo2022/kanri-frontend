@@ -23,6 +23,10 @@ const Permissions = React.lazy(() => import('./views/pages/Permissions'))
 const Modules = React.lazy(() => import('./views/pages/Modules'))
 const People = React.lazy(() => import('./views/pages/People'))
 const Employees = React.lazy(() => import('./views/pages/Employees'))
+const Areas = React.lazy(() => import('./views/pages/Areas'))
+const Genders = React.lazy(() => import('./views/pages/Genders'))
+const BloodTypes = React.lazy(() => import('./views/pages/BloodTypes'))
+const Arls = React.lazy(() => import('./views/pages/Arls'))
 
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
@@ -101,6 +105,10 @@ const routes = [
   { path: '/modules', name: 'Módulos', element: Modules },
   { path: '/people', name: 'Personas', element: People },
   { path: '/employees', name: 'Empleados', element: Employees },
+  { path: '/areas', name: 'Áreas', element: Areas },
+  { path: '/genders', name: 'Generos', element: Genders },
+  { path: '/blood_types', name: 'Tipos de Sangre', element: BloodTypes },
+  { path: '/arls', name: 'Arls', element: Arls },
 
   /*{ path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },

@@ -129,7 +129,7 @@ const Submodules = ({ module }) => {
       case 'edit':
         return (
           <Edit
-            submodule={view.submodule}
+            submodule={submodule}
             onChangeView={changeView}
             onSubmit={editSubmodule}
             errors={errors}

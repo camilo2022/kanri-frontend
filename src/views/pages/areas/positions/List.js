@@ -16,6 +16,7 @@ import { useEffect } from 'react'
 import {
   Pencil,
   Trash2,
+  ShieldCheck,
   RotateCcw,
   ChevronUp,
   ChevronDown,
@@ -31,15 +32,14 @@ import no_data from '../../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../../components/Toast'
 import { useSelector } from 'react-redux'
-import * as FaIcons from 'react-icons/fa'
 
 export const List = ({
   data,
   loading,
-  moduleId,
-  fetchSubmodules,
+  areaId,
+  fetchPositions,
   onChangeView,
-  deleteSubmodule,
+  deletePosition,
   restore,
   errors,
 }) => {
@@ -57,11 +57,23 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchSubmodules(moduleId, currentParams)
+      fetchPositions(areaId, currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, moduleId, params.page, params.per_page, params.column, params.dir])
+  }, [areaId, params.page, params.per_page, params.column, params.dir, params.search])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setParams((prev) => ({
+        ...prev,
+        search: searchInput,
+        page: 1,
+      }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchInput])
 
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {
@@ -72,13 +84,13 @@ export const List = ({
     }
   }, [errors])
 
-  const handleConfirmDelete = (submodule) => {
+  const handleConfirmDelete = (position) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Submódulo</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Cargo</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar el submódulo <strong>${submodule.name}</strong>.<br/>
+          Estás a punto de desactivar el cargo <strong>${position.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -97,11 +109,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteSubmodule(submodule.id)
-          fetchSubmodules(moduleId, params)
+          await deletePosition(position.id)
+          fetchPositions(areaId, params)
           Toast.fire({
             icon: 'success',
-            title: 'Submódulo desactivado con exito',
+            title: 'Cargo desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -115,13 +127,12 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (submodule) => {
+  const handleConfirmRestore = (position) => {
     Swal.fire({
-      title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Submódulo</span>',
+      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Cargo</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar el submódulo <strong>${submodule.name}</strong>.<br/>
+          Estás a punto de activar el cargo <strong>${position.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -140,11 +151,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(submodule.id)
-          fetchSubmodules(moduleId, params)
+          await restore(position.id)
+          fetchPositions(areaId, params)
           Toast.fire({
             icon: 'success',
-            title: 'Submódulo activado con exito',
+            title: 'Cargo activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -158,55 +169,56 @@ export const List = ({
     })
   }
 
-  const formattedData = data?.submodules?.map((submodulo) => {
-    const icon = submodulo.icon
-    const IconComponent = (icon && FaIcons[icon]) || FaIcons.FaRegCircle
+  const formattedData = data?.positions?.map((position) => {
     return {
-      ...submodulo,
-      icono: (
-        <>
-          {IconComponent ? (
-            <span className="nav-icon">
-              <IconComponent />
-            </span>
-          ) : (
-            <span className="nav-icon">
-              <span className="nav-icon-bullet"></span>
-            </span>
-          )}
-        </>
-      ),
+      ...position,
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
             <button
               className="action-btn edit-btn"
               disabled={
-                !!submodulo.deleted_at ||
+                !!position.deleted_at ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.find',
+                  (p) => p.name === 'organizational_structure.areas.positions.find',
                 ) ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.update',
+                  (p) => p.name === 'organizational_structure.areas.positions.update',
                 )
               }
               onClick={() =>
-                onChangeView({ name: 'edit', title: 'Editar Submódulo', submodule: submodulo })
+                onChangeView({ name: 'edit', title: 'Editar Cargo', position: position })
               }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          {submodulo.deleted_at === null ? (
+          <CTooltip content="Gestionar permisos" placement="top">
+            <button
+              className="action-btn permisos-btn"
+              disabled={
+                !!position.deleted_at ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'organizational_structure.areas.positions.find',
+                )
+              }
+              onClick={() =>
+                onChangeView({ name: 'show', title: 'Visualizar Cargo', position: position })
+              }
+            >
+              <ShieldCheck size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          {position.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'navegation.modules.submodules.delete',
+                    (p) => p.name === 'organizational_structure.areas.positions.delete',
                   )
                 }
-                onClick={() => handleConfirmDelete(submodulo)}
+                onClick={() => handleConfirmDelete(position)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -217,10 +229,10 @@ export const List = ({
                 className="action-btn restore-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'navegation.modules.submodules.restore',
+                    (p) => p.name === 'organizational_structure.areas.positions.restore',
                   )
                 }
-                onClick={() => handleConfirmRestore(submodulo)}
+                onClick={() => handleConfirmRestore(position)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -261,8 +273,14 @@ export const List = ({
       ),
     },
     {
-      key: 'icono',
-      label: <div className="sortable-header text-center">Icono</div>,
+      key: 'description',
+      label: (
+        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
+          Descripción{' '}
+          {params.column === 'description' &&
+            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+        </div>
+      ),
     },
     {
       key: 'acciones',
@@ -299,13 +317,13 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Submódulos</span>
+          <span className="fw-bold fs-5 font-montserrat">Cargos</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar módulo..."
+              placeholder="Buscar cargo..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -314,7 +332,7 @@ export const List = ({
             <CButton
               className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
               onClick={() => {
-                onChangeView({ name: 'back', title: 'Listar Módulos' })
+                onChangeView({ name: 'back', title: 'Listar Áreas' })
               }}
             >
               <ArrowLeftCircle size={16} /> Volver
@@ -324,12 +342,12 @@ export const List = ({
               className="me-2 font-poppins btn-primary-dark"
               disabled={
                 !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.store',
+                  (p) => p.name === 'organizational_structure.areas.positions.store',
                 )
               }
-              onClick={() => onChangeView({ name: 'create', title: 'Crear Submódulo' })}
+              onClick={() => onChangeView({ name: 'create', title: 'Crear Cargo' })}
             >
-              <CirclePlus /> Agregar Submódulo
+              <CirclePlus /> Agregar Cargo
             </CButton>
           </div>
         </div>

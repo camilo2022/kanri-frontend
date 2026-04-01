@@ -3,7 +3,7 @@ import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {
-    const response = await api.get(`/employees/all`, {
+    const response = await api.get(`/arl/all`, {
       ...getConfig(),
       params: params,
     })
@@ -18,7 +18,7 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/employees/store`, data, getConfig())
+    const response = await api.post(`/arl/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -30,7 +30,7 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(`/employees/update/${id}`, data, getConfig())
+    const response = await api.put(`/arl/update/${id}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -42,7 +42,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await api.get(`/employees/find/${id}`, getConfig())
+    const response = await api.get(`/arl/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -52,9 +52,9 @@ const find = async (id) => {
   }
 }
 
-const delete_employee = async (id) => {
+const delete_arl = async (id) => {
   try {
-    const response = await api.delete(`/employees/delete/${id}`, getConfig())
+    const response = await api.delete(`/arl/delete/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -66,9 +66,10 @@ const delete_employee = async (id) => {
 
 const restore = async (id) => {
   try {
-    const response = await api.patch(`/employees/restore/${id}`, {}, getConfig())
+    const response = await api.patch(`/arl/restore/${id}`, {}, getConfig())
     return response.data
   } catch (error) {
+    console.log(error)
     if (error.response && error.response.data) {
       throw error.response.data
     }
@@ -76,13 +77,13 @@ const restore = async (id) => {
   }
 }
 
-const EmployeesService = {
+const BloodTypesService = {
   all,
   store,
   update,
   find,
-  delete_employee,
+  delete_arl,
   restore,
 }
 
-export default EmployeesService
+export default BloodTypesService

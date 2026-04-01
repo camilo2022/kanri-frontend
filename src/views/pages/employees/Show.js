@@ -1,13 +1,10 @@
-import { CRow, CCol, CCard, CCardBody, CButton, CTable, CBadge, CForm } from '@coreui/react'
+import { CRow, CCol, CCard, CCardBody, CButton, CTable, CBadge } from '@coreui/react'
 import {
   User,
   IdCard,
   Mail,
   Briefcase,
-  Droplets,
   Building,
-  ArrowRightCircle,
-  FileText,
   MapPinHouse,
   MapPinned,
   CalendarFold,
@@ -16,25 +13,17 @@ import {
   ShieldCheck,
   Lock,
   Fingerprint,
-  Info,
   Settings,
   ArrowLeftCircle,
-  UserRound,
-  Save,
-  BadgeCheck,
-  BadgeAlert,
-  Factory,
   Hospital,
   BanknoteArrowDown,
   CalendarRange,
 } from 'lucide-react'
-import { useSelector } from 'react-redux'
 import dayjs from 'dayjs'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { IoMdArrowDropright } from 'react-icons/io'
 
-const Show = ({ employee, role, permissions, onChangeView }) => {
-  console.log(employee)
+const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
   const [loadingPermissions, setLoadingPermissions] = useState(false)
 
   const getInitials = (name) => {
@@ -67,67 +56,82 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
         </div>
         <div className="fade-in font-inter p-3" style={{ background: '#f8fafc' }}>
           <CRow>
-            <CCol md={4} className="mb-4">
-              <CCard className="p-3 shadow-sm border-0 bg-white">
-                <CCardBody className="text-center">
-                  <div className="d-flex flex-column align-items-center mt-2">
+            <CCol md={4} className="mb-4 d-flex">
+              <CCard className="p-4 shadow-sm border-0 bg-white w-100">
+                <CCardBody className="text-center d-flex flex-column justify-content-center">
+                  <div className="d-flex flex-column align-items-center mb-4">
                     <div
-                      className="rounded-circle d-flex align-items-center justify-content-center shadow-inner mb-3"
+                      className="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                       style={{
-                        width: '120px',
-                        height: '120px',
+                        width: '140px',
+                        height: '140px',
                         borderRadius: '50%',
                         overflow: 'hidden',
                         background: 'linear-gradient(135deg, #e0f2fe 0%, #38bdf8 100%)',
-                        border: '4px solid white',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        border: '5px solid white',
+                        boxShadow: '0 6px 15px rgba(0,0,0,0.08)',
                       }}
                     >
                       {employee.person?.photo ? (
                         <img
                           src={employee.person.photo.path}
                           alt="profile"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
                         <span
                           className="fw-bold text-white font-montserrat"
-                          style={{ fontSize: '3rem' }}
+                          style={{ fontSize: '3.5rem' }}
                         >
                           {getInitials(employee.person?.names)}
                         </span>
                       )}
                     </div>
                   </div>
-
-                  <h5 className="fw-bold font-montserrat text-dark mb-3">
-                    {employee.person?.names} {employee.person?.last_names}
-                  </h5>
-                  <div className="text-primary font-inter small fw-medium mb-3">
-                    <Briefcase size={14} className="me-1" />{' '}
-                    {employee.position?.name || 'No aplica'}
+                  <h4 className="fw-extrabold font-montserrat text-dark mb-3">
+                    {employee.person?.names} <br />
+                    {employee.person?.last_names}
+                  </h4>
+                  <div className="mb-3">
+                    <small
+                      className="text-uppercase text-muted fw-bold font-inter"
+                      style={{ fontSize: '0.65rem', letterSpacing: '1px' }}
+                    >
+                      Cargo Ocupado
+                    </small>
+                    <div className="text-primary font-montserrat fw-bold fs-5 mt-1">
+                      <Briefcase size={18} className="me-2" />
+                      {employee.position?.name || 'No aplica'}
+                    </div>
                   </div>
-                  <CBadge
-                    color="light"
-                    className="text-muted font-inter fw-medium mb-3"
-                    shape="pill"
-                  >
-                    <MapPinHouse size={14} className="me-1" />
-                    {employee.position?.area[0].name || 'No aplica'}
-                  </CBadge>
+                  <div>
+                    <small
+                      className="text-uppercase text-muted fw-bold font-inter"
+                      style={{ fontSize: '0.65rem', letterSpacing: '1px' }}
+                    >
+                      Área
+                    </small>
+                    <div className="mt-2">
+                      <CBadge
+                        color="light"
+                        className="text-dark font-inter py-2 px-3 border"
+                        shape="pill"
+                        style={{ fontSize: '0.85rem', backgroundColor: '#f8fafc' }}
+                      >
+                        <MapPinHouse size={14} className="me-2 text-primary" />
+                        {employee.position?.area[0]?.name || 'No aplica'}
+                      </CBadge>
+                    </div>
+                  </div>
                 </CCardBody>
               </CCard>
             </CCol>
 
             <CCol md={8} className="mb-4">
-              <CCard className="h-100 p-4 shadow-sm border-0 bg-white">
+              <CCard className="p-4 shadow-sm border-0 bg-white">
                 <CCardBody>
                   <div
-                    className="position-relative p-3 border rounded-3"
+                    className="position-relative p-3 border rounded-3 mb-5 mt-3"
                     style={{ borderColor: '#e2e8f0' }}
                   >
                     <div
@@ -144,16 +148,16 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                       DATOS PERSONALES
                     </div>
 
-                    <CRow className="justify-content-between">
-                      <CCol md={5} className="ps-2">
+                    <CRow className="gx-3">
+                      <CCol xs={12} sm={12} md={12} lg={12} xl={3}>
                         <CTable
                           borderless
                           small
                           className="text-start font-inter small text-muted m-0"
                         >
                           <tbody>
-                            <tr className="align-items-center">
-                              <td className="py-1" style={{ width: '130px' }}>
+                            <tr className="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                              <td className="py-1 w-100 w-md-auto" style={{ width: '130px' }}>
                                 <div className="d-flex align-items-center gap-2">
                                   <div
                                     className="d-flex align-items-center justify-content-center"
@@ -170,10 +174,10 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                                   </span>
                                 </div>
                               </td>
-                              <td className="py-1 text-dark">{employee.person?.document}</td>
+                              <td className="py-1 text-dark w-100">{employee.person?.document}</td>
                             </tr>
-                            <tr className="align-items-center">
-                              <td className="py-1" style={{ width: '130px' }}>
+                            <tr className="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                              <td className="py-1 w-100 w-md-auto" style={{ width: '130px' }}>
                                 <div className="d-flex align-items-center gap-2">
                                   <div
                                     className="d-flex align-items-center justify-content-center"
@@ -182,14 +186,96 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                                     <Phone size={15} strokeWidth={1.5} className="text-secondary" />
                                   </div>
                                   <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                    Télefono:
+                                    Telefono:
                                   </span>
                                 </div>
                               </td>
-                              <td className="py-1 text-dark">{employee.person?.phone}</td>
+                              <td className="py-1 text-dark w-100">{employee.person?.phone}</td>
                             </tr>
-                            <tr className="align-items-center">
-                              <td className="py-1" style={{ width: '130px' }}>
+                          </tbody>
+                        </CTable>
+                      </CCol>
+                      <CCol xs={12} sm={12} md={12} lg={12} xl={3} className="ps-xl-4">
+                        <CTable
+                          borderless
+                          small
+                          className="text-start font-inter small text-muted m-0"
+                        >
+                          <tbody>
+                            <tr className="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                              <td className="py-1 w-md-auto" style={{ width: '105px' }}>
+                                <div className="d-flex align-items-center gap-2">
+                                  <div
+                                    className="d-flex align-items-center justify-content-center"
+                                    style={{ width: '20px' }}
+                                  >
+                                    <Mail size={15} strokeWidth={1.5} className="text-secondary" />
+                                  </div>
+                                  <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                                    T. Sangre:
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-1">
+                                <CBadge color="danger" shape="pill">
+                                  {employee.person?.blood_type?.name || 'No aplica'}
+                                </CBadge>
+                              </td>
+                            </tr>
+                            <tr className="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                              <td className="py-1 w-md-auto" style={{ width: '105px' }}>
+                                <div className="d-flex align-items-center gap-2">
+                                  <div
+                                    className="d-flex align-items-center justify-content-center"
+                                    style={{ width: '20px' }}
+                                  >
+                                    <VenusAndMars
+                                      size={15}
+                                      strokeWidth={1.5}
+                                      className="text-secondary"
+                                    />
+                                  </div>
+                                  <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                                    Género:
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-1 text-dark">
+                                {employee.person?.gender?.description || 'No aplica'}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </CTable>
+                      </CCol>
+                      <CCol xs={12} sm={12} md={12} lg={12} xl={6} className="ps-xl-5">
+                        <CTable
+                          borderless
+                          small
+                          className="text-start font-inter small text-muted m-0"
+                        >
+                          <tbody>
+                            <tr className="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                              <td className="py-1 w-md-auto" style={{ width: '135px' }}>
+                                <div className="d-flex align-items-center gap-2">
+                                  <div
+                                    className="d-flex align-items-center justify-content-center"
+                                    style={{ width: '20px' }}
+                                  >
+                                    <CalendarFold
+                                      size={15}
+                                      strokeWidth={1.5}
+                                      className="text-secondary"
+                                    />
+                                  </div>
+                                  <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                                    F. Nacimiento:
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-1 text-dark">{employee.person?.birth_date}</td>
+                            </tr>
+                            <tr className="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                              <td className="py-1 w-md-auto" style={{ width: '105px' }}>
                                 <div className="d-flex align-items-center gap-2">
                                   <div
                                     className="d-flex align-items-center justify-content-center"
@@ -211,82 +297,10 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                           </tbody>
                         </CTable>
                       </CCol>
-                      <CCol md={5} className="pe-2">
-                        <CTable
-                          borderless
-                          small
-                          className="text-start font-inter small text-muted m-0"
-                        >
-                          <tbody>
-                            <tr className="align-items-center">
-                              <td className="py-1" style={{ width: '100px' }}>
-                                <div className="d-flex align-items-center gap-2">
-                                  <div
-                                    className="d-flex align-items-center justify-content-center"
-                                    style={{ width: '20px' }}
-                                  >
-                                    <VenusAndMars
-                                      size={15}
-                                      strokeWidth={1.5}
-                                      className="text-secondary"
-                                    />
-                                  </div>
-                                  <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                    Género:
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-1 text-dark">
-                                {employee.person?.gender?.description || 'No aplica'}
-                              </td>
-                            </tr>
-                            <tr className="align-items-center">
-                              <td className="py-1" style={{ width: '100px' }}>
-                                <div className="d-flex align-items-center gap-2">
-                                  <div
-                                    className="d-flex align-items-center justify-content-center"
-                                    style={{ width: '20px' }}
-                                  >
-                                    <CalendarFold
-                                      size={15}
-                                      strokeWidth={1.5}
-                                      className="text-secondary"
-                                    />
-                                  </div>
-                                  <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                    Nacimiento:
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-1 text-dark">{employee.person?.birth_date}</td>
-                            </tr>
-                            <tr className="align-items-center">
-                              <td className="py-1" style={{ width: '100px' }}>
-                                <div className="d-flex align-items-center gap-2">
-                                  <div
-                                    className="d-flex align-items-center justify-content-center"
-                                    style={{ width: '20px' }}
-                                  >
-                                    <Mail size={15} strokeWidth={1.5} className="text-secondary" />
-                                  </div>
-                                  <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                    T. Sangre:
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-1">
-                                <CBadge color="danger" shape="pill">
-                                  {employee.person?.blood_type?.name || 'No aplica'}
-                                </CBadge>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </CTable>
-                      </CCol>
                     </CRow>
                   </div>
                   <div
-                    className="position-relative mt-4 p-3 border rounded-3"
+                    className="position-relative p-3 border rounded-3 mb-3"
                     style={{ borderColor: '#e2e8f0' }}
                   >
                     <div
@@ -303,162 +317,84 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                       DATOS DE CONTRATACIÓN
                     </div>
 
-                    <CCol md={12} className="pe-2">
-                      <CTable
-                        borderless
-                        small
-                        className="text-start font-inter small text-muted m-0"
-                      >
-                        <tbody>
-                          <tr className="align-items-center">
-                            <td className="py-1" style={{ width: '100px' }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="d-flex align-items-center justify-content-center"
-                                  style={{ width: '20px' }}
-                                >
-                                  <Hospital
-                                    size={15}
-                                    strokeWidth={1.5}
-                                    className="text-secondary"
-                                  />
-                                </div>
-                                <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                  ARL:
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1 text-dark">{employee.arl?.name || 'No aplica'}</td>
-                          </tr>
-                          <tr className="align-items-center">
-                            <td className="py-1" style={{ width: '100px' }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="d-flex align-items-center justify-content-center"
-                                  style={{ width: '20px' }}
-                                >
-                                  <Hospital
-                                    size={15}
-                                    strokeWidth={1.5}
-                                    className="text-secondary"
-                                  />
-                                </div>
-                                <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                  EPS:
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1 text-dark">{employee.eps?.name || 'No aplica'}</td>
-                          </tr>
-                          <tr className="align-items-center">
-                            <td className="py-1" style={{ width: '100px' }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="d-flex align-items-center justify-content-center"
-                                  style={{ width: '20px' }}
-                                >
-                                  <BanknoteArrowDown
-                                    size={15}
-                                    strokeWidth={1.5}
-                                    className="text-secondary"
-                                  />
-                                </div>
-                                <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                  Fondo de Pensión:
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1 text-dark">
-                              {employee.pension_fund?.name || 'No aplica'}
-                            </td>
-                          </tr>
-                          <tr className="align-items-center">
-                            <td className="py-1" style={{ width: '100px' }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="d-flex align-items-center justify-content-center"
-                                  style={{ width: '20px' }}
-                                >
-                                  <BanknoteArrowDown
-                                    size={15}
-                                    strokeWidth={1.5}
-                                    className="text-secondary"
-                                  />
-                                </div>
-                                <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                  Caja de Compensación:
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1 text-dark">
-                              {employee.compensation_fund?.name || 'No aplica'}
-                            </td>
-                          </tr>
-                          <tr className="align-items-center">
-                            <td className="py-1" style={{ width: '100px' }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="d-flex align-items-center justify-content-center"
-                                  style={{ width: '20px' }}
-                                >
-                                  <Factory size={15} strokeWidth={1.5} className="text-secondary" />
-                                </div>
-                                <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                  Centro de Operación:
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1 text-dark">
-                              {employee.operation_center || 'No aplica'}
-                            </td>
-                          </tr>
-                          <tr className="align-items-center">
-                            <td className="py-1" style={{ width: '100px' }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="d-flex align-items-center justify-content-center"
-                                  style={{ width: '20px' }}
-                                >
-                                  <CalendarRange
-                                    size={15}
-                                    strokeWidth={1.5}
-                                    className="text-secondary"
-                                  />
-                                </div>
-                                <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                  Fecha Inicio:
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1 text-dark">
-                              {dayjs(employee.start_date).format('DD/MM/YYYY')}
-                            </td>
-                          </tr>
-                          <tr className="align-items-center">
-                            <td className="py-1" style={{ width: '100px' }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="d-flex align-items-center justify-content-center"
-                                  style={{ width: '20px' }}
-                                >
-                                  <CalendarRange
-                                    size={15}
-                                    strokeWidth={1.5}
-                                    className="text-secondary"
-                                  />
-                                </div>
-                                <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                                  Fecha Fin:
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1 text-dark">
-                              {dayjs(employee.end_date).format('DD/MM/YYYY') || 'No Aplica'}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </CTable>
-                    </CCol>
+                    <div className="container-fluid p-0 font-inter small">
+                      <div className="row py-1 border-bottom-dashed align-items-center">
+                        <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
+                          <Hospital size={15} strokeWidth={1.5} className="text-secondary" />
+                          <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                            ARL:
+                          </span>
+                        </div>
+                        <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
+                          {employee.arl?.name || 'No aplica'}
+                        </div>
+                      </div>
+                      <div className="row py-1 border-bottom-dashed align-items-center">
+                        <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
+                          <Hospital size={15} strokeWidth={1.5} className="text-secondary" />
+                          <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                            EPS:
+                          </span>
+                        </div>
+                        <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
+                          {employee.eps?.name || 'No aplica'}
+                        </div>
+                      </div>
+                      <div className="row py-1 border-bottom-dashed align-items-center">
+                        <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
+                          <BanknoteArrowDown
+                            size={15}
+                            strokeWidth={1.5}
+                            className="text-secondary"
+                          />
+                          <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                            Fondo Pensión:
+                          </span>
+                        </div>
+                        <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
+                          {employee.pension_fund?.name || 'No aplica'}
+                        </div>
+                      </div>
+                      <div className="row py-1 border-bottom-dashed align-items-center">
+                        <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
+                          <BanknoteArrowDown
+                            size={15}
+                            strokeWidth={1.5}
+                            className="text-secondary"
+                          />
+                          <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                            Caja Compensación:
+                          </span>
+                        </div>
+                        <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
+                          {employee.compensation_fund?.name || 'No aplica'}
+                        </div>
+                      </div>
+                      <div className="row py-1 align-items-center">
+                        <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
+                          <CalendarRange size={15} strokeWidth={1.5} className="text-secondary" />
+                          <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                            Fecha Inicio:
+                          </span>
+                        </div>
+                        <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
+                          {dayjs(employee.start_date).format('DD/MM/YYYY')}
+                        </div>
+                      </div>
+                      <div className="row py-1 align-items-center">
+                        <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
+                          <CalendarRange size={15} strokeWidth={1.5} className="text-secondary" />
+                          <span className="fw-medium" style={{ color: '#8f8f8f' }}>
+                            Fecha Fin:
+                          </span>
+                        </div>
+                        <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
+                          {employee.end_date
+                            ? dayjs(employee.end_date).format('DD/MM/YYYY')
+                            : 'No Aplica'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CCardBody>
               </CCard>
@@ -482,7 +418,7 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                     </div>
                     <div className="d-flex flex-column gap-2">
                       <CRow className="g-3">
-                        {employee.roles?.map((r, index) => (
+                        {employee.user?.roles?.map((r, index) => (
                           <CCol
                             key={r.id}
                             sm={4}
@@ -492,7 +428,7 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                           >
                             <div
                               key={r.id}
-                              onClick={() => setRole(r)}
+                              onClick={() => findRole(r.id)}
                               className={`h-100 p-2 border rounded-3 bg-white shadow-sm permission-card ${role?.id === r.id ? 'active' : ''}`}
                               style={{
                                 cursor: 'pointer',
@@ -539,7 +475,7 @@ const Show = ({ employee, role, permissions, onChangeView }) => {
                       {!loadingPermissions ? (
                         <CRow className="g-3">
                           {permissions?.map((p, index) =>
-                            employee?.permissions?.some((up) => up.id === p.id) ? (
+                            employee?.user?.permissions?.some((up) => up.id === p.id) ? (
                               <CCol
                                 key={p.id}
                                 sm={12}

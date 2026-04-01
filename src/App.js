@@ -35,7 +35,7 @@ const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
 const Login = React.lazy(() => import('./views/pages/Login'))
 const Register = React.lazy(() => import('./views/pages/register/Register'))
 
-const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
+const Dashboard = React.lazy(() => import('./views/pages/Dashboard'))
 
 /**
  * Main Application Component

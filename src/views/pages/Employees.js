@@ -34,7 +34,7 @@ const Employees = () => {
   useEffect(() => {
     if (view.name === 'show' && view.employee?.id) {
       findEmployee(view.employee.id)
-      findRole(view.employee.position.roles[0].id)
+      findRole(view.employee.user?.roles[0].id)
     }
     if (view.name === 'edit' && view.employee?.id) {
       findEmployee(view.employee.id)
@@ -194,7 +194,7 @@ const Employees = () => {
 
   const deleteEmployee = async (id) => {
     try {
-      const response = await EmployeesService.delete_person(id)
+      const response = await EmployeesService.delete_employee(id)
       return response
     } catch (error) {
       throw error
@@ -266,6 +266,7 @@ const Employees = () => {
           <Show
             employee={employee}
             role={role}
+            findRole={findRole}
             permissions={permissions}
             onChangeView={changeView}
             loading={loading}
