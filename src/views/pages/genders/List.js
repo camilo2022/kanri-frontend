@@ -89,7 +89,7 @@ export const List = ({
         '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Genero</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar genero <strong>${gender.name}</strong>.<br/>
+          Estás a punto de desactivar el género <strong>${gender.description}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -112,7 +112,7 @@ export const List = ({
           fetchGenders(params)
           Toast.fire({
             icon: 'success',
-            title: 'Genero desactivada con exito',
+            title: 'Genero desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -131,7 +131,7 @@ export const List = ({
       title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">ActivGenero</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar Genero <strong>${gender.name}</strong>.<br/>
+          Estás a punto de activar el género <strong>${gender.description}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -154,7 +154,7 @@ export const List = ({
           fetchGenders(params)
           Toast.fire({
             icon: 'success',
-            title: 'Genero activada con exito',
+            title: 'Genero activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -171,6 +171,7 @@ export const List = ({
   const formattedData = data?.genders?.map((gender) => {
     return {
       ...gender,
+      description: gender.description || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

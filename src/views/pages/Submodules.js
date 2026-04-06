@@ -17,7 +17,11 @@ const Submodules = ({ module }) => {
   const [roles, setRoles] = useState({})
 
   useEffect(() => {
-    if (view.name === 'create' || view.name === 'edit') {
+    if (view.name === 'create') {
+      allRoles()
+    }
+    if (view.name === 'edit' && view.submodule?.id) {
+      findSubmodule(view.submodule.id)
       allRoles()
     }
     if (view.name === 'show' && view.submodule?.id) {
@@ -39,6 +43,7 @@ const Submodules = ({ module }) => {
   const fetchSubmodules = async (module_id, params) => {
     try {
       const response = await SubmoduleService.all(module_id, params)
+      console.log(response)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -84,6 +89,7 @@ const Submodules = ({ module }) => {
   const deleteSubmodule = async (id) => {
     try {
       const response = await SubmoduleService.delete_submodule(id)
+      console.log(response)
       return response
     } catch (error) {
       setErrors(error.error)

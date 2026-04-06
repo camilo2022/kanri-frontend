@@ -1,27 +1,26 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import ModuleService from '../../services/modules.service'
-import List from './module/List'
-import Edit from './module/Edit'
-import Create from './module/Create'
-import Submodules from './Submodules'
+import HealthEntitiesService from '../../services/health_entities.service'
+import List from './healthEntities/List'
+import Create from './healthEntities/Create'
+import Edit from './healthEntities/Edit'
 
-const Modules = () => {
+const HealtEntities = () => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Módulos' })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Entidades de Salud' })
   const [data, setData] = useState({})
-  const [module, setModule] = useState({})
+  const [healthEntity, setHealthEntity] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (view.name === 'show' && view.module?.id) {
-      findModule(view.module.id)
+    if (view.name === 'edit' && view.health_entity?.id) {
+      findHealthEntity(view.health_entity.id)
     }
     setLoading(true)
-    setModule('')
+    setHealthEntity('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Módulos' })
+      dispatch({ type: 'set', action: 'Listar Entidades de Salud' })
     }
   }, [view])
 
@@ -31,9 +30,9 @@ const Modules = () => {
     setView(newView)
   }
 
-  const fetchModules = async (params) => {
+  const fetchHealtEntities = async (params) => {
     try {
-      const response = await ModuleService.all(params)
+      const response = await HealthEntitiesService.all(params)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -43,9 +42,9 @@ const Modules = () => {
     }
   }
 
-  const createModule = async (data) => {
+  const createHealthEntity = async (data) => {
     try {
-      const response = await ModuleService.store(data)
+      const response = await HealthEntitiesService.store(data)
       setErrors({})
       return response
     } catch (error) {
@@ -54,9 +53,9 @@ const Modules = () => {
     }
   }
 
-  const editModule = async (id, data) => {
+  const editHealthEntity = async (id, data) => {
     try {
-      const response = await ModuleService.update(id, data)
+      const response = await HealthEntitiesService.update(id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -65,20 +64,19 @@ const Modules = () => {
     }
   }
 
-  const findModule = async (id) => {
+  const findHealthEntity = async (id) => {
     try {
-      const response = await ModuleService.find(id)
-      setModule(response.data.module)
+      const response = await HealthEntitiesService.find(id)
+      setHealthEntity(response.data.health_entity)
       return response
     } catch (error) {
       throw error
     }
   }
 
-  const deleteModule = async (id) => {
+  const deleteHealthEntity = async (id) => {
     try {
-      const response = await ModuleService.delete_module(id)
-      console.log(response)
+      const response = await HealthEntitiesService.delete_health_entity(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -88,7 +86,7 @@ const Modules = () => {
 
   const restore = async (id) => {
     try {
-      const response = await ModuleService.restore(id)
+      const response = await HealthEntitiesService.restore(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -99,29 +97,26 @@ const Modules = () => {
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return <Create onChangeView={changeView} onSubmit={createModule} errors={errors} />
+        return <Create onChangeView={changeView} onSubmit={createHealthEntity} errors={errors} />
 
       case 'edit':
         return (
           <Edit
-            module={view.module}
+            healthEntity={healthEntity}
             onChangeView={changeView}
-            onSubmit={editModule}
+            onSubmit={editHealthEntity}
             errors={errors}
           />
         )
-
-      case 'show':
-        return <Submodules module={module} />
 
       default:
         return (
           <List
             data={data}
             loading={loading}
-            fetchModules={fetchModules}
+            fetchHealtEntities={fetchHealtEntities}
             onChangeView={changeView}
-            deleteModule={deleteModule}
+            deleteHealthEntity={deleteHealthEntity}
             restore={restore}
             errors={errors}
           />
@@ -132,4 +127,4 @@ const Modules = () => {
   return <div>{renderView()}</div>
 }
 
-export default Modules
+export default HealtEntities

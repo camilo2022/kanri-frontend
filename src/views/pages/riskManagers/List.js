@@ -24,21 +24,19 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
-  Boxes,
   FileText,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
-import * as FaIcons from 'react-icons/fa'
 
 export const List = ({
   data,
   loading,
-  fetchModules,
+  fetchRiskManagers,
   onChangeView,
-  deleteModule,
+  deleteRiskManager,
   restore,
   errors,
 }) => {
@@ -56,11 +54,23 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchModules(currentParams)
+      fetchRiskManagers(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, params.page, params.per_page, params.column, params.dir])
+  }, [params.page, params.per_page, params.column, params.dir, params.search])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setParams((prev) => ({
+        ...prev,
+        search: searchInput,
+        page: 1,
+      }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchInput])
 
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {
@@ -71,13 +81,13 @@ export const List = ({
     }
   }, [errors])
 
-  const handleConfirmDelete = (module) => {
+  const handleConfirmDelete = (risk_manager) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Módulo</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Administradora de Riesgos</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar el módulo <strong>${module.name}</strong>.<br/>
+          Estás a punto de desactivar la administradora de riesgos <strong>${risk_manager.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -96,11 +106,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteModule(module.id)
-          fetchModules(params)
+          await deleteRiskManager(risk_manager.id)
+          fetchRiskManagers(params)
           Toast.fire({
             icon: 'success',
-            title: 'Módulo desactivado con exito',
+            title: 'RiskManager desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -114,12 +124,13 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (module) => {
+  const handleConfirmRestore = (risk_manager) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Módulo</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Administradora de Riesgos</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar el módulo <strong>${module.name}</strong>.<br/>
+          Estás a punto de activar la administradora de riesgos <strong>${risk_manager.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -138,11 +149,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(module.id)
-          fetchModules(params)
+          await restore(risk_manager.id)
+          fetchRiskManagers(params)
           Toast.fire({
             icon: 'success',
-            title: 'Módulo activado con exito',
+            title: 'RiskManager activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -156,76 +167,36 @@ export const List = ({
     })
   }
 
-  const formattedData = data?.modules?.map((modulo) => {
-    const icon = modulo.icon
-    const IconComponent = (icon && FaIcons[icon]) || FaIcons.FaRegCircle
+  const formattedData = data?.risk_managers?.map((risk_manager) => {
     return {
-      ...modulo,
-      icono: (
-        <>
-          {IconComponent ? (
-            <span className="nav-icon">
-              <IconComponent />
-            </span>
-          ) : (
-            <span className="nav-icon">
-              <span className="nav-icon-bullet"></span>
-            </span>
-          )}
-        </>
-      ),
+      ...risk_manager,
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
             <button
               className="action-btn edit-btn"
               disabled={
-                !!modulo.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.modules.find') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.modules.update')
+                !!risk_manager.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'risk_managers.find') ||
+                !user_active?.permissions.some((p) => p.name === 'risk_managers.update')
               }
-              onClick={() => onChangeView({ name: 'edit', title: 'Editar Módulo', module: modulo })}
+              onClick={() =>
+                onChangeView({
+                  name: 'edit',
+                  title: 'Editar RiskManager',
+                  risk_manager: risk_manager,
+                })
+              }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          <CTooltip content="Gestionar Sudmódulos" placement="top">
-            <button
-              className="action-btn permisos-btn"
-              disabled={
-                !!modulo.deleted_at ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.all',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.find',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.store',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.update',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.delete',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.restore',
-                )
-              }
-              onClick={() => onChangeView({ name: 'show', title: 'Submódulos', module: modulo })}
-            >
-              <Boxes size={18} strokeWidth={1.5} />
-            </button>
-          </CTooltip>
-          {modulo.deleted_at === null ? (
+          {risk_manager.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
-                disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.delete')
-                }
-                onClick={() => handleConfirmDelete(modulo)}
+                disabled={!user_active?.permissions.some((p) => p.name === 'risk_managers.delete')}
+                onClick={() => handleConfirmDelete(risk_manager)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -234,10 +205,8 @@ export const List = ({
             <CTooltip content="Activar" placement="top">
               <button
                 className="action-btn restore-btn"
-                disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.restore')
-                }
-                onClick={() => handleConfirmRestore(modulo)}
+                disabled={!user_active?.permissions.some((p) => p.name === 'risk_managers.restore')}
+                onClick={() => handleConfirmRestore(risk_manager)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -278,8 +247,14 @@ export const List = ({
       ),
     },
     {
-      key: 'icono',
-      label: <div className="sortable-header text-center">Icono</div>,
+      key: 'description',
+      label: (
+        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
+          Descripción{' '}
+          {params.column === 'description' &&
+            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+        </div>
+      ),
     },
     {
       key: 'acciones',
@@ -316,13 +291,13 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Módulos</span>
+          <span className="fw-bold fs-5 font-montserrat">Administradoras de Riesgos</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar módulo..."
+              placeholder="Buscar administradora de riesgos..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -330,10 +305,12 @@ export const List = ({
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'navegation.modules.store')}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Módulo' })}
+            disabled={!user_active?.permissions.some((p) => p.name === 'risk_managers.store')}
+            onClick={() =>
+              onChangeView({ name: 'create', title: 'Crear Administradora de Riesgos' })
+            }
           >
-            <CirclePlus /> Agregar Módulo
+            <CirclePlus /> Agregar Administradora de Riesgos
           </CButton>
         </div>
 

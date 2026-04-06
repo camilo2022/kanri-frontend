@@ -3,8 +3,8 @@ import { useDispatch } from 'react-redux'
 import EmployeesService from '../../services/employees.service'
 import PeopleService from '../../services/people.service'
 import PositionsService from '../../services/positions.service'
-import ArlService from '../../services/arl.service'
-import EpsService from '../../services/eps.service'
+import RiskManagersService from '../../services/risk_managers.service'
+import HealthEntitiesService from '../../services/health_entities.service'
 import PensionFundsService from '../../services/pension_funds.service'
 import CompensationFundsService from '../../services/compensation_funds.service'
 import AreasService from '../../services/areas.service'
@@ -20,8 +20,8 @@ const Employees = () => {
   const [data, setData] = useState({})
   const [people, setPeople] = useState({})
   const [positions, setPositions] = useState({})
-  const [arl, setArl] = useState({})
-  const [eps, setEps] = useState({})
+  const [riskManagers, setRiskManagers] = useState({})
+  const [healtEntities, setHealthEntities] = useState({})
   const [pensiondFunds, setPensionFunds] = useState({})
   const [compensationFunds, setCompensationFunds] = useState({})
   const [areas, setAreas] = useState({})
@@ -40,17 +40,16 @@ const Employees = () => {
       findEmployee(view.employee.id)
       allPeople()
       allPositions()
-      allArl()
-      allEps()
+      allRiskManagers()
+      allHealthEntities()
       allPensiondFunds()
       allCompensationFunds()
       allAreas()
     }
     if (view.name === 'create') {
       allPeople({ with_employee: false })
-      allPositions()
-      allArl()
-      allEps()
+      allRiskManagers()
+      allHealthEntities()
       allPensiondFunds()
       allCompensationFunds()
       allAreas()
@@ -86,7 +85,6 @@ const Employees = () => {
       setErrors({})
       return response
     } catch (error) {
-      console.log(error)
       setErrors(error.errors)
       throw error
     }
@@ -103,9 +101,9 @@ const Employees = () => {
     }
   }
 
-  const allPositions = async (params) => {
+  const allPositions = async (area_id, params) => {
     try {
-      const response = await PositionsService.all(params)
+      const response = await PositionsService.all(area_id, params)
       setPositions(response.data.positions)
     } catch (error) {
       setErrors(error.error)
@@ -114,10 +112,10 @@ const Employees = () => {
     }
   }
 
-  const allArl = async (params) => {
+  const allRiskManagers = async (params) => {
     try {
-      const response = await ArlService.all(params)
-      setArl(response.data.arls)
+      const response = await RiskManagersService.all(params)
+      setRiskManagers(response.data.riskManagerss)
     } catch (error) {
       setErrors(error.error)
     } finally {
@@ -125,10 +123,10 @@ const Employees = () => {
     }
   }
 
-  const allEps = async (params) => {
+  const allHealthEntities = async (params) => {
     try {
-      const response = await EpsService.all(params)
-      setEps(response.data.epss)
+      const response = await HealthEntitiesService.all(params)
+      setHealthEntities(response.data.health_entities)
     } catch (error) {
       setErrors(error.error)
     } finally {
@@ -234,8 +232,8 @@ const Employees = () => {
             errors={errors}
             people={people}
             positions={positions}
-            arl={arl}
-            eps={eps}
+            risk_managers={riskManagers}
+            healt_entities={healtEntities}
             pension_funds={pensiondFunds}
             compensation_funds={compensationFunds}
             areas={areas}
@@ -252,8 +250,8 @@ const Employees = () => {
             errors={errors}
             people={people}
             positions={positions}
-            arl={arl}
-            eps={eps}
+            risk_managers={riskManagers}
+            healt_entities={healtEntities}
             pension_funds={pensiondFunds}
             compensation_funds={compensationFunds}
             areas={areas}

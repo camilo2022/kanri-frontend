@@ -26,7 +26,10 @@ const Employees = React.lazy(() => import('./views/pages/Employees'))
 const Areas = React.lazy(() => import('./views/pages/Areas'))
 const Genders = React.lazy(() => import('./views/pages/Genders'))
 const BloodTypes = React.lazy(() => import('./views/pages/BloodTypes'))
-const Arls = React.lazy(() => import('./views/pages/Arls'))
+const RiskManagers = React.lazy(() => import('./views/pages/RiskManagers'))
+const HealthEntities = React.lazy(() => import('./views/pages/HealthEntities'))
+const CompensationFunds = React.lazy(() => import('./views/pages/CompensationFunds'))
+const PensionFunds = React.lazy(() => import('./views/pages/PensionFunds'))
 
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
@@ -108,7 +111,10 @@ const routes = [
   { path: '/areas', name: 'Áreas', element: Areas },
   { path: '/genders', name: 'Generos', element: Genders },
   { path: '/blood_types', name: 'Tipos de Sangre', element: BloodTypes },
-  { path: '/arls', name: 'Arls', element: Arls },
+  { path: '/risk_managers', name: 'Administradoras de Riesgos', element: RiskManagers },
+  { path: '/health_entities', name: 'Entidades de Salud', element: HealthEntities },
+  { path: '/compensation_funds', name: 'Cajas de Compensación', element: CompensationFunds },
+  { path: '/pension_funds', name: 'Fondos de Pensión', element: PensionFunds },
 
   /*{ path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },

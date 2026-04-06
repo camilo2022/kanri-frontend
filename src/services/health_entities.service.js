@@ -3,7 +3,7 @@ import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {
-    const response = await api.get(`/compensation_funds/all`, {
+    const response = await api.get(`/health_entities/all`, {
       ...getConfig(),
       params: params,
     })
@@ -18,7 +18,7 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/compensation_funds/store`, data, getConfig())
+    const response = await api.post(`/health_entities/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -30,7 +30,7 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(`/compensation_funds/update/${id}`, data, getConfig())
+    const response = await api.put(`/health_entities/update/${id}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -42,7 +42,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await api.get(`/compensation_funds/find/${id}`, getConfig())
+    const response = await api.get(`/health_entities/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -52,9 +52,9 @@ const find = async (id) => {
   }
 }
 
-const delete_compensation_fund = async (id) => {
+const delete_health_entity = async (id) => {
   try {
-    const response = await api.delete(`/compensation_funds/delete/${id}`, getConfig())
+    const response = await api.delete(`/health_entities/delete/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -66,7 +66,7 @@ const delete_compensation_fund = async (id) => {
 
 const restore = async (id) => {
   try {
-    const response = await api.patch(`/compensation_funds/restore/${id}`, {}, getConfig())
+    const response = await api.patch(`/health_entities/restore/${id}`, {}, getConfig())
     return response.data
   } catch (error) {
     console.log(error)
@@ -77,13 +77,13 @@ const restore = async (id) => {
   }
 }
 
-const CompensationFundsService = {
+const HealthEntitiesService = {
   all,
   store,
-  find,
   update,
-  delete_compensation_fund,
+  find,
+  delete_health_entity,
   restore,
 }
 
-export default CompensationFundsService
+export default HealthEntitiesService

@@ -207,8 +207,8 @@ export const List = ({
     name: `${employee.person.names || ''} ${employee.person.last_names || ''}`,
     position: employee.position?.name || 'No Aplica',
     area: employee.position?.area[0].name || 'No Aplica',
-    arl: employee.arl?.name || 'No Aplica',
-    eps: employee.eps?.name || 'No Aplica',
+    risk_manager: employee.risk_manager?.name || 'No Aplica',
+    health_entity: employee.health_entity?.name || 'No Aplica',
     acciones: (
       <div className="d-flex gap-2 justify-content-center">
         <CTooltip content="Editar" placement="top">
@@ -295,12 +295,12 @@ export const List = ({
       label: <div className="sortable-header text-center">Cargo</div>,
     },
     {
-      key: 'arl',
-      label: <div className="sortable-header text-center">ARL</div>,
+      key: 'risk_manager',
+      label: <div className="sortable-header text-center">Administradora de Riesgo</div>,
     },
     {
-      key: 'eps',
-      label: <div className="sortable-header text-center">EPS</div>,
+      key: 'health_entity',
+      label: <div className="sortable-header text-center">Entidad de Salud</div>,
     },
     {
       key: 'acciones',

@@ -1,27 +1,26 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import ModuleService from '../../services/modules.service'
-import List from './module/List'
-import Edit from './module/Edit'
-import Create from './module/Create'
-import Submodules from './Submodules'
+import CompensationFundsService from '../../services/compensation_funds.service'
+import List from './compensationFunds/List'
+import Create from './compensationFunds/Create'
+import Edit from './compensationFunds/Edit'
 
-const Modules = () => {
+const CompensationFunds = () => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Módulos' })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Cajas de Compensación' })
   const [data, setData] = useState({})
-  const [module, setModule] = useState({})
+  const [compensationFund, setCompensationFund] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (view.name === 'show' && view.module?.id) {
-      findModule(view.module.id)
+    if (view.name === 'edit' && view.compensationFund?.id) {
+      findCompensationFund(view.compensationFund.id)
     }
     setLoading(true)
-    setModule('')
+    setCompensationFund('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Módulos' })
+      dispatch({ type: 'set', action: 'Listar Cajas de Compensación' })
     }
   }, [view])
 
@@ -31,9 +30,9 @@ const Modules = () => {
     setView(newView)
   }
 
-  const fetchModules = async (params) => {
+  const fetchCompensationFunds = async (params) => {
     try {
-      const response = await ModuleService.all(params)
+      const response = await CompensationFundsService.all(params)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -43,9 +42,9 @@ const Modules = () => {
     }
   }
 
-  const createModule = async (data) => {
+  const createCompensationFund = async (data) => {
     try {
-      const response = await ModuleService.store(data)
+      const response = await CompensationFundsService.store(data)
       setErrors({})
       return response
     } catch (error) {
@@ -54,9 +53,9 @@ const Modules = () => {
     }
   }
 
-  const editModule = async (id, data) => {
+  const editCompensationFund = async (id, data) => {
     try {
-      const response = await ModuleService.update(id, data)
+      const response = await CompensationFundsService.update(id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -65,20 +64,19 @@ const Modules = () => {
     }
   }
 
-  const findModule = async (id) => {
+  const findCompensationFund = async (id) => {
     try {
-      const response = await ModuleService.find(id)
-      setModule(response.data.module)
+      const response = await CompensationFundsService.find(id)
+      setCompensationFund(response.data.compensation_fund)
       return response
     } catch (error) {
       throw error
     }
   }
 
-  const deleteModule = async (id) => {
+  const deleteCompensationFund = async (id) => {
     try {
-      const response = await ModuleService.delete_module(id)
-      console.log(response)
+      const response = await CompensationFundsService.delete_compensation_fund(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -88,7 +86,7 @@ const Modules = () => {
 
   const restore = async (id) => {
     try {
-      const response = await ModuleService.restore(id)
+      const response = await CompensationFundsService.restore(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -99,29 +97,28 @@ const Modules = () => {
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return <Create onChangeView={changeView} onSubmit={createModule} errors={errors} />
+        return (
+          <Create onChangeView={changeView} onSubmit={createCompensationFund} errors={errors} />
+        )
 
       case 'edit':
         return (
           <Edit
-            module={view.module}
+            compensationFund={compensationFund}
             onChangeView={changeView}
-            onSubmit={editModule}
+            onSubmit={editCompensationFund}
             errors={errors}
           />
         )
-
-      case 'show':
-        return <Submodules module={module} />
 
       default:
         return (
           <List
             data={data}
             loading={loading}
-            fetchModules={fetchModules}
+            fetchCompensationFunds={fetchCompensationFunds}
             onChangeView={changeView}
-            deleteModule={deleteModule}
+            deleteCompensationFund={deleteCompensationFund}
             restore={restore}
             errors={errors}
           />
@@ -132,4 +129,4 @@ const Modules = () => {
   return <div>{renderView()}</div>
 }
 
-export default Modules
+export default CompensationFunds

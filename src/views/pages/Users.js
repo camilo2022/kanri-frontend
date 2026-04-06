@@ -24,6 +24,9 @@ const Users = () => {
       allRoles()
     }
     if (view.name === 'create') {
+      allEmployees({ with_user: false })
+    }
+    if (view.name === 'edit') {
       allEmployees()
     }
     setLoading(true)
@@ -160,7 +163,13 @@ const Users = () => {
 
       case 'edit':
         return (
-          <Edit user={view.user} onChangeView={changeView} onSubmit={editUser} errors={errors} />
+          <Edit
+            user={view.user}
+            onChangeView={changeView}
+            onSubmit={editUser}
+            errors={errors}
+            employees={employees}
+          />
         )
 
       case 'show':

@@ -172,6 +172,7 @@ export const List = ({
   const formattedData = data?.positions?.map((position) => {
     return {
       ...position,
+      description: position.description || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

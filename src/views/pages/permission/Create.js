@@ -156,6 +156,7 @@ const Create = ({ onChangeView, onSubmit, errors, roles }) => {
               invalid={!!errors?.description}
               valid={!errors?.description && formData.description !== '' && validated}
               className="font-montserrat"
+              style={{ borderRadius: '5px 5px 5px 5px' }}
             />
             <CFormFeedback invalid>
               {errors?.description?.map((error, index) => (
@@ -199,6 +200,8 @@ const Create = ({ onChangeView, onSubmit, errors, roles }) => {
               }
               invalid={!!errors?.role_id}
               valid={!errors?.role_id && formData.role_id !== '' && validated}
+              style={{ borderRadius: '5px 5px 5px 5px' }}
+              className="font-montserrat"
             />
             <CFormFeedback invalid>
               {errors?.role_id?.map((error, index) => (

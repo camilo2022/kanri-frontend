@@ -6,7 +6,7 @@ import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'luci
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 
-const Edit = ({ arl, onChangeView, onSubmit, errors }) => {
+const Edit = ({ healthEntity, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -14,20 +14,20 @@ const Edit = ({ arl, onChangeView, onSubmit, errors }) => {
   })
 
   useEffect(() => {
-    if (arl) {
+    if (healthEntity) {
       setFormData({
-        name: arl.name || '',
-        description: arl.description || '',
+        name: healthEntity.name || '',
+        description: healthEntity.description || '',
       })
     }
-  }, [arl])
+  }, [healthEntity])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Editar Arl',
+      title: 'Editar Entidad de Salud',
       html: `<div style="font-size:14px">
-              Se guardará la nueva información del arl en el sistema.<br/>
+              Se guardará la nueva información de la entidad de salud en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
@@ -39,7 +39,7 @@ const Edit = ({ arl, onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(arl.id, formData)
+          const response = await onSubmit(healthEntity.id, formData)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -50,7 +50,7 @@ const Edit = ({ arl, onChangeView, onSubmit, errors }) => {
               name: '',
               description: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Arls' })
+            onChangeView({ name: 'list', title: 'Listar Entidades de Salud' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -77,7 +77,7 @@ const Edit = ({ arl, onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Editar Arl</span>
+        <span className="fw-bold fs-5 font-montserrat">Editar Entidad de Salud</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
@@ -111,7 +111,6 @@ const Edit = ({ arl, onChangeView, onSubmit, errors }) => {
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
-            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -146,7 +145,7 @@ const Edit = ({ arl, onChangeView, onSubmit, errors }) => {
           </CButton>
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Arls' })}
+            onClick={() => onChangeView({ name: 'list', title: 'Listar Entidades de Salud' })}
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>

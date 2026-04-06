@@ -79,7 +79,7 @@ const delete_submodule = async (id) => {
 const restore = async (id) => {
   try {
     const response = await axios.patch(
-      `${API_URL}/navegation/modules/restore/${id}`,
+      `${API_URL}/navegation/modules/submodules/restore/${id}`,
       {},
       getConfig(),
     )

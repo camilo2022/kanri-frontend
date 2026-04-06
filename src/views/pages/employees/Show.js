@@ -18,6 +18,7 @@ import {
   Hospital,
   BanknoteArrowDown,
   CalendarRange,
+  Info,
 } from 'lucide-react'
 import dayjs from 'dayjs'
 import { useState } from 'react'
@@ -97,18 +98,6 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                       className="text-uppercase text-muted fw-bold font-inter"
                       style={{ fontSize: '0.65rem', letterSpacing: '1px' }}
                     >
-                      Cargo Ocupado
-                    </small>
-                    <div className="text-primary font-montserrat fw-bold fs-5 mt-1">
-                      <Briefcase size={18} className="me-2" />
-                      {employee.position?.name || 'No aplica'}
-                    </div>
-                  </div>
-                  <div>
-                    <small
-                      className="text-uppercase text-muted fw-bold font-inter"
-                      style={{ fontSize: '0.65rem', letterSpacing: '1px' }}
-                    >
                       Área
                     </small>
                     <div className="mt-2">
@@ -121,6 +110,18 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                         <MapPinHouse size={14} className="me-2 text-primary" />
                         {employee.position?.area[0]?.name || 'No aplica'}
                       </CBadge>
+                    </div>
+                  </div>
+                  <div>
+                    <small
+                      className="text-uppercase text-muted fw-bold font-inter"
+                      style={{ fontSize: '0.65rem', letterSpacing: '1px' }}
+                    >
+                      Cargo Ocupado
+                    </small>
+                    <div className="text-primary font-montserrat fw-bold fs-5 mt-1">
+                      <Briefcase size={18} className="me-2" />
+                      {employee.position?.name || 'No aplica'}
                     </div>
                   </div>
                 </CCardBody>
@@ -322,22 +323,22 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                         <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
                           <Hospital size={15} strokeWidth={1.5} className="text-secondary" />
                           <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                            ARL:
+                            Administradora de Riesgos:
                           </span>
                         </div>
                         <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
-                          {employee.arl?.name || 'No aplica'}
+                          {employee.risk_manager?.name || 'No aplica'}
                         </div>
                       </div>
                       <div className="row py-1 border-bottom-dashed align-items-center">
                         <div className="col-12 col-sm-4 col-md-3 d-flex align-items-center gap-2 text-muted">
                           <Hospital size={15} strokeWidth={1.5} className="text-secondary" />
                           <span className="fw-medium" style={{ color: '#8f8f8f' }}>
-                            EPS:
+                            Entidad de Salud:
                           </span>
                         </div>
                         <div className="col-12 col-sm-8 col-md-9 text-dark ps-4 ps-sm-2">
-                          {employee.eps?.name || 'No aplica'}
+                          {employee.health_entity?.name || 'No aplica'}
                         </div>
                       </div>
                       <div className="row py-1 border-bottom-dashed align-items-center">
@@ -411,123 +412,147 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                   <ShieldCheck size={20} />
                   <span>Seguridad y Accesos</span>
                 </div>
-                <CRow>
-                  <CCol md={6} className="border-end">
-                    <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
-                      <Fingerprint size={14} /> Roles Asignados
-                    </div>
-                    <div className="d-flex flex-column gap-2">
-                      <CRow className="g-3">
-                        {employee.user?.roles?.map((r, index) => (
-                          <CCol
-                            key={r.id}
-                            sm={4}
-                            lg={4}
-                            className="permission-card-wrapper"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                          >
-                            <div
+                {employee.user?.roles ? (
+                  <CRow>
+                    <CCol md={6} className="border-end">
+                      <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
+                        <Fingerprint size={14} /> Roles Asignados
+                      </div>
+                      <div className="d-flex flex-column gap-2">
+                        <CRow className="g-3">
+                          {employee.user?.roles?.map((r, index) => (
+                            <CCol
                               key={r.id}
-                              onClick={() => findRole(r.id)}
-                              className={`h-100 p-2 border rounded-3 bg-white shadow-sm permission-card ${role?.id === r.id ? 'active' : ''}`}
-                              style={{
-                                cursor: 'pointer',
-                              }}
+                              sm={4}
+                              lg={4}
+                              className="permission-card-wrapper"
+                              style={{ animationDelay: `${index * 50}ms` }}
                             >
-                              <div className="d-flex align-items-start gap-2">
-                                <div className="p-1 bg-light rounded text-primary">
-                                  <ShieldCheck size={14} />
-                                </div>
-                                <div style={{ lineHeight: '1.2' }}>
-                                  <div
-                                    className="fw-bold text-dark mb-1"
-                                    style={{ fontSize: '0.8rem' }}
-                                  >
-                                    {r?.title}
+                              <div
+                                key={r.id}
+                                onClick={() => findRole(r.id)}
+                                className={`h-100 p-2 border rounded-3 bg-white shadow-sm permission-card ${role?.id === r.id ? 'active' : ''}`}
+                                style={{
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <div className="d-flex align-items-start gap-2">
+                                  <div className="p-1 bg-light rounded text-primary">
+                                    <ShieldCheck size={14} />
                                   </div>
-                                  <div
-                                    className="text-muted mb-1"
-                                    style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
-                                  >
-                                    {r?.name}
-                                  </div>
-                                  <div
-                                    className="text-secondary"
-                                    style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
-                                  >
-                                    {r?.description || 'Sin descripción disponible'}
+                                  <div style={{ lineHeight: '1.2' }}>
+                                    <div
+                                      className="fw-bold text-dark mb-1"
+                                      style={{ fontSize: '0.8rem' }}
+                                    >
+                                      {r?.title}
+                                    </div>
+                                    <div
+                                      className="text-muted mb-1"
+                                      style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                                    >
+                                      {r?.name}
+                                    </div>
+                                    <div
+                                      className="text-secondary"
+                                      style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
+                                    >
+                                      {r?.description || 'Sin descripción disponible'}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </CCol>
-                        ))}
-                      </CRow>
-                    </div>
-                  </CCol>
+                            </CCol>
+                          ))}
+                        </CRow>
+                      </div>
+                    </CCol>
+                    <CCol md={6} className="ps-4">
+                      <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
+                        <Lock size={14} /> Detalle de Permisos para {role?.title}
+                      </div>
 
-                  <CCol md={6} className="ps-4">
-                    <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
-                      <Lock size={14} /> Detalle de Permisos para {role?.title}
-                    </div>
-
-                    <div className="permissions-container">
-                      {!loadingPermissions ? (
-                        <CRow className="g-3">
-                          {permissions?.map((p, index) =>
-                            employee?.user?.permissions?.some((up) => up.id === p.id) ? (
-                              <CCol
-                                key={p.id}
-                                sm={12}
-                                lg={6}
-                                className="permission-card-wrapper"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                              >
-                                <div className="permission-card h-100 p-2 border rounded-3 bg-white shadow-sm">
-                                  <div className="d-flex align-items-start gap-2">
-                                    <div className="p-1 bg-light rounded text-primary">
-                                      <ShieldCheck size={14} />
-                                    </div>
-                                    <div style={{ lineHeight: '1.2' }}>
-                                      <div
-                                        className="fw-bold text-dark mb-1"
-                                        style={{ fontSize: '0.8rem' }}
-                                      >
-                                        {p.title || formatTitle(p.name)}
+                      <div className="permissions-container">
+                        {!loadingPermissions ? (
+                          <CRow className="g-3">
+                            {permissions?.map((p, index) =>
+                              employee?.user?.permissions?.some((up) => up.id === p.id) ? (
+                                <CCol
+                                  key={p.id}
+                                  sm={12}
+                                  lg={6}
+                                  className="permission-card-wrapper"
+                                  style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                  <div className="permission-card h-100 p-2 border rounded-3 bg-white shadow-sm">
+                                    <div className="d-flex align-items-start gap-2">
+                                      <div className="p-1 bg-light rounded text-primary">
+                                        <ShieldCheck size={14} />
                                       </div>
-                                      <div
-                                        className="text-muted mb-1"
-                                        style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
-                                      >
-                                        {p.name}
-                                      </div>
-                                      <div
-                                        className="text-secondary"
-                                        style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
-                                      >
-                                        {p.description || 'Sin descripción disponible'}
+                                      <div style={{ lineHeight: '1.2' }}>
+                                        <div
+                                          className="fw-bold text-dark mb-1"
+                                          style={{ fontSize: '0.8rem' }}
+                                        >
+                                          {p.title || formatTitle(p.name)}
+                                        </div>
+                                        <div
+                                          className="text-muted mb-1"
+                                          style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                                        >
+                                          {p.name}
+                                        </div>
+                                        <div
+                                          className="text-secondary"
+                                          style={{ fontSize: '0.65rem', fontStyle: 'italic' }}
+                                        >
+                                          {p.description || 'Sin descripción disponible'}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              </CCol>
-                            ) : null,
-                          )}
-                        </CRow>
-                      ) : (
-                        <div className="d-flex flex-column align-items-center justify-content-center py-5">
-                          <div className="gears-container mb-3">
-                            <Settings size={40} className="gear gear-large text-primary" />
-                            <Settings size={24} className="gear gear-small text-secondary" />
+                                </CCol>
+                              ) : null,
+                            )}
+                          </CRow>
+                        ) : (
+                          <div className="d-flex flex-column align-items-center justify-content-center py-5">
+                            <div className="gears-container mb-3">
+                              <Settings size={40} className="gear gear-large text-primary" />
+                              <Settings size={24} className="gear gear-small text-secondary" />
+                            </div>
+                            <span className="text-muted font-montserrat fw-bold small ls-1">
+                              SINCRONIZANDO PERMISOS...
+                            </span>
                           </div>
-                          <span className="text-muted font-montserrat fw-bold small ls-1">
-                            SINCRONIZANDO PERMISOS...
-                          </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    </CCol>
+                  </CRow>
+                ) : (
+                  <CCol md={12} className="mb-4 pt-md-4">
+                    <div
+                      className="p-3 rounded-3 shadow-sm font-inter"
+                      style={{
+                        backgroundColor: '#fff9e6',
+                        borderLeft: '4px solid #ffc107',
+                        fontSize: '12px',
+                        marginTop: '-30px',
+                      }}
+                    >
+                      <div
+                        className="d-flex align-items-center gap-2 mb-1 fw-bold"
+                        style={{ color: '#856404' }}
+                      >
+                        <Info size={16} />
+                        <span>Sin roles registrados</span>
+                      </div>
+                      <p className="m-0" style={{ color: '#856404', opacity: 0.8 }}>
+                        No hay roles ni permisos asociados al usuario.
+                      </p>
                     </div>
                   </CCol>
-                </CRow>
+                )}
               </CCard>
             </CCol>
           </CRow>

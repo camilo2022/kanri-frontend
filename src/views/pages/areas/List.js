@@ -163,6 +163,7 @@ export const List = ({ data, loading, fetchAreas, onChangeView, deleteArea, rest
   const formattedData = data?.areas?.map((area) => {
     return {
       ...area,
+      description: area.description || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -182,7 +183,7 @@ export const List = ({ data, loading, fetchAreas, onChangeView, deleteArea, rest
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          <CTooltip content="Visualizar" placement="top">
+          <CTooltip content="Gestionar Cargos" placement="top">
             <button
               className="action-btn permisos-btn"
               disabled={

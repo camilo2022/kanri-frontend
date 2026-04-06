@@ -31,7 +31,15 @@ import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
 
-export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restore, errors }) => {
+export const List = ({
+  data,
+  loading,
+  fetchCompensationFunds,
+  onChangeView,
+  deleteCompensationFund,
+  restore,
+  errors,
+}) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -46,7 +54,7 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchArls(currentParams)
+      fetchCompensationFunds(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
@@ -73,12 +81,13 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
     }
   }, [errors])
 
-  const handleConfirmDelete = (arl) => {
+  const handleConfirmDelete = (compensationFund) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Arl</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Caja de Compensación</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar el arl <strong>${arl.name}</strong>.<br/>
+          Estás a punto de desactivar la caja de compensación <strong>${compensationFund.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -97,11 +106,11 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteArl(arl.id)
-          fetchArls(params)
+          await deleteCompensationFund(compensationFund.id)
+          fetchCompensationFunds(params)
           Toast.fire({
             icon: 'success',
-            title: 'Arl desactivado con exito',
+            title: 'Caja de compensación desactivada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -115,12 +124,13 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
     })
   }
 
-  const handleConfirmRestore = (arl) => {
+  const handleConfirmRestore = (compensationFund) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Arl</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Caja de Compensación</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar el arl <strong>${arl.name}</strong>.<br/>
+          Estás a punto de activar la caja de compensación <strong>${compensationFund.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -139,11 +149,11 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(arl.id)
-          fetchArls(params)
+          await restore(compensationFund.id)
+          fetchCompensationFunds(params)
           Toast.fire({
             icon: 'success',
-            title: 'Arl activado con exito',
+            title: 'Caja de Compensación activada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -157,36 +167,38 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
     })
   }
 
-  const formattedData = data?.arls?.map((arl) => {
+  const formattedData = data?.compensation_funds?.map((compensationFund) => {
     return {
-      ...arl,
+      ...compensationFund,
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
             <button
               className="action-btn edit-btn"
               disabled={
-                !!arl.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'arl.find') ||
-                !user_active?.permissions.some((p) => p.name === 'arl.update')
+                !!compensationFund.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'compensation_funds.find') ||
+                !user_active?.permissions.some((p) => p.name === 'compensation_funds.update')
               }
               onClick={() =>
                 onChangeView({
                   name: 'edit',
-                  title: 'Editar Arl',
-                  arl: arl,
+                  title: 'Editar Fondo de Compensación',
+                  compensationFund: compensationFund,
                 })
               }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          {arl.deleted_at === null ? (
+          {compensationFund.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'arl.delete')}
-                onClick={() => handleConfirmDelete(arl)}
+                disabled={
+                  !user_active?.permissions.some((p) => p.name === 'compensation_funds.delete')
+                }
+                onClick={() => handleConfirmDelete(compensationFund)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -195,8 +207,10 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
             <CTooltip content="Activar" placement="top">
               <button
                 className="action-btn restore-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'arl.restore')}
-                onClick={() => handleConfirmRestore(arl)}
+                disabled={
+                  !user_active?.permissions.some((p) => p.name === 'compensation_funds.restore')
+                }
+                onClick={() => handleConfirmRestore(compensationFund)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -281,13 +295,13 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Arls</span>
+          <span className="fw-bold fs-5 font-montserrat">Cajas de Compensación</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar arl..."
+              placeholder="Buscar Caja de Compensación..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -295,10 +309,10 @@ export const List = ({ data, loading, fetchArls, onChangeView, deleteArl, restor
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'arl.store')}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Arl' })}
+            disabled={!user_active?.permissions.some((p) => p.name === 'compensation_funds.store')}
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Caja de Compensación' })}
           >
-            <CirclePlus /> Agregar Arl
+            <CirclePlus /> Agregar Caja de Compensación
           </CButton>
         </div>
 

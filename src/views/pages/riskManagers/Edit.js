@@ -6,7 +6,7 @@ import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'luci
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 
-const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
+const Edit = ({ riskManager, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -14,20 +14,20 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
   })
 
   useEffect(() => {
-    if (bloodType) {
+    if (riskManager) {
       setFormData({
-        name: bloodType.name || '',
-        description: bloodType.description || '',
+        name: riskManager.name || '',
+        description: riskManager.description || '',
       })
     }
-  }, [bloodType])
+  }, [riskManager])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Editar Tipo de Sangre',
+      title: 'Editar Administradora de Riesgos',
       html: `<div style="font-size:14px">
-              Se guardará la nueva información del tipo de sangre en el sistema.<br/>
+              Se guardará la nueva información de la administradora de riesgos en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
@@ -39,7 +39,7 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(bloodType.id, formData)
+          const response = await onSubmit(riskManager.id, formData)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -50,7 +50,7 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
               name: '',
               description: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Tipos de Sangre' })
+            onChangeView({ name: 'list', title: 'Listar Administradoras de Riesgos' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -77,7 +77,7 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Editar Tipo de Sangre</span>
+        <span className="fw-bold fs-5 font-montserrat">Editar Administradora de Riesgos</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
@@ -111,6 +111,7 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -145,7 +146,9 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
           </CButton>
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Tipos de Sangre' })}
+            onClick={() =>
+              onChangeView({ name: 'list', title: 'Listar Administradoras de Riesgo' })
+            }
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>

@@ -30,7 +30,6 @@ import {
 import { Toast } from '../../../components/Toast'
 
 const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {
-
   const [visibleRole, setVisibleRole] = useState(null)
 
   const toggleRole = (roleId) => {
@@ -176,22 +175,22 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
                                         checked={role.permissions.every((p) =>
                                           user?.permissions?.some((up) => up.id === p.id),
                                         )}
-                                        onChange={() => {
+                                        onChange={async () => {
                                           const areAllActive = role.permissions.every((p) =>
                                             user?.permissions?.some((up) => up.id === p.id),
                                           )
                                           if (areAllActive) {
-                                            role.permissions.map((permission) => {
-                                              remove(user.id, permission.id)
-                                            })
+                                            for (const permission of role.permissions) {
+                                              await remove(user.id, permission.id)
+                                            }
                                           } else {
                                             const missingPermissions = role.permissions.filter(
                                               (p) =>
                                                 !user?.permissions?.some((up) => up.id === p.id),
                                             )
-                                            missingPermissions.forEach((permission) => {
-                                              assign(user.id, permission.id)
-                                            })
+                                            for (const permission of missingPermissions) {
+                                              await assign(user.id, permission.id)
+                                            }
                                           }
                                         }}
                                       />

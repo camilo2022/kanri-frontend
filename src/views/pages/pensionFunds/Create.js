@@ -1,45 +1,35 @@
 import { useState } from 'react'
 import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 
-const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
+const Create = ({ onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
   })
 
-  useEffect(() => {
-    if (bloodType) {
-      setFormData({
-        name: bloodType.name || '',
-        description: bloodType.description || '',
-      })
-    }
-  }, [bloodType])
-
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Editar Tipo de Sangre',
+      title: 'Crear Fondo de Pensión',
       html: `<div style="font-size:14px">
-              Se guardará la nueva información del tipo de sangre en el sistema.<br/>
+              Se guardará la información del fondo de pensión en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, actualizar',
+      confirmButtonText: 'Si, crear',
       cancelButtonText: 'Cancelar',
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(bloodType.id, formData)
+          const response = await onSubmit(formData)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -50,7 +40,7 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
               name: '',
               description: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Tipos de Sangre' })
+            onChangeView({ name: 'list', title: 'Listar Fondos de Pensión' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -77,12 +67,13 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Editar Tipo de Sangre</span>
+        <span className="fw-bold fs-5 font-montserrat">Crear Fondo de Pensión</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -111,6 +102,7 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -145,7 +137,9 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
           </CButton>
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Tipos de Sangre' })}
+            onClick={() => {
+              onChangeView({ name: 'list', title: 'Listar Fondos de Pensión' })
+            }}
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>
@@ -155,4 +149,4 @@ const Edit = ({ bloodType, onChangeView, onSubmit, errors }) => {
   )
 }
 
-export default Edit
+export default Create

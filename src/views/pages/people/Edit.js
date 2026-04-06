@@ -61,7 +61,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
   }, [person])
 
   const isInvalid = !!errors?.photo
-  const isValid = !errors?.photo && formData.photo !== '' && validated
+  const isValid = !errors?.photo && validated
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -92,6 +92,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
+          if (person.photo === formData.photo) formData.photo = ''
           const response = await onSubmit(person.id, formData)
           setValidated(true)
           Toast.fire({
@@ -150,7 +151,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-4">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Crear Persona</span>
+        <span className="fw-bold fs-5 font-montserrat">Editar Persona</span>
       </div>
       <CForm className="needs-validation" onSubmit={handleSubmit}>
         <div className="row">

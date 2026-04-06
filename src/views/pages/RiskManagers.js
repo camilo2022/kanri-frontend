@@ -1,27 +1,26 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import ModuleService from '../../services/modules.service'
-import List from './module/List'
-import Edit from './module/Edit'
-import Create from './module/Create'
-import Submodules from './Submodules'
+import RiskManagersService from '../../services/risk_managers.service'
+import List from './riskManagers/List'
+import Create from './riskManagers/Create'
+import Edit from './riskManagers/Edit'
 
-const Modules = () => {
+const RiskManagers = () => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Módulos' })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Administradoras de Riegos' })
   const [data, setData] = useState({})
-  const [module, setModule] = useState({})
+  const [riskManager, setRiskManager] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (view.name === 'show' && view.module?.id) {
-      findModule(view.module.id)
+    if (view.name === 'edit' && view.risk_manager?.id) {
+      findRiskManager(view.risk_manager.id)
     }
     setLoading(true)
-    setModule('')
+    setRiskManager('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Módulos' })
+      dispatch({ type: 'set', action: 'Listar Administradoras de Riesgos' })
     }
   }, [view])
 
@@ -31,9 +30,9 @@ const Modules = () => {
     setView(newView)
   }
 
-  const fetchModules = async (params) => {
+  const fetchRiskManagers = async (params) => {
     try {
-      const response = await ModuleService.all(params)
+      const response = await RiskManagersService.all(params)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -43,9 +42,9 @@ const Modules = () => {
     }
   }
 
-  const createModule = async (data) => {
+  const createRiskManager = async (data) => {
     try {
-      const response = await ModuleService.store(data)
+      const response = await RiskManagersService.store(data)
       setErrors({})
       return response
     } catch (error) {
@@ -54,9 +53,9 @@ const Modules = () => {
     }
   }
 
-  const editModule = async (id, data) => {
+  const editRiskManager = async (id, data) => {
     try {
-      const response = await ModuleService.update(id, data)
+      const response = await RiskManagersService.update(id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -65,20 +64,19 @@ const Modules = () => {
     }
   }
 
-  const findModule = async (id) => {
+  const findRiskManager = async (id) => {
     try {
-      const response = await ModuleService.find(id)
-      setModule(response.data.module)
+      const response = await RiskManagersService.find(id)
+      setRiskManager(response.data.risk_managers)
       return response
     } catch (error) {
       throw error
     }
   }
 
-  const deleteModule = async (id) => {
+  const deleteRiskManager = async (id) => {
     try {
-      const response = await ModuleService.delete_module(id)
-      console.log(response)
+      const response = await RiskManagersService.delete_risk_manager(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -88,7 +86,7 @@ const Modules = () => {
 
   const restore = async (id) => {
     try {
-      const response = await ModuleService.restore(id)
+      const response = await RiskManagersService.restore(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -99,29 +97,26 @@ const Modules = () => {
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return <Create onChangeView={changeView} onSubmit={createModule} errors={errors} />
+        return <Create onChangeView={changeView} onSubmit={createRiskManager} errors={errors} />
 
       case 'edit':
         return (
           <Edit
-            module={view.module}
+            riskManager={riskManager}
             onChangeView={changeView}
-            onSubmit={editModule}
+            onSubmit={editRiskManager}
             errors={errors}
           />
         )
-
-      case 'show':
-        return <Submodules module={module} />
 
       default:
         return (
           <List
             data={data}
             loading={loading}
-            fetchModules={fetchModules}
+            fetchRiskManagers={fetchRiskManagers}
             onChangeView={changeView}
-            deleteModule={deleteModule}
+            deleteRiskManager={deleteRiskManager}
             restore={restore}
             errors={errors}
           />
@@ -132,4 +127,4 @@ const Modules = () => {
   return <div>{renderView()}</div>
 }
 
-export default Modules
+export default RiskManagers

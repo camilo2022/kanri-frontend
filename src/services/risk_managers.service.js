@@ -3,7 +3,7 @@ import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {
-    const response = await api.get(`/arl/all`, {
+    const response = await api.get(`/risk_manager/all`, {
       ...getConfig(),
       params: params,
     })
@@ -18,7 +18,7 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/arl/store`, data, getConfig())
+    const response = await api.post(`/risk_manager/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -30,7 +30,7 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(`/arl/update/${id}`, data, getConfig())
+    const response = await api.put(`/risk_manager/update/${id}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -42,7 +42,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await api.get(`/arl/find/${id}`, getConfig())
+    const response = await api.get(`/risk_manager/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -52,9 +52,9 @@ const find = async (id) => {
   }
 }
 
-const delete_arl = async (id) => {
+const delete_risk_manager = async (id) => {
   try {
-    const response = await api.delete(`/arl/delete/${id}`, getConfig())
+    const response = await api.delete(`/risk_manager/delete/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -66,7 +66,7 @@ const delete_arl = async (id) => {
 
 const restore = async (id) => {
   try {
-    const response = await api.patch(`/arl/restore/${id}`, {}, getConfig())
+    const response = await api.patch(`/risk_manager/restore/${id}`, {}, getConfig())
     return response.data
   } catch (error) {
     console.log(error)
@@ -82,7 +82,7 @@ const BloodTypesService = {
   store,
   update,
   find,
-  delete_arl,
+  delete_risk_manager,
   restore,
 }
 

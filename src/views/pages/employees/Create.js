@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  CCard,
-  CFormInput,
-  CCol,
-  CButton,
-  CForm,
-  CFormFeedback,
-  CFormLabel,
-} from '@coreui/react'
+import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import {
   UserRound,
@@ -33,8 +25,8 @@ const Create = ({
   allPositions,
   people,
   positions,
-  arl,
-  eps,
+  risk_manager,
+  health_entity,
   pension_funds,
   compensation_funds,
   areas,
@@ -44,8 +36,8 @@ const Create = ({
     person_id: '',
     operation_center: '',
     position_id: '',
-    arl_id: '',
-    eps_id: '',
+    risk_manager_id: '',
+    health_entity_id: '',
     pension_fund_id: '',
     compensation_fund_id: '',
     area_id: '',
@@ -54,7 +46,8 @@ const Create = ({
   })
 
   useEffect(() => {
-    allPositions({ area_id: formData.area_id })
+    if (formData.area_id === '') return
+    allPositions(formData.area_id)
   }, [formData.area_id])
 
   const handleSubmit = async (event) => {
@@ -85,8 +78,8 @@ const Create = ({
               person_id: '',
               operation_center: '',
               position_id: '',
-              arl_id: '',
-              eps_id: '',
+              risk_manager_id: '',
+              health_entity_id: '',
               pension_fund_id: '',
               compensation_fund_id: '',
               area_id: '',
@@ -471,41 +464,41 @@ const Create = ({
         </CCol>
         <CCol md={3} sm={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <Hospital size={15} /> Arl
+            <Hospital size={15} /> Administradora de Riesgos
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <Select
             classNamePrefix="react-select"
-            name="arl_id"
+            name="risk_manager_id"
             value={
-              Array.isArray(arl)
-                ? (arl
+              Array.isArray(risk_manager)
+                ? (risk_manager
                     ?.map((a) => ({
                       value: a.id,
                       label: `${a?.name} `,
                     }))
-                    .find((opt) => opt.value === formData.arl_id) ?? null)
+                    .find((opt) => opt.value === formData.risk_manager_id) ?? null)
                 : null
             }
             onChange={(selected) =>
               handleChange({
                 target: {
-                  name: 'arl_id',
+                  name: 'risk_manager_id',
                   value: selected?.value || '',
                 },
               })
             }
-            invalid={!!errors?.arl_id}
-            valid={!errors?.arl_id && formData.arl_id !== '' && validated}
+            invalid={!!errors?.risk_manager_id}
+            valid={!errors?.risk_manager_id && formData.risk_manager_id !== '' && validated}
             options={
-              Array.isArray(arl)
-                ? arl.map((a) => ({
+              Array.isArray(risk_manager)
+                ? risk_manager.map((a) => ({
                     value: a.id,
                     label: `${a.name}`,
                   }))
                 : []
             }
-            isDisabled={!Array.isArray(arl)}
+            isDisabled={!Array.isArray(risk_manager)}
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
@@ -515,9 +508,9 @@ const Create = ({
             styles={{
               control: (base) => ({
                 ...base,
-                borderColor: !!errors?.arl_id
+                borderColor: !!errors?.risk_manager_id
                   ? '#dc3545'
-                  : !errors?.arl_id && formData.arl_id !== '' && validated
+                  : !errors?.risk_manager_id && formData.risk_manager_id !== '' && validated
                     ? '#198754'
                     : '#dbdfe6',
                 boxShadow: 'none',
@@ -534,8 +527,8 @@ const Create = ({
               }),
             }}
           />
-          <CFormFeedback invalid className={!!errors?.arl_id ? 'd-block' : 'd-none'}>
-            {errors?.arl_id?.map((error, index) => (
+          <CFormFeedback invalid className={!!errors?.risk_manager_id ? 'd-block' : 'd-none'}>
+            {errors?.risk_manager_id?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>
@@ -545,7 +538,9 @@ const Create = ({
           <CFormFeedback
             valid
             className={
-              !errors?.arl_id && formData.arl_id !== '' && validated ? 'd-block' : 'd-none'
+              !errors?.risk_manager_id && formData.risk_manager_id !== '' && validated
+                ? 'd-block'
+                : 'd-none'
             }
           >
             <div className="d-flex align-items-center gap-1">
@@ -556,41 +551,41 @@ const Create = ({
         </CCol>
         <CCol md={6} sm={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <Hospital size={15} /> Eps
+            <Hospital size={15} /> Entidad de Salud
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <Select
             classNamePrefix="react-select"
-            name="eps_id"
+            name="health_entity_id"
             value={
-              Array.isArray(eps)
-                ? (eps
+              Array.isArray(health_entity)
+                ? (health_entity
                     ?.map((e) => ({
                       value: e.id,
                       label: `${e?.name} `,
                     }))
-                    .find((opt) => opt.value === formData.eps_id) ?? null)
+                    .find((opt) => opt.value === formData.health_entity_id) ?? null)
                 : null
             }
             onChange={(selected) =>
               handleChange({
                 target: {
-                  name: 'eps_id',
+                  name: 'health_entity_id',
                   value: selected?.value || '',
                 },
               })
             }
-            invalid={!!errors?.eps_id}
-            valid={!errors?.eps_id && formData.eps_id !== '' && validated}
+            invalid={!!errors?.health_entity_id}
+            valid={!errors?.health_entity_id && formData.health_entity_id !== '' && validated}
             options={
-              Array.isArray(eps)
-                ? eps.map((e) => ({
+              Array.isArray(health_entity)
+                ? health_entity.map((e) => ({
                     value: e.id,
                     label: `${e?.name} `,
                   }))
                 : []
             }
-            isDisabled={!Array.isArray(eps) && formData.eps_id === ''}
+            isDisabled={!Array.isArray(health_entity) && formData.health_entity_id === ''}
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
@@ -600,9 +595,9 @@ const Create = ({
             styles={{
               control: (base) => ({
                 ...base,
-                borderColor: !!errors?.eps_id
+                borderColor: !!errors?.health_entity_id
                   ? '#dc3545'
-                  : !errors?.eps_id && formData.eps_id !== '' && validated
+                  : !errors?.health_entity_id && formData.health_entity_id !== '' && validated
                     ? '#198754'
                     : '#dbdfe6',
                 boxShadow: 'none',
@@ -619,8 +614,8 @@ const Create = ({
               }),
             }}
           />
-          <CFormFeedback invalid className={!!errors?.eps_id ? 'd-block' : 'd-none'}>
-            {errors?.eps_id?.map((error, index) => (
+          <CFormFeedback invalid className={!!errors?.health_entity_id ? 'd-block' : 'd-none'}>
+            {errors?.health_entity_id?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>
@@ -630,7 +625,9 @@ const Create = ({
           <CFormFeedback
             valid
             className={
-              !errors?.eps_id && formData.eps_id !== '' && validated ? 'd-block' : 'd-none'
+              !errors?.health_entity_id && formData.health_entity_id !== '' && validated
+                ? 'd-block'
+                : 'd-none'
             }
           >
             <div className="d-flex align-items-center gap-1">

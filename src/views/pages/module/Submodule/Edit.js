@@ -44,6 +44,7 @@ const Edit = ({ submodule, onChangeView, onSubmit, errors, moduleId, roles }) =>
     permission_id: '',
     module_id: moduleId,
   })
+  console.log(submodule)
 
   useEffect(() => {
     if (submodule) {

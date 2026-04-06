@@ -24,21 +24,19 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
-  Boxes,
   FileText,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
-import * as FaIcons from 'react-icons/fa'
 
 export const List = ({
   data,
   loading,
-  fetchModules,
+  fetchHealtEntities,
   onChangeView,
-  deleteModule,
+  deleteHealthEntity,
   restore,
   errors,
 }) => {
@@ -56,11 +54,23 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchModules(currentParams)
+      fetchHealtEntities(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, params.page, params.per_page, params.column, params.dir])
+  }, [params.page, params.per_page, params.column, params.dir, params.search])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setParams((prev) => ({
+        ...prev,
+        search: searchInput,
+        page: 1,
+      }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchInput])
 
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {
@@ -71,13 +81,13 @@ export const List = ({
     }
   }, [errors])
 
-  const handleConfirmDelete = (module) => {
+  const handleConfirmDelete = (health_entity) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Módulo</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Entidad de Salud</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar el módulo <strong>${module.name}</strong>.<br/>
+          Estás a punto de desactivar la entidad de salud <strong>${health_entity.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -96,11 +106,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteModule(module.id)
-          fetchModules(params)
+          await deleteHealthEntity(health_entity.id)
+          fetchHealtEntities(params)
           Toast.fire({
             icon: 'success',
-            title: 'Módulo desactivado con exito',
+            title: 'Entidad de salud desactivada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -114,12 +124,13 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (module) => {
+  const handleConfirmRestore = (health_entity) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Módulo</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Entidad de Salud</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar el módulo <strong>${module.name}</strong>.<br/>
+          Estás a punto de activar la entidad de salud <strong>${health_entity.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -138,11 +149,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(module.id)
-          fetchModules(params)
+          await restore(health_entity.id)
+          fetchHealtEntities(params)
           Toast.fire({
             icon: 'success',
-            title: 'Módulo activado con exito',
+            title: 'Entidad de salud activada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -156,76 +167,38 @@ export const List = ({
     })
   }
 
-  const formattedData = data?.modules?.map((modulo) => {
-    const icon = modulo.icon
-    const IconComponent = (icon && FaIcons[icon]) || FaIcons.FaRegCircle
+  const formattedData = data?.health_entities?.map((health_entity) => {
     return {
-      ...modulo,
-      icono: (
-        <>
-          {IconComponent ? (
-            <span className="nav-icon">
-              <IconComponent />
-            </span>
-          ) : (
-            <span className="nav-icon">
-              <span className="nav-icon-bullet"></span>
-            </span>
-          )}
-        </>
-      ),
+      ...health_entity,
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
             <button
               className="action-btn edit-btn"
               disabled={
-                !!modulo.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.modules.find') ||
-                !user_active?.permissions.some((p) => p.name === 'navegation.modules.update')
+                !!health_entity.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'health_entities.find') ||
+                !user_active?.permissions.some((p) => p.name === 'health_entities.update')
               }
-              onClick={() => onChangeView({ name: 'edit', title: 'Editar Módulo', module: modulo })}
+              onClick={() =>
+                onChangeView({
+                  name: 'edit',
+                  title: 'Editar Entidad de Salud',
+                  health_entity: health_entity,
+                })
+              }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          <CTooltip content="Gestionar Sudmódulos" placement="top">
-            <button
-              className="action-btn permisos-btn"
-              disabled={
-                !!modulo.deleted_at ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.all',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.find',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.store',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.update',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.delete',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.restore',
-                )
-              }
-              onClick={() => onChangeView({ name: 'show', title: 'Submódulos', module: modulo })}
-            >
-              <Boxes size={18} strokeWidth={1.5} />
-            </button>
-          </CTooltip>
-          {modulo.deleted_at === null ? (
+          {health_entity.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
                 disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.delete')
+                  !user_active?.permissions.some((p) => p.name === 'health_entities.delete')
                 }
-                onClick={() => handleConfirmDelete(modulo)}
+                onClick={() => handleConfirmDelete(health_entity)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -235,9 +208,9 @@ export const List = ({
               <button
                 className="action-btn restore-btn"
                 disabled={
-                  !user_active?.permissions.some((p) => p.name === 'navegation.modules.restore')
+                  !user_active?.permissions.some((p) => p.name === 'health_entities.restore')
                 }
-                onClick={() => handleConfirmRestore(modulo)}
+                onClick={() => handleConfirmRestore(health_entity)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -278,8 +251,14 @@ export const List = ({
       ),
     },
     {
-      key: 'icono',
-      label: <div className="sortable-header text-center">Icono</div>,
+      key: 'description',
+      label: (
+        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
+          Descripción{' '}
+          {params.column === 'description' &&
+            (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+        </div>
+      ),
     },
     {
       key: 'acciones',
@@ -316,13 +295,13 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Módulos</span>
+          <span className="fw-bold fs-5 font-montserrat">Entidades de Salud</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar módulo..."
+              placeholder="Buscar entidad de salud..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -330,10 +309,10 @@ export const List = ({
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'navegation.modules.store')}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Módulo' })}
+            disabled={!user_active?.permissions.some((p) => p.name === 'health_entities.store')}
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Entidad de Salud' })}
           >
-            <CirclePlus /> Agregar Módulo
+            <CirclePlus /> Agregar Entidad de Salud
           </CButton>
         </div>
 

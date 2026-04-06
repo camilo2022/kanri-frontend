@@ -25,13 +25,16 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
     role_id: '',
   })
 
+  console.log(permission)
+  console.log(roles)
+
   useEffect(() => {
     if (permission) {
       setFormData({
         name: permission.name || '',
         title: permission.title || '',
         description: permission.description || '',
-        role_id: permission.roles[0].id || '',
+        role_id: permission.roles[0]?.id || '',
       })
     }
   }, [permission])
@@ -166,6 +169,7 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
               invalid={!!errors?.description}
               valid={!errors?.description && formData.description !== '' && validated}
               className="font-montserrat"
+              style={{ borderRadius: '5px 5px 5px 5px' }}
             />
             <CFormFeedback invalid>
               {errors?.description?.map((error, index) => (
@@ -208,6 +212,8 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
               }
               invalid={!!errors?.role_id}
               valid={!errors?.role_id && formData.role_id !== '' && validated}
+              style={{ borderRadius: '5px 5px 5px 5px' }}
+              className="font-montserrat"
             />
             <CFormFeedback invalid>
               {errors?.role_id?.map((error, index) => (

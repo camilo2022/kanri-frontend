@@ -1,35 +1,45 @@
 import { useState } from 'react'
 import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
+import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 
-const Create = ({ onChangeView, onSubmit, errors }) => {
+const Edit = ({ compensationFund, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
   })
 
+  useEffect(() => {
+    if (compensationFund) {
+      setFormData({
+        name: compensationFund.name || '',
+        description: compensationFund.description || '',
+      })
+    }
+  }, [compensationFund])
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Crear Arl',
+      title: 'Editar Caja de Compensación',
       html: `<div style="font-size:14px">
-              Se guardará la información del arl en el sistema.<br/>
+              Se guardará la nueva información de la caja de compensación en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, crear',
+      confirmButtonText: 'Si, actualizar',
       cancelButtonText: 'Cancelar',
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(formData)
+          const response = await onSubmit(compensationFund.id, formData)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -40,7 +50,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
               name: '',
               description: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Arl' })
+            onChangeView({ name: 'list', title: 'Listar Cajas de Compensación' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -67,13 +77,12 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Crear Arl</span>
+        <span className="fw-bold fs-5 font-montserrat">Editar Caja de Compensación</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
-            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -137,9 +146,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
           </CButton>
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => {
-              onChangeView({ name: 'list', title: 'Listar Áreas' })
-            }}
+            onClick={() => onChangeView({ name: 'list', title: 'Listar Cajas de Compensación' })}
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>
@@ -149,4 +156,4 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   )
 }
 
-export default Create
+export default Edit

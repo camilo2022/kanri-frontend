@@ -296,12 +296,16 @@ const Profile = () => {
                     <CTable borderless small className="small m-0">
                       <tbody>
                         <tr>
-                          <td className="text-muted fw-medium py-1">ARL:</td>
-                          <td className="py-1">{user.employee.arl?.name || 'No aplica'}</td>
+                          <td className="text-muted fw-medium py-1">Administradora de Riesgos:</td>
+                          <td className="py-1">
+                            {user.employee.risk_manager?.name || 'No aplica'}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="text-muted fw-medium py-1">EPS:</td>
-                          <td className="py-1">{user.employee.eps?.name || 'No aplica'}</td>
+                          <td className="text-muted fw-medium py-1">Entidad de Salud:</td>
+                          <td className="py-1">
+                            {user.employee.health_entity?.name || 'No aplica'}
+                          </td>
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Fondo de Pensión:</td>

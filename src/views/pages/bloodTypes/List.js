@@ -170,6 +170,7 @@ export const List = ({
   const formattedData = data?.blood_types?.map((blood_type) => {
     return {
       ...blood_type,
+      description: blood_type.description || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

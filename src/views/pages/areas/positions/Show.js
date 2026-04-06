@@ -171,14 +171,14 @@ const Show = ({ position, onChangeView, onSubmit, errors, roles = [], assign, re
                                         checked={role.permissions.every((p) =>
                                           position?.permissions?.some((up) => up.id === p.id),
                                         )}
-                                        onChange={() => {
+                                        onChange={async () => {
                                           const areAllActive = role.permissions.every((p) =>
                                             position?.permissions?.some((up) => up.id === p.id),
                                           )
                                           if (areAllActive) {
-                                            role.permissions.map((permission) => {
-                                              remove(position.id, permission.id)
-                                            })
+                                            for (const permission of role.permissions) {
+                                              await remove(position.id, permission.id)
+                                            }
                                           } else {
                                             const missingPermissions = role.permissions.filter(
                                               (p) =>
@@ -186,9 +186,9 @@ const Show = ({ position, onChangeView, onSubmit, errors, roles = [], assign, re
                                                   (up) => up.id === p.id,
                                                 ),
                                             )
-                                            missingPermissions.forEach((permission) => {
-                                              assign(position.id, permission.id)
-                                            })
+                                            for (const permission of missingPermissions) {
+                                              await assign(position.id, permission.id)
+                                            }
                                           }
                                         }}
                                       />
