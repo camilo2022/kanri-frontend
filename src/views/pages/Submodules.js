@@ -43,7 +43,6 @@ const Submodules = ({ module }) => {
   const fetchSubmodules = async (module_id, params) => {
     try {
       const response = await SubmoduleService.all(module_id, params)
-      console.log(response)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -89,7 +88,6 @@ const Submodules = ({ module }) => {
   const deleteSubmodule = async (id) => {
     try {
       const response = await SubmoduleService.delete_submodule(id)
-      console.log(response)
       return response
     } catch (error) {
       setErrors(error.error)

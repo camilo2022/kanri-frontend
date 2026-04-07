@@ -53,7 +53,6 @@ const Positions = ({ area }) => {
   const createPosition = async (data) => {
     try {
       const response = await PositionsService.store(data)
-      console.log(response)
       setErrors({})
       return response
     } catch (error) {

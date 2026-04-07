@@ -73,7 +73,6 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          console.log('Datos que van para el backend: ', formData)
           const response = await onSubmit(formData)
           setValidated(true)
           Toast.fire({

@@ -86,7 +86,7 @@ export const List = ({
   const handleConfirmDelete = (gender) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Genero</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Género</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
           Estás a punto de desactivar el género <strong>${gender.description}</strong>.<br/>
@@ -112,7 +112,7 @@ export const List = ({
           fetchGenders(params)
           Toast.fire({
             icon: 'success',
-            title: 'Genero desactivado con exito',
+            title: 'Género desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -128,7 +128,7 @@ export const List = ({
 
   const handleConfirmRestore = (gender) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">ActivGenero</span>',
+      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">ActivGénero</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
           Estás a punto de activar el género <strong>${gender.description}</strong>.<br/>
@@ -154,7 +154,7 @@ export const List = ({
           fetchGenders(params)
           Toast.fire({
             icon: 'success',
-            title: 'Genero activado con exito',
+            title: 'Género activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -182,7 +182,7 @@ export const List = ({
                 !user_active?.permissions.some((p) => p.name === 'genders.find') ||
                 !user_active?.permissions.some((p) => p.name === 'genders.update')
               }
-              onClick={() => onChangeView({ name: 'edit', title: 'EditGenero', gender: gender })}
+              onClick={() => onChangeView({ name: 'edit', title: 'EditGénero', gender: gender })}
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
@@ -287,13 +287,13 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Generos</span>
+          <span className="fw-bold fs-5 font-montserrat">Géneros</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar genero..."
+              placeholder="Buscar género..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -302,9 +302,9 @@ export const List = ({
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
             disabled={!user_active?.permissions.some((p) => p.name === 'genders.store')}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Genero' })}
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Género' })}
           >
-            <CirclePlus /> Agregar Genero
+            <CirclePlus /> Agregar Género
           </CButton>
         </div>
 

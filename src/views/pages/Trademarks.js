@@ -1,27 +1,30 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import ModuleService from '../../services/modules.service'
-import List from './module/List'
-import Edit from './module/Edit'
-import Create from './module/Create'
-import Submodules from './Submodules'
+import TrademarksService from '../../services/trademarks.service'
+import List from './trademarks/List'
+import Create from './trademarks/Create'
+import Edit from './trademarks/Edit'
+import Show from './trademarks/Show'
 
-const Modules = () => {
+const Trademarks = () => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Módulos' })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Marcas' })
   const [data, setData] = useState({})
-  const [module, setModule] = useState({})
+  const [trademark, setTrademark] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (view.name === 'show' && view.module?.id) {
-      findModule(view.module.id)
+    if (view.name === 'show' && view.trademark?.id) {
+      findTrademark(view.trademark.id)
+    }
+    if (view.name === 'edit' && view.trademark?.id) {
+      findTrademark(view.trademark.id)
     }
     setLoading(true)
-    setModule('')
+    setTrademark('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Módulos' })
+      dispatch({ type: 'set', action: 'Listar Marcas' })
     }
   }, [view])
 
@@ -31,9 +34,9 @@ const Modules = () => {
     setView(newView)
   }
 
-  const fetchModules = async (params) => {
+  const fetchTrademarks = async (params) => {
     try {
-      const response = await ModuleService.all(params)
+      const response = await TrademarksService.all(params)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -43,9 +46,9 @@ const Modules = () => {
     }
   }
 
-  const createModule = async (data) => {
+  const createTrademark = async (data) => {
     try {
-      const response = await ModuleService.store(data)
+      const response = await TrademarksService.store(data)
       setErrors({})
       return response
     } catch (error) {
@@ -54,9 +57,9 @@ const Modules = () => {
     }
   }
 
-  const editModule = async (id, data) => {
+  const editTrademark = async (id, data) => {
     try {
-      const response = await ModuleService.update(id, data)
+      const response = await TrademarksService.update(id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -65,19 +68,21 @@ const Modules = () => {
     }
   }
 
-  const findModule = async (id) => {
+  const findTrademark = async (id) => {
     try {
-      const response = await ModuleService.find(id)
-      setModule(response.data.module)
+      const response = await TrademarksService.find(id)
+      setTrademark(response.data.trademark)
       return response
     } catch (error) {
       throw error
+    } finally {
+      setLoading(false)
     }
   }
 
-  const deleteModule = async (id) => {
+  const deleteTrademark = async (id) => {
     try {
-      const response = await ModuleService.delete_module(id)
+      const response = await TrademarksService.delete_trademark(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -87,7 +92,7 @@ const Modules = () => {
 
   const restore = async (id) => {
     try {
-      const response = await ModuleService.restore(id)
+      const response = await TrademarksService.restore(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -98,29 +103,31 @@ const Modules = () => {
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return <Create onChangeView={changeView} onSubmit={createModule} errors={errors} />
+        return <Create onChangeView={changeView} onSubmit={createTrademark} errors={errors} />
 
       case 'edit':
         return (
           <Edit
-            module={view.module}
+            trademark={trademark}
             onChangeView={changeView}
-            onSubmit={editModule}
+            onSubmit={editTrademark}
             errors={errors}
           />
         )
 
       case 'show':
-        return <Submodules module={module} />
+        return (
+          <Show trademark={trademark} onChangeView={changeView} errors={errors} loading={loading} />
+        )
 
       default:
         return (
           <List
             data={data}
             loading={loading}
-            fetchModules={fetchModules}
+            fetchTrademarks={fetchTrademarks}
             onChangeView={changeView}
-            deleteModule={deleteModule}
+            deleteTrademark={deleteTrademark}
             restore={restore}
             errors={errors}
           />
@@ -131,4 +138,4 @@ const Modules = () => {
   return <div>{renderView()}</div>
 }
 
-export default Modules
+export default Trademarks

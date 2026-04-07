@@ -115,7 +115,7 @@ const Employees = () => {
   const allRiskManagers = async (params) => {
     try {
       const response = await RiskManagersService.all(params)
-      setRiskManagers(response.data.riskManagerss)
+      setRiskManagers(response.data.risk_managers)
     } catch (error) {
       setErrors(error.error)
     } finally {
@@ -233,7 +233,7 @@ const Employees = () => {
             people={people}
             positions={positions}
             risk_managers={riskManagers}
-            healt_entities={healtEntities}
+            health_entities={healtEntities}
             pension_funds={pensiondFunds}
             compensation_funds={compensationFunds}
             areas={areas}
@@ -251,7 +251,7 @@ const Employees = () => {
             people={people}
             positions={positions}
             risk_managers={riskManagers}
-            healt_entities={healtEntities}
+            health_entities={healtEntities}
             pension_funds={pensiondFunds}
             compensation_funds={compensationFunds}
             areas={areas}

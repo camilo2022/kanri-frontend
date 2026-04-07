@@ -15,9 +15,9 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Crear Genero',
+      title: 'Crear Género',
       html: `<div style="font-size:14px">
-              Se guardará la información del genero en el sistema.<br/>
+              Se guardará la información del género en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
@@ -40,7 +40,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
               name: '',
               description: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Genero' })
+            onChangeView({ name: 'list', title: 'Listar Género' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -67,7 +67,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Crear Genero</span>
+        <span className="fw-bold fs-5 font-montserrat">Crear Género</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>

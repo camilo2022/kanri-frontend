@@ -308,13 +308,13 @@ const Profile = () => {
                           </td>
                         </tr>
                         <tr>
-                          <td className="text-muted fw-medium py-1">Fondo de Pensión:</td>
+                          <td className="text-muted fw-medium py-1">Caja de Pensión:</td>
                           <td className="py-1">
                             {user.employee.pension_fund?.name || 'No aplica'}
                           </td>
                         </tr>
                         <tr>
-                          <td className="text-muted fw-medium py-1">Fondo de Compensación:</td>
+                          <td className="text-muted fw-medium py-1">Caja de Compensación:</td>
                           <td className="py-1">
                             {user.employee.compensation_fund?.name || 'No aplica'}
                           </td>

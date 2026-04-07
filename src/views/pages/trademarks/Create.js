@@ -15,9 +15,9 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Crear Administradora de Riesgos',
+      title: 'Crear Marca',
       html: `<div style="font-size:14px">
-              Se guardará la información de la administradora de riesgos en el sistema.<br/>
+              Se guardará la información de la marca en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
@@ -40,7 +40,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
               name: '',
               description: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Administradoras de Riesgos' })
+            onChangeView({ name: 'list', title: 'Listar Marcas' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -67,7 +67,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Crear Administradora de Riesgos</span>
+        <span className="fw-bold fs-5 font-montserrat">Crear Marca</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
@@ -137,7 +137,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => {
-              onChangeView({ name: 'list', title: 'Listar Áreas' })
+              onChangeView({ name: 'list', title: 'Listar Marcas' })
             }}
           >
             <ArrowLeftCircle size={16} /> Volver

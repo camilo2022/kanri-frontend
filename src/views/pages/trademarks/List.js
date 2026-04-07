@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  FolderCog,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -34,9 +35,9 @@ import { useSelector } from 'react-redux'
 export const List = ({
   data,
   loading,
-  fetchCompensationFunds,
+  fetchTrademarks,
   onChangeView,
-  deleteCompensationFund,
+  deleteTrademark,
   restore,
   errors,
 }) => {
@@ -54,7 +55,7 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchCompensationFunds(currentParams)
+      fetchTrademarks(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
@@ -81,13 +82,13 @@ export const List = ({
     }
   }, [errors])
 
-  const handleConfirmDelete = (compensationFund) => {
+  const handleConfirmDelete = (trademark) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Caja de Compensación</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Marca</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar la caja de compensación <strong>${compensationFund.name}</strong>.<br/>
+          Estás a punto de desactivar el marca <strong>${trademark.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -106,11 +107,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteCompensationFund(compensationFund.id)
-          fetchCompensationFunds(params)
+          await deleteTrademark(trademark.id)
+          fetchTrademarks(params)
           Toast.fire({
             icon: 'success',
-            title: 'Caja de compensación desactivada con exito',
+            title: 'Marca desactivada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -124,13 +125,12 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (compensationFund) => {
+  const handleConfirmRestore = (trademark) => {
     Swal.fire({
-      title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Caja de Compensación</span>',
+      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Marca</span>',
       html: `
         <div class="font-inter" style="font-size: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar la caja de compensación <strong>${compensationFund.name}</strong>.<br/>
+          Estás a punto de activar el marca <strong>${trademark.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -149,11 +149,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(compensationFund.id)
-          fetchCompensationFunds(params)
+          await restore(trademark.id)
+          fetchTrademarks(params)
           Toast.fire({
             icon: 'success',
-            title: 'Caja de Compensación activada con exito',
+            title: 'Marca activada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -167,39 +167,45 @@ export const List = ({
     })
   }
 
-  const formattedData = data?.compensation_funds?.map((compensationFund) => {
+  const formattedData = data?.trademarks?.map((trademark) => {
     return {
-      ...compensationFund,
-      description: compensationFund.description || 'No Aplica',
+      ...trademark,
+      description: trademark.description || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
             <button
               className="action-btn edit-btn"
               disabled={
-                !!compensationFund.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'compensation_funds.find') ||
-                !user_active?.permissions.some((p) => p.name === 'compensation_funds.update')
+                !!trademark.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'trademarks.find') ||
+                !user_active?.permissions.some((p) => p.name === 'trademarks.update')
               }
               onClick={() =>
-                onChangeView({
-                  name: 'edit',
-                  title: 'Editar Caja de Compensación',
-                  compensationFund: compensationFund,
-                })
+                onChangeView({ name: 'edit', title: 'Editar Marca', trademark: trademark })
               }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          {compensationFund.deleted_at === null ? (
+          <CTooltip content="Gestionar Configuración" placement="top">
+            <button
+              className="action-btn permisos-btn"
+              disabled={
+                !!trademark.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'trademarks.settings')
+              }
+              onClick={() => onChangeView({ name: 'show', title: 'Marcas', trademark: trademark })}
+            >
+              <FolderCog size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          {trademark.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
-                disabled={
-                  !user_active?.permissions.some((p) => p.name === 'compensation_funds.delete')
-                }
-                onClick={() => handleConfirmDelete(compensationFund)}
+                disabled={!user_active?.permissions.some((p) => p.name === 'trademarks.delete')}
+                onClick={() => handleConfirmDelete(trademark)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -208,10 +214,8 @@ export const List = ({
             <CTooltip content="Activar" placement="top">
               <button
                 className="action-btn restore-btn"
-                disabled={
-                  !user_active?.permissions.some((p) => p.name === 'compensation_funds.restore')
-                }
-                onClick={() => handleConfirmRestore(compensationFund)}
+                disabled={!user_active?.permissions.some((p) => p.name === 'trademarks.restore')}
+                onClick={() => handleConfirmRestore(trademark)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -296,13 +300,13 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Cajas de Compensación</span>
+          <span className="fw-bold fs-5 font-montserrat">Marcas</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar Caja de Compensación..."
+              placeholder="Buscar marca..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -310,10 +314,10 @@ export const List = ({
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'compensation_funds.store')}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Caja de Compensación' })}
+            disabled={!user_active?.permissions.some((p) => p.name === 'trademarks.store')}
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Marca' })}
           >
-            <CirclePlus /> Agregar Caja de Compensación
+            <CirclePlus /> Agregar Marca
           </CButton>
         </div>
 

@@ -13,6 +13,7 @@ import {
   Hospital,
   BanknoteArrowDown,
   CalendarRange,
+  Settings,
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
@@ -25,8 +26,8 @@ const Create = ({
   allPositions,
   people,
   positions,
-  risk_manager,
-  health_entity,
+  risk_managers,
+  health_entities,
   pension_funds,
   compensation_funds,
   areas,
@@ -115,8 +116,37 @@ const Create = ({
     return words.every((word) => label.includes(word))
   }
 
+  const isDataReady =
+    Array.isArray(people) &&
+    Array.isArray(areas) &&
+    Array.isArray(risk_managers) &&
+    Array.isArray(health_entities) &&
+    Array.isArray(pension_funds) &&
+    Array.isArray(compensation_funds)
+  if (!isDataReady) {
+    return (
+      <CCard
+        className="mb-4 p-4 shadow-sm border-0 d-flex justify-content-center align-items-center"
+        style={{ minHeight: '500px' }}
+      >
+        <div className="text-center">
+          <div className="gears-loader mb-3">
+            <div className="gears-container mb-3">
+              <Settings size={40} className="gear gear-large text-primary" />
+              <Settings size={24} className="gear gear-small text-secondary" />
+            </div>
+          </div>
+          <h5 className="fw-bold font-montserrat text-secondary">Preparando Formulario</h5>
+          <p className="text-muted font-inter small">
+            Estamos cargando la información necesaria...
+          </p>
+        </div>
+      </CCard>
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Crear Empleado</span>
@@ -243,7 +273,17 @@ const Create = ({
             type="date"
             name="end_date"
             disabled={!formData.start_date}
-            min={formData.start_date}
+            min={
+              formData.start_date
+                ? new Date(
+                    new Date(formData.start_date).setDate(
+                      new Date(formData.start_date).getDate() + 1,
+                    ),
+                  )
+                    .toISOString()
+                    .split('T')[0]
+                : ''
+            }
             value={formData.end_date}
             onChange={handleChange}
             invalid={!!errors?.end_date}
@@ -471,8 +511,8 @@ const Create = ({
             classNamePrefix="react-select"
             name="risk_manager_id"
             value={
-              Array.isArray(risk_manager)
-                ? (risk_manager
+              Array.isArray(risk_managers)
+                ? (risk_managers
                     ?.map((a) => ({
                       value: a.id,
                       label: `${a?.name} `,
@@ -491,14 +531,14 @@ const Create = ({
             invalid={!!errors?.risk_manager_id}
             valid={!errors?.risk_manager_id && formData.risk_manager_id !== '' && validated}
             options={
-              Array.isArray(risk_manager)
-                ? risk_manager.map((a) => ({
+              Array.isArray(risk_managers)
+                ? risk_managers.map((a) => ({
                     value: a.id,
                     label: `${a.name}`,
                   }))
                 : []
             }
-            isDisabled={!Array.isArray(risk_manager)}
+            isDisabled={!Array.isArray(risk_managers)}
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
@@ -558,8 +598,8 @@ const Create = ({
             classNamePrefix="react-select"
             name="health_entity_id"
             value={
-              Array.isArray(health_entity)
-                ? (health_entity
+              Array.isArray(health_entities)
+                ? (health_entities
                     ?.map((e) => ({
                       value: e.id,
                       label: `${e?.name} `,
@@ -578,14 +618,14 @@ const Create = ({
             invalid={!!errors?.health_entity_id}
             valid={!errors?.health_entity_id && formData.health_entity_id !== '' && validated}
             options={
-              Array.isArray(health_entity)
-                ? health_entity.map((e) => ({
+              Array.isArray(health_entities)
+                ? health_entities.map((e) => ({
                     value: e.id,
                     label: `${e?.name} `,
                   }))
                 : []
             }
-            isDisabled={!Array.isArray(health_entity) && formData.health_entity_id === ''}
+            isDisabled={!Array.isArray(health_entities) && formData.health_entity_id === ''}
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"

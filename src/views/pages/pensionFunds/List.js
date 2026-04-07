@@ -170,6 +170,7 @@ export const List = ({
   const formattedData = data?.pension_funds?.map((pensionFund) => {
     return {
       ...pensionFund,
+      description: pensionFund.description || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -183,7 +184,7 @@ export const List = ({
               onClick={() =>
                 onChangeView({
                   name: 'edit',
-                  title: 'Editar fondo de pensión',
+                  title: 'Editar Fondo de pensión',
                   pensionFund: pensionFund,
                 })
               }
@@ -308,7 +309,7 @@ export const List = ({
             disabled={!user_active?.permissions.some((p) => p.name === 'pension_funds.store')}
             onClick={() => onChangeView({ name: 'create', title: 'Crear Fondo de Pensión' })}
           >
-            <CirclePlus /> Agregar fondo de pensión
+            <CirclePlus /> Agregar Fondo de Pensión
           </CButton>
         </div>
 

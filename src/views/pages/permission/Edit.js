@@ -25,9 +25,6 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
     role_id: '',
   })
 
-  console.log(permission)
-  console.log(roles)
-
   useEffect(() => {
     if (permission) {
       setFormData({

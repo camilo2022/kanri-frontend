@@ -449,3 +449,98 @@ body {
 .react-select__input {
   font-family: 'Montserrat', sans-serif;
 }
+
+/* --- Estilos Generales y Animación de Entrada --- */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gears-loader {
+  position: relative;
+  width: 80px;
+  height: 60px;
+  margin: 0 auto;
+}
+
+.gear {
+  position: absolute;
+  border: 4px solid #adb5bd;
+  border-radius: 50%;
+}
+
+.gear-1 {
+  width: 40px;
+  height: 40px;
+  left: 0;
+  top: 10px;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  animation: rotateGear 2s linear infinite;
+}
+
+.gear-2 {
+  width: 30px;
+  height: 30px;
+  left: 35px;
+  top: 0;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  animation: rotateGearReverse 1.5s linear infinite;
+}
+
+.gear::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background-color: #adb5bd;
+  border-radius: 50%;
+}
+
+@keyframes rotateGear {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateGearReverse {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.modern-spinner {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: conic-gradient(#fff0 10%, #c21111);
+  -webkit-mask: radial-gradient(farthest-side, #fff0 calc(100% - 6px), #fff 0);
+  mask: radial-gradient(farthest-side, #fff0 calc(100% - 6px), #fff 0);
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}

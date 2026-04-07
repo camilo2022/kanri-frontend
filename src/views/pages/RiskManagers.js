@@ -67,7 +67,7 @@ const RiskManagers = () => {
   const findRiskManager = async (id) => {
     try {
       const response = await RiskManagersService.find(id)
-      setRiskManager(response.data.risk_managers)
+      setRiskManager(response.data.risk_manager)
       return response
     } catch (error) {
       throw error

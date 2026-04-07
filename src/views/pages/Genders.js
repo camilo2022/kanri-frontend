@@ -7,7 +7,7 @@ import Edit from './genders/Edit'
 
 const Genders = () => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Generos' })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Géneros' })
   const [data, setData] = useState({})
   const [gender, setGender] = useState({})
   const [loading, setLoading] = useState(false)
@@ -20,7 +20,7 @@ const Genders = () => {
     setLoading(true)
     setGender('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Generos' })
+      dispatch({ type: 'set', action: 'Listar Géneros' })
     }
   }, [view])
 

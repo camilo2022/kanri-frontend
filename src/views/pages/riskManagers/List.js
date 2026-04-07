@@ -110,7 +110,7 @@ export const List = ({
           fetchRiskManagers(params)
           Toast.fire({
             icon: 'success',
-            title: 'RiskManager desactivado con exito',
+            title: 'Administradora de Riesgos desactivada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -153,7 +153,7 @@ export const List = ({
           fetchRiskManagers(params)
           Toast.fire({
             icon: 'success',
-            title: 'RiskManager activado con exito',
+            title: 'Administradora de riesgos activada con exito',
           })
         } catch (error) {
           console.error(error)
@@ -170,6 +170,7 @@ export const List = ({
   const formattedData = data?.risk_managers?.map((risk_manager) => {
     return {
       ...risk_manager,
+      description: risk_manager.description || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -183,7 +184,7 @@ export const List = ({
               onClick={() =>
                 onChangeView({
                   name: 'edit',
-                  title: 'Editar RiskManager',
+                  title: 'Editar Administradora de Riesgos',
                   risk_manager: risk_manager,
                 })
               }

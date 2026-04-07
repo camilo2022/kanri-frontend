@@ -85,7 +85,6 @@ const Edit = ({ areaId, position, onChangeView, onSubmit, errors }) => {
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
-            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
