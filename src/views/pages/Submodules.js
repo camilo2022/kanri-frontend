@@ -87,7 +87,7 @@ const Submodules = ({ module }) => {
 
   const deleteSubmodule = async (id) => {
     try {
-      const response = await SubmoduleService.delete_submodule(id)
+      const response = await SubmoduleService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

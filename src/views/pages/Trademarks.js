@@ -82,7 +82,7 @@ const Trademarks = () => {
 
   const deleteTrademark = async (id) => {
     try {
-      const response = await TrademarksService.delete_trademark(id)
+      const response = await TrademarksService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -95,7 +95,20 @@ const Trademarks = () => {
       const response = await TrademarksService.restore(id)
       return response
     } catch (error) {
-      setErrors(error.error)
+      setErrors(error.errors)
+      throw error
+    }
+  }
+
+  const setting = async (id, data) => {
+    try {
+      const response = await TrademarksService.setting(id, data)
+      setErrors({})
+      setTrademark(response.data.trademark)
+      return response
+    } catch (error) {
+      console.log(error)
+      setErrors(error)
       throw error
     }
   }
@@ -117,7 +130,13 @@ const Trademarks = () => {
 
       case 'show':
         return (
-          <Show trademark={trademark} onChangeView={changeView} errors={errors} loading={loading} />
+          <Show
+            trademark={trademark}
+            onChangeView={changeView}
+            errors={errors}
+            loading={loading}
+            setting={setting}
+          />
         )
 
       default:

@@ -192,7 +192,7 @@ const Employees = () => {
 
   const deleteEmployee = async (id) => {
     try {
-      const response = await EmployeesService.delete_employee(id)
+      const response = await EmployeesService.destroy(id)
       return response
     } catch (error) {
       throw error

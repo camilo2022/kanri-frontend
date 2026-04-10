@@ -52,7 +52,7 @@ const find = async (id) => {
   }
 }
 
-const delete_risk_manager = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/risk_manager/delete/${id}`, getConfig())
     return response.data
@@ -82,7 +82,7 @@ const BloodTypesService = {
   store,
   update,
   find,
-  delete_risk_manager,
+  destroy,
   restore,
 }
 

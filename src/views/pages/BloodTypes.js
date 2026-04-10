@@ -76,7 +76,7 @@ const BloodTypes = () => {
 
   const deleteBloodType = async (id) => {
     try {
-      const response = await BloodTypesService.delete_bloodType(id)
+      const response = await BloodTypesService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

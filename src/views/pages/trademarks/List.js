@@ -193,7 +193,7 @@ export const List = ({
               className="action-btn permisos-btn"
               disabled={
                 !!trademark.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'trademarks.settings')
+                !user_active?.permissions.some((p) => p.name === 'trademarks.setting')
               }
               onClick={() => onChangeView({ name: 'show', title: 'Marcas', trademark: trademark })}
             >

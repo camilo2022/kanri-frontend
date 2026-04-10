@@ -77,7 +77,7 @@ const Areas = () => {
 
   const deleteArea = async (id) => {
     try {
-      const response = await AreasService.delete_area(id)
+      const response = await AreasService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

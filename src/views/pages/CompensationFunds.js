@@ -76,7 +76,7 @@ const CompensationFunds = () => {
 
   const deleteCompensationFund = async (id) => {
     try {
-      const response = await CompensationFundsService.delete_compensation_fund(id)
+      const response = await CompensationFundsService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

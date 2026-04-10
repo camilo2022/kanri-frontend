@@ -52,7 +52,7 @@ const find = async (id) => {
   }
 }
 
-const delete_pension_fund = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/pension_funds/delete/${id}`, getConfig())
     return response.data
@@ -82,7 +82,7 @@ const PensionFundsService = {
   store,
   find,
   update,
-  delete_pension_fund,
+  destroy,
   restore,
 }
 

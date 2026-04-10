@@ -88,7 +88,7 @@ const Users = () => {
 
   const deleteUser = async (id) => {
     try {
-      const response = await UserService.delete_user(id)
+      const response = await UserService.destroy(id)
       return response
     } catch (error) {
       throw error

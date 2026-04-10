@@ -52,7 +52,7 @@ const find = async (id) => {
   }
 }
 
-const delete_module = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/navegation/modules/delete/${id}`, getConfig())
     return response.data
@@ -81,7 +81,7 @@ const ModuleService = {
   store,
   update,
   find,
-  delete_module,
+  destroy,
   restore,
 }
 

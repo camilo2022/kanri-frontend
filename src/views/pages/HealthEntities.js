@@ -76,7 +76,7 @@ const HealtEntities = () => {
 
   const deleteHealthEntity = async (id) => {
     try {
-      const response = await HealthEntitiesService.delete_health_entity(id)
+      const response = await HealthEntitiesService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

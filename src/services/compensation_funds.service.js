@@ -52,7 +52,7 @@ const find = async (id) => {
   }
 }
 
-const delete_compensation_fund = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/compensation_funds/delete/${id}`, getConfig())
     return response.data
@@ -82,7 +82,7 @@ const CompensationFundsService = {
   store,
   find,
   update,
-  delete_compensation_fund,
+  destroy,
   restore,
 }
 

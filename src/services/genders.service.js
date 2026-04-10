@@ -52,7 +52,7 @@ const find = async (id) => {
   }
 }
 
-const delete_gender = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/genders/delete/${id}`, getConfig())
     return response.data
@@ -82,7 +82,7 @@ const GendersService = {
   store,
   update,
   find,
-  delete_gender,
+  destroy,
   restore,
 }
 

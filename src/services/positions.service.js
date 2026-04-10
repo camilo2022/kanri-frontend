@@ -95,7 +95,7 @@ const remove = async (id, permission_id) => {
   }
 }
 
-const delete_position = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(
       `/organizational_structure/areas/positions/delete/${id}`,
@@ -134,7 +134,7 @@ const PositionsService = {
   find,
   assign,
   remove,
-  delete_position,
+  destroy,
   restore,
 }
 

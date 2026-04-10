@@ -76,7 +76,7 @@ const Genders = () => {
 
   const deleteGender = async (id) => {
     try {
-      const response = await GendersService.delete_gender(id)
+      const response = await GendersService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

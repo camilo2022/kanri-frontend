@@ -77,7 +77,7 @@ const Modules = () => {
 
   const deleteModule = async (id) => {
     try {
-      const response = await ModuleService.delete_module(id)
+      const response = await ModuleService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

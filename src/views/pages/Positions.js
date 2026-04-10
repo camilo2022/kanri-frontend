@@ -85,7 +85,7 @@ const Positions = ({ area }) => {
 
   const deletePosition = async (id) => {
     try {
-      const response = await PositionsService.delete_position(id)
+      const response = await PositionsService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

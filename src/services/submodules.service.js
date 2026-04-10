@@ -61,7 +61,7 @@ const find = async (id) => {
   }
 }
 
-const delete_submodule = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await axios.delete(
       `${API_URL}/navegation/modules/submodules/delete/${id}`,
@@ -97,7 +97,7 @@ const SubmoduleService = {
   store,
   update,
   find,
-  delete_submodule,
+  destroy,
   restore,
 }
 

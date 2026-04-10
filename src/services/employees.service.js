@@ -52,7 +52,7 @@ const find = async (id) => {
   }
 }
 
-const delete_employee = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/employees/delete/${id}`, getConfig())
     return response.data
@@ -81,7 +81,7 @@ const EmployeesService = {
   store,
   update,
   find,
-  delete_employee,
+  destroy,
   restore,
 }
 

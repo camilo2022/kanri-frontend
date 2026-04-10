@@ -56,7 +56,7 @@ const find = async (id) => {
   }
 }
 
-const delete_area = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/organizational_structure/areas/delete/${id}`, getConfig())
     return response.data
@@ -90,7 +90,7 @@ const AreasService = {
   store,
   update,
   find,
-  delete_area,
+  destroy,
   restore,
 }
 

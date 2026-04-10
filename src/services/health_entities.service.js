@@ -52,7 +52,7 @@ const find = async (id) => {
   }
 }
 
-const delete_health_entity = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/health_entities/delete/${id}`, getConfig())
     return response.data
@@ -82,7 +82,7 @@ const HealthEntitiesService = {
   store,
   update,
   find,
-  delete_health_entity,
+  destroy,
   restore,
 }
 

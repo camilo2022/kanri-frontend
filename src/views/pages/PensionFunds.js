@@ -76,7 +76,7 @@ const PensionFunds = () => {
 
   const deletePensionFund = async (id) => {
     try {
-      const response = await PensionFundsService.delete_pension_fund(id)
+      const response = await PensionFundsService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

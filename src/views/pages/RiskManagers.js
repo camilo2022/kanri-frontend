@@ -76,7 +76,7 @@ const RiskManagers = () => {
 
   const deleteRiskManager = async (id) => {
     try {
-      const response = await RiskManagersService.delete_risk_manager(id)
+      const response = await RiskManagersService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)

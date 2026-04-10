@@ -53,7 +53,7 @@ const find = async (id) => {
   }
 }
 
-const delete_trademark = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/trademarks/delete/${id}`, getConfig())
     return response.data
@@ -78,13 +78,28 @@ const restore = async (id) => {
   }
 }
 
+const setting = async (id, data) => {
+  try {
+    const response = await api.put(`/trademarks/setting/${id}`, data, getConfig())
+    console.log(response)
+    return response.data
+  } catch (error) {
+    console.log(error)
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const TrademarksService = {
   all,
   store,
   update,
   find,
-  delete_trademark,
+  destroy,
   restore,
+  setting,
 }
 
 export default TrademarksService

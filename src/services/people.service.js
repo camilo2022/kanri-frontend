@@ -80,7 +80,7 @@ const find = async (id) => {
     throw { message: 'Error desconocido' }
   }
 }
-const delete_person = async (id) => {
+const destroy = async (id) => {
   try {
     const response = await api.delete(`/people/delete/${id}`, getConfig())
     return response.data
@@ -110,7 +110,7 @@ const PeopleService = {
   store,
   update,
   find,
-  delete_person,
+  destroy,
   restore,
 }
 

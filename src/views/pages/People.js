@@ -111,7 +111,7 @@ const People = () => {
 
   const deletePerson = async (id) => {
     try {
-      const response = await PeopleService.delete_person(id)
+      const response = await PeopleService.destroy(id)
       return response
     } catch (error) {
       throw error

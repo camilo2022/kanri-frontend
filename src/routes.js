@@ -31,6 +31,16 @@ const HealthEntities = React.lazy(() => import('./views/pages/HealthEntities'))
 const CompensationFunds = React.lazy(() => import('./views/pages/CompensationFunds'))
 const PensionFunds = React.lazy(() => import('./views/pages/PensionFunds'))
 const Trademarks = React.lazy(() => import('./views/pages/Trademarks'))
+const Silhouettes = React.lazy(() => import('./views/pages/Silhouettes'))
+const Sizes = React.lazy(() => import('./views/pages/Sizes'))
+const Subgroups = React.lazy(() => import('./views/pages/Subgroups'))
+const Groups = React.lazy(() => import('./views/pages/Groups'))
+const ClothingLines = React.lazy(() => import('./views/pages/ClothingLines'))
+const GarmentTypes = React.lazy(() => import('./views/pages/GarmentTypes'))
+const BootTypes = React.lazy(() => import('./views/pages/BootTypes'))
+const BackTypes = React.lazy(() => import('./views/pages/BackTypes'))
+const WaistbandTypes = React.lazy(() => import('./views/pages/WaistbandTypes'))
+const Categories = React.lazy(() => import('./views/pages/Categories'))
 
 /**
  * Array of route configuration objects
@@ -67,6 +77,16 @@ const routes = [
   { path: '/compensation_funds', name: 'Cajas de Compensación', element: CompensationFunds },
   { path: '/pension_funds', name: 'Fondos de Pensión', element: PensionFunds },
   { path: '/trademarks', name: 'Marcas', element: Trademarks },
+  { path: '/silhouettes', name: 'Siluetas', element: Silhouettes },
+  { path: '/sizes', name: 'Tallas', element: Sizes },
+  { path: '/subgroups', name: 'Subgrupos', element: Subgroups },
+  { path: '/groups', name: 'Grupos', element: Groups },
+  { path: '/clothing_lines', name: 'Lineas', element: ClothingLines },
+  { path: '/garment_types', name: 'Tipos de Prenda', element: GarmentTypes },
+  { path: '/boot_types', name: 'Tipos de Bota', element: BootTypes },
+  { path: '/back_types', name: 'Tipos de Trasero', element: BackTypes },
+  { path: '/waistband_types', name: 'Tipos de Pretina', element: WaistbandTypes },
+  { path: '/categories', name: 'Categorías', element: Categories },
 ]
 
 export default routes
