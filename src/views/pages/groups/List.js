@@ -177,8 +177,8 @@ export const List = ({
               className="action-btn edit-btn"
               disabled={
                 !!group.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'groups.find') ||
-                !user_active?.permissions.some((p) => p.name === 'groups.update')
+                !user_active?.permissions.some((p) => p.name === 'classification.groups.find') ||
+                !user_active?.permissions.some((p) => p.name === 'classification.groups.update')
               }
               onClick={() => onChangeView({ name: 'edit', title: 'Editar Grupo', group: group })}
             >
@@ -189,7 +189,9 @@ export const List = ({
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'groups.delete')}
+                disabled={
+                  !user_active?.permissions.some((p) => p.name === 'classification.groups.delete')
+                }
                 onClick={() => handleConfirmDelete(group)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
@@ -199,7 +201,7 @@ export const List = ({
             <CTooltip content="Activar" placement="top">
               <button
                 className="action-btn restore-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'groups.restore')}
+                disabled={!user_active?.permissions.some((p) => p.name === 'classification.groups.restore')}
                 onClick={() => handleConfirmRestore(group)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
@@ -299,7 +301,7 @@ export const List = ({
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'groups.store')}
+            disabled={!user_active?.permissions.some((p) => p.name === 'classification.groups.store')}
             onClick={() => onChangeView({ name: 'create', title: 'Crear Grupo' })}
           >
             <CirclePlus /> Agregar Grupo

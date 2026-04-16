@@ -67,7 +67,6 @@ const Sizes = () => {
   const findSize = async (id) => {
     try {
       const response = await SizesService.find(id)
-      console.log(response)
       setSize(response.data.size)
       return response
     } catch (error) {

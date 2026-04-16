@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import {
   CCard,
   CTable,
@@ -30,6 +31,7 @@ import {
 import { Toast } from '../../../components/Toast'
 
 const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {
+  const user_active = useSelector((state) => state.user)
   const [visibleRole, setVisibleRole] = useState(null)
 
   const toggleRole = (roleId) => {
@@ -213,6 +215,14 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
                                   <td className="text-muted">{perm.description}</td>
                                   <td className="text-center">
                                     <CFormSwitch
+                                      disabled={
+                                        !user_active?.permissions.some(
+                                          (p) => p.name === 'users.authorization.assign',
+                                        ) ||
+                                        !user_active?.permissions.some(
+                                          (p) => p.name === 'users.authorization.remove',
+                                        )
+                                      }
                                       id={`perm-${perm.id}`}
                                       size="lg"
                                       checked={user?.permissions?.some((p) => p.id === perm.id)}

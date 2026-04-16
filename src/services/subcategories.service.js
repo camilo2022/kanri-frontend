@@ -1,9 +1,9 @@
 import api from '../API/api'
 import { getConfig } from '../axiosConfig'
 
-const all = async (category_id, params) => {
+const all = async (params) => {
   try {
-    const response = await api.get(`/categorization/categories/subcategories/all/${category_id}`, {
+    const response = await api.get(`/categorization/subcategories/all`, {
       ...getConfig(),
       params: params,
     })
@@ -18,11 +18,7 @@ const all = async (category_id, params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(
-      `/categorization/categories/subcategories/store`,
-      data,
-      getConfig(),
-    )
+    const response = await api.post(`/categorization/subcategories/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -34,11 +30,7 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(
-      `/categorization/categories/subcategories/update/${id}`,
-      data,
-      getConfig(),
-    )
+    const response = await api.put(`/categorization/subcategories/update/${id}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -50,10 +42,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await api.get(
-      `/categorization/categories/subcategories/find/${id}`,
-      getConfig(),
-    )
+    const response = await api.get(`/categorization/subcategories/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -65,10 +54,7 @@ const find = async (id) => {
 
 const destroy = async (id) => {
   try {
-    const response = await api.delete(
-      `/categorization/categories/subcategories/delete/${id}`,
-      getConfig(),
-    )
+    const response = await api.delete(`/categorization/subcategories/delete/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -80,11 +66,7 @@ const destroy = async (id) => {
 
 const restore = async (id) => {
   try {
-    const response = await api.patch(
-      `/categorization/categories/subcategories/restore/${id}`,
-      {},
-      getConfig(),
-    )
+    const response = await api.patch(`/categorization/subcategories/restore/${id}`, {}, getConfig())
     return response.data
   } catch (error) {
     console.log(error)

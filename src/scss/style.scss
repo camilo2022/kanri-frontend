@@ -544,3 +544,51 @@ body {
     transform: rotate(1turn);
   }
 }
+
+.audit-timeline {
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.audit-timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.audit-timeline::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0;
+  border-radius: 10px;
+}
+
+.x-small {
+  font-size: 0.65rem;
+  letter-spacing: 0.5px;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+.audit-detail-container .card:hover {
+  border: 1px solid #cbd5e1 !important;
+  transition: all 0.2s ease;
+}
+
+json-container pre {
+  font-family: 'Fira Code', 'Cascadia Code', 'Source Code Pro', monospace;
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1e1e1e;
+}
+
+.json-container code {
+  color: #9cdcfe;
+}
+
+.json-container pre::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.json-container pre::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 10px;
+}

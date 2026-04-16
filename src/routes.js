@@ -41,6 +41,8 @@ const BootTypes = React.lazy(() => import('./views/pages/BootTypes'))
 const BackTypes = React.lazy(() => import('./views/pages/BackTypes'))
 const WaistbandTypes = React.lazy(() => import('./views/pages/WaistbandTypes'))
 const Categories = React.lazy(() => import('./views/pages/Categories'))
+const Subcategories = React.lazy(() => import('./views/pages/Subcategories'))
+const Audits = React.lazy(() => import('./views/pages/logs/Audits'))
 
 /**
  * Array of route configuration objects
@@ -87,6 +89,8 @@ const routes = [
   { path: '/back_types', name: 'Tipos de Trasero', element: BackTypes },
   { path: '/waistband_types', name: 'Tipos de Pretina', element: WaistbandTypes },
   { path: '/categories', name: 'Categorías', element: Categories },
+  { path: '/subcategories', name: 'Subcategorías', element: Subcategories },
+  { path: '/audits', name: 'Auditoría', element: Audits },
 ]
 
 export default routes

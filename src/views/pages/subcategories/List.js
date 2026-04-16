@@ -27,16 +27,16 @@ import {
   ChevronRight,
   ArrowLeftCircle,
   FileText,
+  Eye,
 } from 'lucide-react'
-import no_data from '../../../../assets/images/no-data.png'
+import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
-import { Toast } from '../../../../components/Toast'
+import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
 
 export const List = ({
   data,
   loading,
-  categoryId,
   fetchSubcategories,
   onChangeView,
   deleteSubcategory,
@@ -57,11 +57,11 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchSubcategories(categoryId, currentParams)
+      fetchSubcategories(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [categoryId, params.page, params.per_page, params.column, params.dir, params.search])
+  }, [params.page, params.per_page, params.column, params.dir, params.search])
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -110,7 +110,7 @@ export const List = ({
       if (result.isConfirmed) {
         try {
           await deleteSubcategory(subcategory.id)
-          fetchSubcategories(categoryId, params)
+          fetchSubcategories(params)
           Toast.fire({
             icon: 'success',
             title: 'Subcategoría desactivada con exito',
@@ -153,7 +153,7 @@ export const List = ({
       if (result.isConfirmed) {
         try {
           await restore(subcategory.id)
-          fetchSubcategories(categoryId, params)
+          fetchSubcategories(params)
           Toast.fire({
             icon: 'success',
             title: 'Subcategoría activada con exito',
@@ -182,10 +182,10 @@ export const List = ({
               disabled={
                 !!subcategory.deleted_at ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'categorization.categories.subcategories.find',
+                  (p) => p.name === 'categorization.subcategories.find',
                 ) ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'categorization.categories.subcategories.update',
+                  (p) => p.name === 'categorization.subcategories.update',
                 )
               }
               onClick={() =>
@@ -199,13 +199,29 @@ export const List = ({
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
+          <CTooltip content="Visualizar" placement="top">
+            <button
+              className="action-btn show-btn"
+              disabled={
+                !!subcategory.deleted_at ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'categorization.subcategories.find',
+                )
+              }
+              onClick={() =>
+                onChangeView({ name: 'show', title: 'Ver Subcategoría', subcategory: subcategory })
+              }
+            >
+              <Eye size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
           {subcategory.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'categorization.categories.subcategories.delete',
+                    (p) => p.name === 'categorization.subcategories.delete',
                   )
                 }
                 onClick={() => handleConfirmDelete(subcategory)}
@@ -219,7 +235,7 @@ export const List = ({
                 className="action-btn restore-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'categorization.categories.subcategories.restore',
+                    (p) => p.name === 'categorization.subcategories.restore',
                   )
                 }
                 onClick={() => handleConfirmRestore(subcategory)}
@@ -307,13 +323,15 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Subcategorías</span>
+          <div className="font-montserrat d-flex flex-column lh-1">
+            <span className="fw-bold fs-5">Subcategorías</span>
+          </div>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input"
-              placeholder="Buscar cargo..."
+              placeholder="Buscar subcategoría..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -332,7 +350,7 @@ export const List = ({
               className="me-2 font-poppins btn-primary-dark"
               disabled={
                 !user_active?.permissions.some(
-                  (p) => p.name === 'categorization.categories.subcategories.store',
+                  (p) => p.name === 'categorization.subcategories.store',
                 )
               }
               onClick={() => onChangeView({ name: 'create', title: 'Crear Subcategoría' })}

@@ -77,6 +77,38 @@ const restore = async (id) => {
   }
 }
 
+const assign = async (id, subcategory_id) => {
+  try {
+    const response = await api.post(
+      `/categorization/categories/subcategory/assign/${id}`,
+      { subcategory_id },
+      getConfig(),
+    )
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
+const remove = async (id, subcategory_id) => {
+  try {
+    const response = await api.post(
+      `/categorization/categories/subcategory/remove/${id}`,
+      { subcategory_id },
+      getConfig(),
+    )
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const CategoriesService = {
   all,
   store,
@@ -84,6 +116,8 @@ const CategoriesService = {
   find,
   destroy,
   restore,
+  assign,
+  remove,
 }
 
 export default CategoriesService

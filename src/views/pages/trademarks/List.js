@@ -171,6 +171,7 @@ export const List = ({
     return {
       ...trademark,
       description: trademark.description || 'No Aplica',
+      category: trademark.category[0]?.name || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -264,6 +265,10 @@ export const List = ({
             (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>
       ),
+    },
+    {
+      key: 'category',
+      label: <div className="sortable-header text-center">Categoría</div>,
     },
     {
       key: 'acciones',

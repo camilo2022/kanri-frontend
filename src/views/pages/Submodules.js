@@ -149,7 +149,7 @@ const Submodules = ({ module }) => {
           <List
             data={data}
             loading={loading}
-            moduleId={module.id}
+            module={module}
             fetchSubmodules={fetchSubmodules}
             onChangeView={changeView}
             deleteSubmodule={deleteSubmodule}

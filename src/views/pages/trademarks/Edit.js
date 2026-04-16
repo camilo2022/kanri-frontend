@@ -5,10 +5,12 @@ import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
+import Select from 'react-select'
 
-const Edit = ({ trademark, onChangeView, onSubmit, errors }) => {
+const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
+    category_id: '',
     name: '',
     description: '',
   })
@@ -16,11 +18,15 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors }) => {
   useEffect(() => {
     if (trademark) {
       setFormData({
+        category_id: trademark.category[0]?.id || '',
         name: trademark.name || '',
         description: trademark.description || '',
       })
     }
   }, [trademark])
+
+  const isInvalid = !!errors?.category_id
+  const isValid = !errors?.category_id && formData.category_id !== '' && validated
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -73,6 +79,12 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors }) => {
     }))
   }
 
+  const customFilterOption = (option, rawInput) => {
+    const words = rawInput.toLowerCase().split(' ')
+    const label = option.label.toLowerCase()
+    return words.every((word) => label.includes(word))
+  }
+
   return (
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
@@ -80,7 +92,7 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Editar Marca</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
           </CFormLabel>
@@ -108,7 +120,7 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
           </CFormLabel>
@@ -130,6 +142,82 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors }) => {
             ))}
           </CFormFeedback>
           <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <TextInitial size={15} /> Categoría
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <Select
+            name="category_id"
+            value={
+              Array.isArray(categories)
+                ? (categories
+                    ?.map((category) => ({
+                      value: category.id,
+                      label: category.name,
+                    }))
+                    .find((opt) => opt.value === formData.category_id) ?? null)
+                : null
+            }
+            onChange={(selected) =>
+              handleChange({
+                target: {
+                  name: 'category_id',
+                  value: selected?.value || '',
+                },
+              })
+            }
+            invalid={!!errors?.category_id}
+            valid={!errors?.category_id && formData.category_id !== '' && validated}
+            options={
+              Array.isArray(categories)
+                ? categories.map((category) => ({
+                    value: category.id,
+                    label: category.name,
+                  }))
+                : []
+            }
+            isDisabled={!Array.isArray(categories)}
+            isSearchable
+            filterOption={customFilterOption}
+            className="w-100 font-montserrat"
+            placeholder={null}
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            styles={{
+              control: (base) => ({
+                ...base,
+                borderColor: isInvalid ? '#dc3545' : isValid ? '#198754' : '#dbdfe6',
+                boxShadow: 'none',
+                borderRadius: '0.375rem',
+              }),
+              menuPortal: (base) => ({
+                ...base,
+                zIndex: 9999,
+                fontFamily: 'sans-serif',
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 9999,
+              }),
+            }}
+          />
+          <CFormFeedback invalid className={isInvalid ? 'd-block' : 'd-none'}>
+            {errors?.category_id?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+
+          <CFormFeedback valid className={isValid ? 'd-block' : 'd-none'}>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />
               <small className="font-inter">Dato Válido</small>

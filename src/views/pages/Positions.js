@@ -179,7 +179,7 @@ const Positions = ({ area }) => {
           <List
             data={data}
             loading={loading}
-            areaId={area.id}
+            area={area}
             fetchPositions={fetchPositions}
             onChangeView={changeView}
             deletePosition={deletePosition}

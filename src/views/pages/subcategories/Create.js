@@ -1,47 +1,35 @@
 import { useState } from 'react'
 import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
-import { Toast } from '../../../../components/Toast'
+import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 
-const Edit = ({ categoryId, subcategory, onChangeView, onSubmit, errors }) => {
+const Create = ({ onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category_id: categoryId,
   })
-
-  useEffect(() => {
-    if (subcategory) {
-      setFormData({
-        name: subcategory.name || '',
-        description: subcategory.description || '',
-        category_id: categoryId,
-      })
-    }
-  }, [subcategory])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Editar Subcategoría',
+      title: 'Crear Subcategoría',
       html: `<div style="font-size:14px">
-              Se guardará la nueva información de la subcategoría en el sistema.<br/>
+              Se guardará la información de la categoría en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, actualizar',
+      confirmButtonText: 'Si, crear',
       cancelButtonText: 'Cancelar',
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(subcategory.id, formData)
+          const response = await onSubmit(formData)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -79,7 +67,7 @@ const Edit = ({ categoryId, subcategory, onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Editar Subcategoría</span>
+        <span className="fw-bold fs-5 font-montserrat">Crear Subcategoría</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
@@ -113,9 +101,7 @@ const Edit = ({ categoryId, subcategory, onChangeView, onSubmit, errors }) => {
         </CCol>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <TextInitial size={15} />
-            Descripción
-            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+            <TextInitial size={15} /> Descripción
           </CFormLabel>
           <CFormInput
             type="text"
@@ -150,7 +136,9 @@ const Edit = ({ categoryId, subcategory, onChangeView, onSubmit, errors }) => {
           </CButton>
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Subcategorías' })}
+            onClick={() => {
+              onChangeView({ name: 'list', title: 'Listar Subcategorías' })
+            }}
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>
@@ -160,4 +148,4 @@ const Edit = ({ categoryId, subcategory, onChangeView, onSubmit, errors }) => {
   )
 }
 
-export default Edit
+export default Create

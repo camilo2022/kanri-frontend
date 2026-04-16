@@ -178,8 +178,8 @@ export const List = ({
               className="action-btn edit-btn"
               disabled={
                 !!subgroup.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'subgroups.find') ||
-                !user_active?.permissions.some((p) => p.name === 'subgroups.update')
+                !user_active?.permissions.some((p) => p.name === 'classification.subgroups.find') ||
+                !user_active?.permissions.some((p) => p.name === 'classification.subgroups.update')
               }
               onClick={() =>
                 onChangeView({ name: 'edit', title: 'Editar Subgrupo', subgroup: subgroup })
@@ -192,7 +192,11 @@ export const List = ({
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'subgroups.delete')}
+                disabled={
+                  !user_active?.permissions.some(
+                    (p) => p.name === 'classification.subgroups.delete',
+                  )
+                }
                 onClick={() => handleConfirmDelete(subgroup)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
@@ -202,7 +206,11 @@ export const List = ({
             <CTooltip content="Activar" placement="top">
               <button
                 className="action-btn restore-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'subgroups.restore')}
+                disabled={
+                  !user_active?.permissions.some(
+                    (p) => p.name === 'classification.subgroups.restore',
+                  )
+                }
                 onClick={() => handleConfirmRestore(subgroup)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
@@ -302,7 +310,9 @@ export const List = ({
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'subgroups.store')}
+            disabled={
+              !user_active?.permissions.some((p) => p.name === 'classification.subgroups.store')
+            }
             onClick={() => onChangeView({ name: 'create', title: 'Crear Subgrupo' })}
           >
             <CirclePlus /> Agregar Subgrupo

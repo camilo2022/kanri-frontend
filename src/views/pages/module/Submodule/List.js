@@ -36,7 +36,7 @@ import * as FaIcons from 'react-icons/fa'
 export const List = ({
   data,
   loading,
-  moduleId,
+  module,
   fetchSubmodules,
   onChangeView,
   deleteSubmodule,
@@ -57,11 +57,11 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchSubmodules(moduleId, currentParams)
+      fetchSubmodules(module.id, currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, moduleId, params.page, params.per_page, params.column, params.dir])
+  }, [searchInput, module.id, params.page, params.per_page, params.column, params.dir])
 
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {
@@ -98,7 +98,7 @@ export const List = ({
       if (result.isConfirmed) {
         try {
           await deleteSubmodule(submodule.id)
-          fetchSubmodules(moduleId, params)
+          fetchSubmodules(module.id, params)
           Toast.fire({
             icon: 'success',
             title: 'Submódulo desactivado con exito',
@@ -141,7 +141,7 @@ export const List = ({
       if (result.isConfirmed) {
         try {
           await restore(submodule.id)
-          fetchSubmodules(moduleId, params)
+          fetchSubmodules(module.id, params)
           Toast.fire({
             icon: 'success',
             title: 'Submódulo activado con exito',
@@ -299,7 +299,12 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Submódulos</span>
+          <div className="font-montserrat d-flex flex-column lh-1">
+            <span className="fw-bold fs-5">Submódulos</span>
+            <small className="badge bg-light text-dark border text-muted mt-1">
+              Módulo: {module.name}
+            </small>
+          </div>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">

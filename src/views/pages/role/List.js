@@ -52,7 +52,19 @@ export const List = ({ data, loading, fetchRoles, onChangeView, errors }) => {
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchInput, params.page, params.per_page, params.column, params.dir])
+  }, [params.page, params.per_page, params.column, params.dir, params.search])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setParams((prev) => ({
+        ...prev,
+        search: searchInput,
+        page: 1,
+      }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchInput])
 
   useEffect(() => {
     if (Object.keys(errors).length !== 0) {

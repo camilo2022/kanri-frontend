@@ -81,7 +81,6 @@ const restore = async (id) => {
 const setting = async (id, data) => {
   try {
     const response = await api.put(`/trademarks/setting/${id}`, data, getConfig())
-    console.log(response)
     return response.data
   } catch (error) {
     console.log(error)

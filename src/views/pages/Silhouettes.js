@@ -67,7 +67,6 @@ const Silhouettes = () => {
   const findSilhouette = async (id) => {
     try {
       const response = await SilhouettesService.find(id)
-      console.log(response)
       setSilhouette(response.data.silhouette)
       return response
     } catch (error) {

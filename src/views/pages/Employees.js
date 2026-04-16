@@ -34,7 +34,7 @@ const Employees = () => {
   useEffect(() => {
     if (view.name === 'show' && view.employee?.id) {
       findEmployee(view.employee.id)
-      findRole(view.employee.user?.roles[0].id)
+      if (view.employee.user?.roles.length > 0) findRole(view.employee.user?.roles[0].id)
     }
     if (view.name === 'edit' && view.employee?.id) {
       findEmployee(view.employee.id)

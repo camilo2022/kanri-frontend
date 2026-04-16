@@ -196,9 +196,7 @@ export const List = ({
               className="action-btn permisos-btn"
               disabled={
                 !!category.deleted_at ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'categorization.categories.subcategories.all',
-                )
+                !user_active?.permissions.some((p) => p.name === 'categorization.categories.find')
               }
               onClick={() =>
                 onChangeView({ name: 'show', title: 'Subcategorías', category: category })
@@ -254,7 +252,7 @@ export const List = ({
       key: 'id',
       label: (
         <div className="sortable-header text-center" onClick={() => handleSort('id')}>
-          #{' '}
+          #
           {params.column === 'id' &&
             (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>
@@ -264,7 +262,7 @@ export const List = ({
       key: 'name',
       label: (
         <div className="sortable-header text-center" onClick={() => handleSort('name')}>
-          Nombre{' '}
+          Nombre
           {params.column === 'name' &&
             (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>
@@ -274,7 +272,7 @@ export const List = ({
       key: 'description',
       label: (
         <div className="sortable-header text-center" onClick={() => handleSort('description')}>
-          Descripción{' '}
+          Descripción
           {params.column === 'description' &&
             (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>

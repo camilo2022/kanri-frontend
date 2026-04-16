@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import TrademarksService from '../../services/trademarks.service'
+import CategoriesService from '../../services/categories.service'
 import List from './trademarks/List'
 import Create from './trademarks/Create'
 import Edit from './trademarks/Edit'
@@ -10,6 +11,7 @@ const Trademarks = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Marcas' })
   const [data, setData] = useState({})
+  const [categories, setCategories] = useState({})
   const [trademark, setTrademark] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -20,6 +22,10 @@ const Trademarks = () => {
     }
     if (view.name === 'edit' && view.trademark?.id) {
       findTrademark(view.trademark.id)
+      allCategories({ with_user: false })
+    }
+    if (view.name === 'create') {
+      allCategories({ with_user: false })
     }
     setLoading(true)
     setTrademark('')
@@ -113,10 +119,29 @@ const Trademarks = () => {
     }
   }
 
+  const allCategories = async (params) => {
+    try {
+      const response = await CategoriesService.all(params)
+      setCategories(response.data.categories)
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return <Create onChangeView={changeView} onSubmit={createTrademark} errors={errors} />
+        return (
+          <Create
+            onChangeView={changeView}
+            onSubmit={createTrademark}
+            errors={errors}
+            categories={categories}
+          />
+        )
 
       case 'edit':
         return (
@@ -125,6 +150,7 @@ const Trademarks = () => {
             onChangeView={changeView}
             onSubmit={editTrademark}
             errors={errors}
+            categories={categories}
           />
         )
 

@@ -36,7 +36,7 @@ import { useSelector } from 'react-redux'
 export const List = ({
   data,
   loading,
-  areaId,
+  area,
   fetchPositions,
   onChangeView,
   deletePosition,
@@ -57,11 +57,11 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchPositions(areaId, currentParams)
+      fetchPositions(area.id, currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [areaId, params.page, params.per_page, params.column, params.dir, params.search])
+  }, [area.id, params.page, params.per_page, params.column, params.dir, params.search])
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -110,7 +110,7 @@ export const List = ({
       if (result.isConfirmed) {
         try {
           await deletePosition(position.id)
-          fetchPositions(areaId, params)
+          fetchPositions(area.id, params)
           Toast.fire({
             icon: 'success',
             title: 'Cargo desactivado con exito',
@@ -152,7 +152,7 @@ export const List = ({
       if (result.isConfirmed) {
         try {
           await restore(position.id)
-          fetchPositions(areaId, params)
+          fetchPositions(area.id, params)
           Toast.fire({
             icon: 'success',
             title: 'Cargo activado con exito',
@@ -318,7 +318,12 @@ export const List = ({
       <CCard className="mb-4 p-4 shadow-sm border-0">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Cargos</span>
+          <div className="font-montserrat d-flex flex-column lh-1">
+            <span className="fw-bold fs-5">Cargos</span>
+            <small className="badge bg-light text-dark border text-muted mt-1">
+              Área: {area.name}
+            </small>
+          </div>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">

@@ -32,7 +32,6 @@ import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
-import * as FaIcons from 'react-icons/fa'
 
 export const List = ({ data, loading, fetchAreas, onChangeView, deleteArea, restore, errors }) => {
   const user_active = useSelector((state) => state.user)

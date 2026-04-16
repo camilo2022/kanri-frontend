@@ -110,6 +110,7 @@ const Show = ({ trademark, onChangeView, errors, loading, setting }) => {
               deleted_at: '',
             })
             setShowForm(false)
+            setValidated(false)
           }, 2510)
         } catch (error) {
           setValidated(true)

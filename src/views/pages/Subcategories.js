@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import SubcategoriesService from '../../services/subcategories.service'
-import Categories from './Categories'
-import List from './categories/subcategories/List'
-import Edit from './categories/subcategories/Edit'
-import Create from './categories/subcategories/Create'
+import List from './subcategories/List'
+import Edit from './subcategories/Edit'
+import Create from './subcategories/Create'
+import Show from './subcategories/Show'
 
-const Subcategories = ({ category }) => {
+const Subcategories = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Subcategorías' })
   const [data, setData] = useState({})
@@ -34,9 +34,9 @@ const Subcategories = ({ category }) => {
     setView(newView)
   }
 
-  const fetchSubcategories = async (category_id, params) => {
+  const fetchSubcategories = async (params) => {
     try {
-      const response = await SubcategoriesService.all(category_id, params)
+      const response = await SubcategoriesService.all(params)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -57,9 +57,9 @@ const Subcategories = ({ category }) => {
     }
   }
 
-  const editSubcategory = async (category_id, data) => {
+  const editSubcategory = async (subcategory_id, data) => {
     try {
-      const response = await SubcategoriesService.update(category_id, data)
+      const response = await SubcategoriesService.update(subcategory_id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -102,14 +102,7 @@ const Subcategories = ({ category }) => {
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return (
-          <Create
-            onChangeView={changeView}
-            onSubmit={createSubcategory}
-            errors={errors}
-            categoryId={category.id}
-          />
-        )
+        return <Create onChangeView={changeView} onSubmit={createSubcategory} errors={errors} />
 
       case 'edit':
         return (
@@ -118,19 +111,24 @@ const Subcategories = ({ category }) => {
             onChangeView={changeView}
             onSubmit={editSubcategory}
             errors={errors}
-            categoryId={category.id}
           />
         )
 
-      case 'back':
-        return <Categories />
+      case 'show':
+        return (
+          <Show
+            subcategory={subcategory}
+            loading={loading}
+            onChangeView={changeView}
+            errors={errors}
+          />
+        )
 
       default:
         return (
           <List
             data={data}
             loading={loading}
-            categoryId={category.id}
             fetchSubcategories={fetchSubcategories}
             onChangeView={changeView}
             deleteSubcategory={deleteSubcategory}

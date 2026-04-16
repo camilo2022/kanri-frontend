@@ -138,7 +138,12 @@ const DefaultLayout = () => {
     )
   }
 
-  if (!hasAccess && currentPath !== '/dashboard' && currentPath !== '/profile') {
+  if (
+    !hasAccess &&
+    currentPath !== '/dashboard' &&
+    currentPath !== '/profile' &&
+    currentPath !== '/audits'
+  ) {
     return (
       <div className="bg-body-tertiary min-vh-100 d-flex align-items-center justify-content-center">
         <CCard style={{ width: '22rem' }} className="text-center p-4 gap-3">
