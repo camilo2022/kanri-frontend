@@ -209,6 +209,42 @@ body {
   color: white;
 }
 
+.btn-primary-download {
+  color: white;
+  background-color: #762fe7;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-download:hover {
+  transition: 5s;
+  background-color: #380a81;
+  color: white;
+}
+
+.btn-primary-close {
+  color: white;
+  background-color: #e72f2f;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-close:hover {
+  transition: 5s;
+  background-color: #810a0a;
+  color: white;
+}
+
+.btn-primary-upload {
+  color: white;
+  background-color: #e7972f;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-upload:hover {
+  transition: 5s;
+  background-color: #814a0a;
+  color: white;
+}
+
 .custom-roles {
   background-color: #24247f;
   color: white;

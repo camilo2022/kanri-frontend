@@ -110,7 +110,8 @@ const Show = ({ category, loading, onChangeView, errors, subcategories = [], ass
                           </div>
                         </td>
                       </tr>
-                    ) : Array.isArray(subcategories?.subcategories) ? (
+                    ) : Array.isArray(subcategories?.subcategories) &&
+                      subcategories?.subcategories.length > 0 ? (
                       subcategories?.subcategories.map((subcategory) => (
                         <tr key={subcategories.id} className="font-inter">
                           <td className="text-primary">{subcategory.name}</td>

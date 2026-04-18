@@ -34,6 +34,7 @@ import no_data from '../../../assets/images/no-data.png'
 import Select from 'react-select'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { Toast } from '../../../components/Toast'
 dayjs.extend(utc)
 
 const Audits = () => {
@@ -68,7 +69,12 @@ const Audits = () => {
           setData(audits.data)
           setModels(audits.data.model_types)
         } catch (err) {
-          console.log(err)
+          Object.values(err.errors).map((messages) => {
+            Toast.fire({
+              icon: 'error',
+              title: messages[0],
+            })
+          })
         } finally {
           setLoadingAudits(false)
         }
@@ -117,7 +123,12 @@ const Audits = () => {
     updated: { label: 'Actualizado', color: 'info' },
     deleted: { label: 'Eliminado', color: 'danger' },
     restored: { label: 'Restaurado', color: 'warning' },
-    default: { label: 'No Aplica', color: 'secondary' },
+
+    attach: { label: 'Asociado', color: 'primary' },
+    detach: { label: 'Desasociado', color: 'dark' },
+    sync: { label: 'Sincronizado', color: 'secondary' },
+
+    default: { label: 'No Aplica', color: 'light' },
   }
 
   const events = {
@@ -125,6 +136,9 @@ const Audits = () => {
     created: 'Creado',
     deleted: 'Eliminado',
     restored: 'Restaurado',
+    attach: 'Asociado',
+    detach: 'Desasociado',
+    sync: 'Sincronizado',
   }
 
   const formattedData = data?.audits?.map((audit) => {

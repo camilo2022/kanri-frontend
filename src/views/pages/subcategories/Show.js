@@ -79,7 +79,7 @@ const Show = ({ subcategory, loading, onChangeView, errors }) => {
                   <tbody className="font-inter">
                     {loading ? (
                       <tr>
-                        <td colSpan={3} className="py-5 border-0">
+                        <td colSpan={2} className="py-5 border-0">
                           <div className="d-flex flex-column align-items-center justify-content-center">
                             <div className="data-loader-container mb-3">
                               <div className="radar-circle"></div>
@@ -97,7 +97,8 @@ const Show = ({ subcategory, loading, onChangeView, errors }) => {
                           </div>
                         </td>
                       </tr>
-                    ) : Array.isArray(subcategory?.categories) ? (
+                    ) : Array.isArray(subcategory?.categories) &&
+                      subcategory?.categories.length > 0 ? (
                       subcategory?.categories.map((category) => (
                         <tr key={category.id} className="font-inter">
                           <td className="text-primary">{category.name}</td>
@@ -106,10 +107,15 @@ const Show = ({ subcategory, loading, onChangeView, errors }) => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={3} className="text-muted p-4">
-                          <img src={no_data} className="img-fluid" style={{ maxHeight: '120px' }} />
-                          <br />
-                          No hay datos para mostrar
+                        <td colSpan={2} className="text-center align-middle p-5">
+                          <div className="d-flex flex-column align-items-center justify-content-center">
+                            <img
+                              src={no_data}
+                              className="img-fluid mb-2"
+                              style={{ maxHeight: '120px' }}
+                            />
+                            <span>No hay datos para mostrar</span>
+                          </div>
                         </td>
                       </tr>
                     )}

@@ -15,7 +15,6 @@ import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
 import {
   Pencil,
-  ShieldCheck,
   Trash2,
   RotateCcw,
   ChevronUp,
@@ -26,8 +25,12 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  Eye,
+  Upload,
+  ArrowUpToLine,
+  X,
 } from 'lucide-react'
+import { FaRegFilePdf } from 'react-icons/fa6'
+import { RiFileExcel2Line } from 'react-icons/ri'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '../../../components/Toast'
@@ -45,8 +48,13 @@ export const List = ({
   deletePerson,
   restore,
   errors,
+  generatePDF,
+  generateExcel,
+  importExcel,
 }) => {
   const user_active = useSelector((state) => state.user)
+  const [showInput, setShowInput] = useState(false)
+  const [file, setFile] = useState(null)
   const [params, setParams] = useState({
     search: '',
     per_page: 10,
@@ -343,8 +351,8 @@ export const List = ({
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Personas</span>
       </div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex gap-2 w-50 ms-4">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
+        <div className="w-25">
           <CFormInput
             className="custom-input"
             placeholder="Buscar persona..."
@@ -352,21 +360,66 @@ export const List = ({
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
-        <CButton
-          variant="outline"
-          className="me-2 font-poppins btn-primary-dark"
-          disabled={!user_active?.permissions.some((p) => p.name === 'people.store')}
-          style={{
-            cursor: !user_active?.permissions.some((p) => p.name === 'people.store')
-              ? 'not-allowed'
-              : 'pointer',
-          }}
-          onClick={() => onChangeView({ name: 'create', title: 'Crear Persona' })}
-        >
-          <CirclePlus /> Agregar Persona
-        </CButton>
+        <div className="d-flex flex-wrap justify-content-end gap-2">
+          <CButton
+            className="d-flex align-items-center justify-content-center btn-primary-revolve"
+            onClick={() => generateExcel()}
+          >
+            <RiFileExcel2Line />
+          </CButton>
+          <CButton
+            className="d-flex align-items-center justify-content-center btn-primary-download"
+            onClick={() => generatePDF()}
+          >
+            <FaRegFilePdf />
+          </CButton>
+          {!showInput ? (
+            <CButton
+              className="d-flex align-items-center gap-2 btn-primary-upload"
+              onClick={() => setShowInput(true)}
+            >
+              <ArrowUpToLine size={16} />
+              <span className="d-none d-md-inline font-poppins">Cargar Datos</span>
+            </CButton>
+          ) : (
+            <div className="d-flex align-items-center gap-2 flex-wrap" style={{ width: '510px' }}>
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                className="form-control"
+                style={{ maxWidth: '400px' }}
+                onChange={(e) => setFile(e.target.files[0])}
+              />
+              <CButton
+                className="d-flex py-2 align-items-center justify-content-center btn-primary-upload"
+                onClick={() => importExcel(file)}
+              >
+                <Upload size={18} />
+              </CButton>
+              <CButton
+                className="d-flex py-2 align-items-center justify-content-center btn-primary-close"
+                onClick={() => setShowInput(false)}
+              >
+                <X size={18} />
+              </CButton>
+            </div>
+          )}
+          <CButton
+            variant="outline"
+            className="font-poppins btn-primary-dark d-flex align-items-center gap-2"
+            disabled={!user_active?.permissions.some((p) => p.name === 'people.store')}
+            style={{
+              cursor: !user_active?.permissions.some((p) => p.name === 'people.store')
+                ? 'not-allowed'
+                : 'pointer',
+            }}
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Persona' })}
+          >
+            <CirclePlus />
+            <span className="d-none d-md-inline">Agregar Persona</span>
+          </CButton>
+        </div>
       </div>
-
       <CTable hover responsive align="middle" className="text-center font-inter">
         <thead>
           <tr>

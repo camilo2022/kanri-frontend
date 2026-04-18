@@ -76,6 +76,8 @@ const Subcategories = () => {
     } catch (error) {
       setErrors(error.error)
       throw error
+    } finally {
+      setLoading(false)
     }
   }
 

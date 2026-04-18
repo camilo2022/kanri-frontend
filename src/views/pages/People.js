@@ -127,6 +127,50 @@ const People = () => {
     }
   }
 
+  const generatePDF = async () => {
+    try {
+      const response = await PeopleService.pdf()
+      console.log('imprimir = ' + response)
+      var blob = new Blob([response.data], {
+        type: 'application/pdf',
+      })
+      var url = window.URL.createObjectURL(blob)
+      window.open(url)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const generateExcel = async () => {
+    try {
+      const response = await PeopleService.excel()
+      console.log('excel = ' + response)
+      var blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      var url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'people.xlsx'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const importExcel = async (file) => {
+    try {
+      const response = await PeopleService.upload(file)
+      setErrors({})
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+
   const renderView = () => {
     switch (view.name) {
       case 'create':
@@ -163,6 +207,9 @@ const People = () => {
             deletePerson={deletePerson}
             restore={restore}
             errors={errors}
+            generatePDF={generatePDF}
+            generateExcel={generateExcel}
+            importExcel={importExcel}
           />
         )
     }

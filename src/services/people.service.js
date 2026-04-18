@@ -80,6 +80,7 @@ const find = async (id) => {
     throw { message: 'Error desconocido' }
   }
 }
+
 const destroy = async (id) => {
   try {
     const response = await api.delete(`/people/delete/${id}`, getConfig())
@@ -105,6 +106,51 @@ const restore = async (id) => {
   }
 }
 
+const pdf = async () => {
+  try {
+    const response = await api.get('/people/pdf', {
+      ...getConfig(),
+      responseType: 'blob',
+    })
+    return response
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
+const excel = async () => {
+  try {
+    const response = await api.get('/people/excel', {
+      ...getConfig(),
+      responseType: 'blob',
+    })
+    return response
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
+const upload = async (file) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await api.post('/people/import', formData, getConfig())
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const PeopleService = {
   all,
   store,
@@ -112,6 +158,9 @@ const PeopleService = {
   find,
   destroy,
   restore,
+  pdf,
+  excel,
+  upload,
 }
 
 export default PeopleService
