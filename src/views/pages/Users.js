@@ -19,6 +19,8 @@ const Users = () => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
+    setLoading(true)
+    setUser('')
     if (view.name === 'show' && view.user?.id) {
       findUser(view.user.id)
       allRoles()
@@ -26,11 +28,9 @@ const Users = () => {
     if (view.name === 'create') {
       allEmployees({ with_user: false })
     }
-    if (view.name === 'edit') {
-      allEmployees()
+    if (view.name === 'edit' && view.user?.id) {
+      findUser(view.user.id)
     }
-    setLoading(true)
-    setUser('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Usuarios' })
     }
@@ -162,15 +162,7 @@ const Users = () => {
         )
 
       case 'edit':
-        return (
-          <Edit
-            user={view.user}
-            onChangeView={changeView}
-            onSubmit={editUser}
-            errors={errors}
-            employees={employees}
-          />
-        )
+        return <Edit user={user} onChangeView={changeView} onSubmit={editUser} errors={errors} />
 
       case 'show':
         return (

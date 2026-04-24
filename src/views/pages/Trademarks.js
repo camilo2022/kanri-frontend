@@ -17,6 +17,8 @@ const Trademarks = () => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
+    setLoading(true)
+    setTrademark('')
     if (view.name === 'show' && view.trademark?.id) {
       findTrademark(view.trademark.id)
     }
@@ -27,8 +29,6 @@ const Trademarks = () => {
     if (view.name === 'create') {
       allCategories({ with_user: false })
     }
-    setLoading(true)
-    setTrademark('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Marcas' })
     }

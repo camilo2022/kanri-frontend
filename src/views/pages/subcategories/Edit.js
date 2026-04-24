@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
+import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ subcategory, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
@@ -73,8 +74,18 @@ const Edit = ({ subcategory, onChangeView, onSubmit, errors }) => {
     }))
   }
 
+  if (!subcategory) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Editar Subcategoría</span>
@@ -92,7 +103,7 @@ const Edit = ({ subcategory, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (
@@ -122,7 +133,7 @@ const Edit = ({ subcategory, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.description}
             valid={!errors?.description && formData.description !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (
@@ -139,18 +150,18 @@ const Edit = ({ subcategory, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
-          <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
+        <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => onChangeView({ name: 'list', title: 'Listar Subcategorías' })}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

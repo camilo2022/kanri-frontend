@@ -624,7 +624,14 @@ json-container pre {
   width: 8px;
   height: 8px;
 }
+
 .json-container pre::-webkit-scrollbar-thumb {
   background: #444;
   border-radius: 10px;
+}
+
+.input-custom:hover,
+.input-custom:focus {
+  border-color: #1857b6;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }

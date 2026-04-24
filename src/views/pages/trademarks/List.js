@@ -194,7 +194,7 @@ export const List = ({
               className="action-btn permisos-btn"
               disabled={
                 !!trademark.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'trademarks.setting')
+                !user_active?.permissions.some((p) => p.name === 'trademarks.settings')
               }
               onClick={() => onChangeView({ name: 'show', title: 'Marcas', trademark: trademark })}
             >
@@ -302,7 +302,7 @@ export const List = ({
 
   return (
     <>
-      <CCard className="mb-4 p-4 shadow-sm border-0">
+      <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
           <span className="fw-bold fs-5 font-montserrat">Marcas</span>
@@ -310,7 +310,7 @@ export const List = ({
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
-              className="custom-input"
+              className="custom-input font-inter"
               placeholder="Buscar marca..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
@@ -335,7 +335,7 @@ export const List = ({
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {!data?.trademarks?.length && loading ? (
               <tr>
                 <td colSpan="5" className="py-5 border-0">
                   <div className="d-flex flex-column align-items-center justify-content-center">

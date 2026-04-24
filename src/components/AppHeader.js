@@ -18,8 +18,8 @@
  * )
  */
 
-import React, { useEffect, useRef } from 'react'
-import { NavLink } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
@@ -62,6 +62,9 @@ import { AppHeaderDropdown } from './header/index'
  */
 const AppHeader = () => {
   const headerRef = useRef()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const viewName = searchParams.get('view') || 'list'
   const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const user = useSelector((state) => state.user)
 
@@ -91,16 +94,6 @@ const AppHeader = () => {
           <CNavItem>
             <CNavLink href="#">
               <CIcon icon={cilBell} size="lg" />
-            </CNavLink>
-          </CNavItem>
-        </CHeaderNav>
-        <CHeaderNav>
-          <li className="nav-item py-1">
-            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-          </li>
-          <CNavItem>
-            <CNavLink href="/audits">
-              <CIcon icon={cilAvTimer} size="lg" />
             </CNavLink>
           </CNavItem>
         </CHeaderNav>
@@ -145,6 +138,46 @@ const AppHeader = () => {
                 onClick={() => setColorMode('auto')}
               >
                 <CIcon className="me-2" icon={cilContrast} size="lg" /> Auto
+              </CDropdownItem>
+            </CDropdownMenu>
+          </CDropdown>
+        </CHeaderNav>
+        <CHeaderNav>
+          <li className="nav-item py-1">
+            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
+          </li>
+          <CDropdown variant="nav-item" placement="bottom-end">
+            <CDropdownToggle caret={false}>
+              {viewName === 'records' ? (
+                <CIcon icon={cilList} size="lg" />
+              ) : (
+                <CIcon icon={cilAvTimer} size="lg" />
+              )}
+            </CDropdownToggle>
+            <CDropdownMenu>
+              <CDropdownItem
+                active={viewName === 'list'}
+                className="d-flex align-items-center"
+                as="button"
+                type="button"
+                disabled={!user?.permissions.some((p) => p.name === 'audits.all')}
+                onClick={() => {
+                  navigate('/audits?view=list')
+                }}
+              >
+                <CIcon className="me-2" icon={cilAvTimer} size="lg" /> Audits
+              </CDropdownItem>
+              <CDropdownItem
+                active={viewName === 'record'}
+                className="d-flex align-items-center"
+                as="button"
+                type="button"
+                disabled={!user?.permissions.some((p) => p.name === 'audits.search')}
+                onClick={() => {
+                  navigate('/audits?view=record')
+                }}
+              >
+                <CIcon className="me-2" icon={cilList} size="lg" /> Records
               </CDropdownItem>
             </CDropdownMenu>
           </CDropdown>

@@ -17,6 +17,8 @@ const Submodules = ({ module }) => {
   const [roles, setRoles] = useState({})
 
   useEffect(() => {
+    setLoading(true)
+    setSubmodule('')
     if (view.name === 'create') {
       allRoles()
     }
@@ -24,11 +26,6 @@ const Submodules = ({ module }) => {
       findSubmodule(view.submodule.id)
       allRoles()
     }
-    if (view.name === 'show' && view.submodule?.id) {
-      findSubmodule(view.submodule.id)
-    }
-    setLoading(true)
-    setSubmodule('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Submódulos' })
     }

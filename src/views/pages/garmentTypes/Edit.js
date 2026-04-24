@@ -7,7 +7,7 @@ import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 
 const Edit = ({ garment_type, onChangeView, onSubmit, errors }) => {
-  
+
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -93,7 +93,7 @@ const Edit = ({ garment_type, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (
@@ -122,7 +122,7 @@ const Edit = ({ garment_type, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.description}
             valid={!errors?.description && formData.description !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (

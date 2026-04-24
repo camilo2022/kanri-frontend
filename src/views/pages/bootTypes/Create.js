@@ -64,7 +64,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   }
 
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Crear Tipo de Bota</span>
@@ -82,7 +82,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (
@@ -111,7 +111,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.description}
             valid={!errors?.description && formData.description !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (
@@ -128,13 +128,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
-          <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
+        <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
             className="d-flex align-items-center gap-2 font-poppins btn-primary-revolve me-2"
             onClick={() => {
@@ -142,6 +136,12 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             }}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

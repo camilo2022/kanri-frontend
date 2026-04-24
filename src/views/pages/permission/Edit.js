@@ -15,6 +15,7 @@ import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
+import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
@@ -89,8 +90,18 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
     }))
   }
 
+  if (!(roles && permission)) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Editar Permiso</span>
@@ -107,7 +118,7 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
             disabled
           />
           <CFormFeedback invalid>
@@ -136,7 +147,7 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.title}
             valid={!errors?.title && formData.title !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.title?.map((error, index) => (
@@ -165,7 +176,7 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
               onChange={handleChange}
               invalid={!!errors?.description}
               valid={!errors?.description && formData.description !== '' && validated}
-              className="font-montserrat"
+              className="font-montserrat input-custom"
               style={{ borderRadius: '5px 5px 5px 5px' }}
             />
             <CFormFeedback invalid>
@@ -186,7 +197,7 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
             </CFormFeedback>
           </CInputGroup>
         </CCol>
-        <CCol md={6} className="mb-4">
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Rol
           </CFormLabel>
@@ -210,7 +221,7 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
               invalid={!!errors?.role_id}
               valid={!errors?.role_id && formData.role_id !== '' && validated}
               style={{ borderRadius: '5px 5px 5px 5px' }}
-              className="font-montserrat"
+              className="font-montserrat input-custom"
             />
             <CFormFeedback invalid>
               {errors?.role_id?.map((error, index) => (
@@ -230,18 +241,18 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
             </CFormFeedback>
           </CInputGroup>
         </CCol>
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
-          <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
+        <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => onChangeView({ name: 'list', title: 'Listar Permisos' })}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

@@ -27,6 +27,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
+import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ role, loading, onChangeView, errors, permissions = [], allPermissions }) => {
   const [params, setParams] = useState({
@@ -125,8 +126,18 @@ const Show = ({ role, loading, onChangeView, errors, permissions = [], allPermis
 
   const { pages, start, end } = getPages()
 
+  if (!role) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información de la persona..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <div className="fade-in">
+    <div className="animate-fade-in">
       <CCard className="mb-4 p-3 shadow-sm border-0">
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center">

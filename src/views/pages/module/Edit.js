@@ -29,6 +29,7 @@ import {
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 import * as FaIcons from 'react-icons/fa'
+import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ module, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
@@ -115,8 +116,18 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
     setCurrentPage(1)
   }
 
+  if (!module) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga el formulario..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Editar Módulo</span>
@@ -133,7 +144,7 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (
@@ -180,7 +191,7 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
               <CDropdownToggle
                 caret={false}
                 className={`
-                  form-control text-start font-montserrat d-flex align-items-center justify-content-between
+                  form-control text-start font-montserrat d-flex align-items-center justify-content-between input-custom
                   ${errors?.icon ? 'is-invalid' : ''}
                   ${!errors?.icon && formData.icon && validated ? 'is-valid' : ''}
                 `}
@@ -272,18 +283,18 @@ const Edit = ({ module, onChangeView, onSubmit, errors }) => {
             </div>
           )}
         </CCol>
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
+        <div className="d-flex justify-content-between align-items-center mt-5">
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
+            onClick={() => onChangeView({ name: 'list', title: 'Listar Módulos' })}
+          >
+            <ArrowLeftCircle size={16} /> Volver
+          </CButton>
           <CButton
             className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
             type="submit"
           >
             <Save size={16} /> Guardar
-          </CButton>
-          <CButton
-            className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Roles' })}
-          >
-            <ArrowLeftCircle size={16} /> Volver
           </CButton>
         </div>
       </CForm>

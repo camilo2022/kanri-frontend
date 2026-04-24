@@ -30,6 +30,7 @@ import {
 import { Toast } from '../../../../components/Toast'
 import Swal from 'sweetalert2'
 import * as FaIcons from 'react-icons/fa'
+import LoadingForm from '@/components/LoadingForm'
 
 const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
   const [validated, setValidated] = useState(false)
@@ -112,8 +113,18 @@ const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
     setCurrentPage(1)
   }
 
+  if (!Array.isArray(roles)) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga el formulario..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Crear Submódulo</span>
@@ -131,7 +142,7 @@ const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (
@@ -179,7 +190,7 @@ const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
               <CDropdownToggle
                 caret={false}
                 className={`
-                  form-control text-start font-montserrat d-flex align-items-center justify-content-between
+                  form-control text-start font-montserrat d-flex align-items-center justify-content-between input-custom
                   ${errors?.icon ? 'is-invalid' : ''}
                   ${!errors?.icon && formData.icon && validated ? 'is-valid' : ''}
                 `}
@@ -295,7 +306,7 @@ const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
             }}
             invalid={!!errors?.url}
             valid={!errors?.url && formData.url !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.url?.map((error, index) => (
@@ -320,23 +331,23 @@ const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
           </CFormLabel>
           <CInputGroup>
             <CFormSelect
-              className="font-inter"
+              className="font-montserrat input-custom"
               name="permission_id"
               value={formData.permission_id}
               onChange={handleChange}
               disabled={!Array.isArray(roles)}
               invalid={!!errors?.permission_id}
               valid={!errors?.permission_id && formData.permission_id !== '' && validated}
+              style={{ borderRadius: '5px 5px 5px 5px' }}
             >
               {Array.isArray(roles) ? (
                 <>
                   <option value="">Seleccione un permiso</option>
-
                   {roles.map((role) => (
                     <optgroup key={role.id} label={role.name}>
                       {role.permissions?.map((perm) => (
                         <option key={perm.id} value={perm.id}>
-                          {perm.name}
+                          {perm.title} ({perm.name})
                         </option>
                       ))}
                     </optgroup>
@@ -366,18 +377,18 @@ const Create = ({ onChangeView, onSubmit, errors, roles, moduleId }) => {
         </CCol>
         <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
           <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
-          <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => {
               onChangeView({ name: 'list', title: 'Listar Módulos' })
             }}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

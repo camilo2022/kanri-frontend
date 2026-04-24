@@ -38,6 +38,7 @@ import {
   CFormFeedback,
 } from '@coreui/react'
 import Swal from 'sweetalert2'
+import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ trademark, onChangeView, errors, loading, setting }) => {
   const [validated, setValidated] = useState(false)
@@ -362,8 +363,18 @@ const Show = ({ trademark, onChangeView, errors, loading, setting }) => {
 
   const { pages, start, end } = getPages()
 
+  if (!trademark) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <div className="fade-in">
+    <div className="animate-fade-in">
       <CCard className="mb-4 p-3 shadow-sm border-0">
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center">
@@ -391,7 +402,7 @@ const Show = ({ trademark, onChangeView, errors, loading, setting }) => {
                   name="name"
                   value={trademark?.name}
                   disabled
-                  className="font-montserrat"
+                  className="font-montserrat custom-input"
                 />
               </CCol>
               <CCol md={8}>
@@ -403,7 +414,7 @@ const Show = ({ trademark, onChangeView, errors, loading, setting }) => {
                   name="email"
                   value={trademark?.description || ''}
                   disabled
-                  className="font-montserrat"
+                  className="font-montserrat custom-input"
                 />
               </CCol>
             </CForm>
@@ -498,7 +509,7 @@ const Show = ({ trademark, onChangeView, errors, loading, setting }) => {
                         rule.regex !== '' &&
                         validated
                       }
-                      className="font-montserrat"
+                      className="font-montserrat custom-input"
                     />
                     <CFormFeedback invalid>
                       {Object.entries(aux?.errors || {})
@@ -540,7 +551,7 @@ const Show = ({ trademark, onChangeView, errors, loading, setting }) => {
                         rule.message !== '' &&
                         validated
                       }
-                      className="font-montserrat"
+                      className="font-montserrat custom-input"
                     />
                     <CFormFeedback invalid>
                       {Object.entries(aux?.errors || {})

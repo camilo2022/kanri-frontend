@@ -27,6 +27,7 @@ import {
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
+import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
   const [validated, setValidated] = useState(false)
@@ -106,8 +107,18 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
     }))
   }
 
+  if (!user) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información del usuario..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Editar Usuario</span>
@@ -118,61 +129,20 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
             <UserRound size={15} /> Empleado
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
-          <Select
+          <CFormInput
+            type="text"
             name="employee_id"
-            value={
-              Array.isArray(employees)
-                ? (employees
-                    .map((employee) => ({
-                      value: employee.id,
-                      label: `${employee?.person?.names || ''} ${employee?.person?.last_names || ''} | ${employee?.person?.document || ''} | ${employee?.position?.name || ''}`,
-                    }))
-                    .find((opt) => opt.value === formData.employee_id) ?? null)
-                : null
+            placeholder={
+              `${user?.employee?.person.names ?? ''} ${user?.employee?.person.last_names ?? ''}`.trim() +
+              ` | ${user?.employee?.person.document ?? ''}` +
+              ` | ${user?.employee?.position?.name ?? ''}`
             }
-            onChange={(selected) =>
-              handleChange({
-                target: {
-                  name: 'employee_id',
-                  value: selected?.value || '',
-                },
-              })
-            }
+            disabled
             invalid={!!errors?.employee_id}
             valid={!errors?.employee_id && formData.employee_id !== '' && validated}
-            options={
-              Array.isArray(employees)
-                ? employees.map((employee) => ({
-                    value: employee.id,
-                    label: `${employee?.person?.names || ''} ${employee?.person?.last_names || ''} | ${employee?.person?.document || ''} | ${employee?.position?.name || ''}`,
-                  }))
-                : []
-            }
-            isDisabled={true}
-            isSearchable
-            className="w-100 font-montserrat"
-            placeholder={null}
-            menuPortalTarget={document.body}
-            menuPosition="fixed"
-            styles={{
-              control: (base) => ({
-                ...base,
-                borderColor: isInvalid ? '#dc3545' : isValid ? '#198754' : '#dbdfe6',
-                boxShadow: 'none',
-                borderRadius: '0.375rem',
-              }),
-              menuPortal: (base) => ({
-                ...base,
-                zIndex: 9999,
-                fontFamily: 'sans-serif',
-              }),
-              menu: (base) => ({
-                ...base,
-                zIndex: 9999,
-              }),
-            }}
+            className="font-montserrat input-custom"
           />
-          <CFormFeedback invalid className={isInvalid ? 'd-block' : 'd-none'}>
+          <CFormFeedback invalid>
             {errors?.employee_id?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
@@ -180,8 +150,7 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
               </div>
             ))}
           </CFormFeedback>
-
-          <CFormFeedback valid className={isValid ? 'd-block' : 'd-none'}>
+          <CFormFeedback valid>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />
               <small className="font-inter">Dato Válido</small>
@@ -200,7 +169,7 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
             onChange={handleChange}
             invalid={!!errors?.email}
             valid={!errors?.email && formData.email !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.email?.map((error, index) => (
@@ -229,7 +198,7 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
               onChange={handleChange}
               invalid={!!errors?.password}
               valid={!errors?.password && formData.password !== '' && validated}
-              className="font-montserrat"
+              className="font-montserrat input-custom"
             />
             <CInputGroupText
               style={{ cursor: 'pointer', borderRadius: '0px 5px 5px 0px' }}
@@ -275,7 +244,7 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
                 !errors?.password &&
                 validated
               }
-              className="font-montserrat"
+              className="font-montserrat input-custom"
             />
             <CInputGroupText
               style={{ cursor: 'pointer', borderRadius: '0px 5px 5px 0px' }}
@@ -331,16 +300,16 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
         </CCol>
         <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
           <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
-          <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => onChangeView({ name: 'list', title: 'Listar Usuarios', id: null })}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

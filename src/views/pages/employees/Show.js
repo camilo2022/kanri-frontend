@@ -39,7 +39,7 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
   }
 
   return (
-    <div className="fade-in">
+    <div className="animate-fade-in">
       {!employee ? (
         <CCard
           className="mb-4 p-4 shadow-sm border-0 d-flex justify-content-center align-items-center"

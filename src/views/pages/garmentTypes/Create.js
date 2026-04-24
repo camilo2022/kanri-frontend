@@ -82,7 +82,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (
@@ -111,7 +111,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.description}
             valid={!errors?.description && formData.description !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (

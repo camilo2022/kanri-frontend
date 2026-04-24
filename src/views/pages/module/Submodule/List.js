@@ -57,7 +57,7 @@ export const List = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      fetchSubmodules(module.id, currentParams)
+      module && fetchSubmodules(module.id, currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
@@ -176,6 +176,7 @@ export const List = ({
           )}
         </>
       ),
+      permission: submodulo.permission.title || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -183,9 +184,6 @@ export const List = ({
               className="action-btn edit-btn"
               disabled={
                 !!submodulo.deleted_at ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'navegation.modules.submodules.find',
-                ) ||
                 !user_active?.permissions.some(
                   (p) => p.name === 'navegation.modules.submodules.update',
                 )
@@ -265,6 +263,10 @@ export const List = ({
       label: <div className="sortable-header text-center">Icono</div>,
     },
     {
+      key: 'permission',
+      label: <div className="sortable-header text-center">Permiso Asociado</div>,
+    },
+    {
       key: 'acciones',
       label: <div className="sortable-header text-center">Acciones </div>,
     },
@@ -296,7 +298,7 @@ export const List = ({
 
   return (
     <>
-      <CCard className="mb-4 p-4 shadow-sm border-0">
+      <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
           <div className="font-montserrat d-flex flex-column lh-1">
@@ -309,7 +311,7 @@ export const List = ({
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
-              className="custom-input"
+              className="custom-input font-inter"
               placeholder="Buscar módulo..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}

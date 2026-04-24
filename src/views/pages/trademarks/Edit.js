@@ -6,6 +6,7 @@ import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'luci
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
+import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
   const [validated, setValidated] = useState(false)
@@ -85,8 +86,18 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
     return words.every((word) => label.includes(word))
   }
 
+  if (!(trademark && Array.isArray(categories))) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Editar Marca</span>
@@ -95,6 +106,7 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
         <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -103,7 +115,7 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
             onChange={handleChange}
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (
@@ -123,6 +135,7 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
         <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
           <CFormInput
             type="text"
@@ -131,7 +144,7 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
             onChange={handleChange}
             invalid={!!errors?.description}
             valid={!errors?.description && formData.description !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (
@@ -187,7 +200,7 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione una categoría'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -196,15 +209,32 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
                 borderColor: isInvalid ? '#dc3545' : isValid ? '#198754' : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -224,18 +254,18 @@ const Edit = ({ trademark, onChangeView, onSubmit, errors, categories }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
-          <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
+        <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => onChangeView({ name: 'list', title: 'Listar Marcas' })}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

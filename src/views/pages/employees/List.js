@@ -34,6 +34,7 @@ import { Toast } from '../../../components/Toast'
 import { useSelector } from 'react-redux'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { useMemo } from 'react'
 
 dayjs.extend(utc)
 
@@ -56,6 +57,7 @@ export const List = ({
     with_trashed: true,
   })
   const [searchInput, setSearchInput] = useState('')
+  const [formattedData, setFormattedData] = useState([])
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -175,103 +177,104 @@ export const List = ({
     })
   }
 
-  const formattedData = data?.employees?.map((employee) => ({
-    ...employee,
-    photo: (
-      <div className="d-flex justify-content-center align-items-center">
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            border: '2px solid #f0f0f0',
-            backgroundColor: '#f8f9fa',
-          }}
-        >
-          {employee.person.photo ? (
-            <img
-              src={employee.person.photo.path}
-              alt="profile"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+  useEffect(() => {
+    if (!data?.employees) {
+      setFormattedData([])
+      return
+    }
+
+    const mapped = data?.employees?.map((employee) => ({
+      ...employee,
+      photo: (
+        <div className="d-flex justify-content-center align-items-center">
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: '2px solid #f0f0f0',
+              backgroundColor: '#f8f9fa',
+            }}
+          >
+            {employee.person.photo ? (
+              <img
+                src={employee.person.photo.path}
+                alt="profile"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div className="d-flex align-items-center justify-content-center h-100 text-muted">
+                <small className="fw-bold">{employee.person.names?.charAt(0)}</small>
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+      document: employee.person.document,
+      name: `${employee.person.names || ''} ${employee.person.last_names || ''}`,
+      position: employee.position?.name || 'No Aplica',
+      area: employee.position?.area[0].name || 'No Aplica',
+      risk_manager: employee.risk_manager?.name || 'No Aplica',
+      health_entity: employee.health_entity?.name || 'No Aplica',
+      acciones: (
+        <div className="d-flex gap-2 justify-content-center">
+          <CTooltip content="Editar" placement="top">
+            <button
+              className="action-btn edit-btn"
+              disabled={
+                !!employee.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'employees.find') ||
+                !user_active?.permissions.some((p) => p.name === 'employees.update')
+              }
+              onClick={() => {
+                onChangeView({ name: 'edit', title: 'Editar Empleado', employee: employee })
+              }}
+            >
+              <Pencil size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          <CTooltip content="Visualizar" placement="top">
+            <button
+              className="action-btn show-btn"
+              disabled={
+                !!employee.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'employees.find')
+              }
+              onClick={() =>
+                onChangeView({ name: 'show', title: 'Visualizar Empleado', employee: employee })
+              }
+            >
+              <Eye size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          {employee.deleted_at === null ? (
+            <CTooltip content="Desactivar" placement="top">
+              <button
+                className="action-btn delete-btn"
+                disabled={!user_active?.permissions.some((p) => p.name === 'employees.delete')}
+                onClick={() => handleConfirmDelete(employee)}
+              >
+                <Trash2 size={18} strokeWidth={1.5} />
+              </button>
+            </CTooltip>
           ) : (
-            <div className="d-flex align-items-center justify-content-center h-100 text-muted">
-              <small className="fw-bold">{employee.person.names?.charAt(0)}</small>
-            </div>
+            <CTooltip content="Activar" placement="top">
+              <button
+                className="action-btn restore-btn"
+                disabled={!user_active?.permissions.some((p) => p.name === 'employees.restore')}
+                onClick={() => handleConfirmRestore(employee)}
+              >
+                <RotateCcw size={18} strokeWidth={1.5} />
+              </button>
+            </CTooltip>
           )}
         </div>
-      </div>
-    ),
-    document: employee.person.document,
-    name: `${employee.person.names || ''} ${employee.person.last_names || ''}`,
-    position: employee.position?.name || 'No Aplica',
-    area: employee.position?.area[0].name || 'No Aplica',
-    risk_manager: employee.risk_manager?.name || 'No Aplica',
-    health_entity: employee.health_entity?.name || 'No Aplica',
-    acciones: (
-      <div className="d-flex gap-2 justify-content-center">
-        <CTooltip content="Editar" placement="top">
-          <button
-            className="action-btn edit-btn"
-            disabled={
-              !!employee.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'employees.find') ||
-              !user_active?.permissions.some((p) => p.name === 'employees.update')
-            }
-            onClick={() =>
-              onChangeView({ name: 'edit', title: 'Editar Empleado', employee: employee })
-            }
-          >
-            <Pencil size={18} strokeWidth={1.5} />
-          </button>
-        </CTooltip>
-        <CTooltip content="Visualizar" placement="top">
-          <button
-            className="action-btn show-btn"
-            disabled={
-              !!employee.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'employees.find')
-            }
-            onClick={() =>
-              onChangeView({ name: 'show', title: 'Visualizar Empleado', employee: employee })
-            }
-          >
-            <Eye size={18} strokeWidth={1.5} />
-          </button>
-        </CTooltip>
-        {employee.deleted_at === null ? (
-          <CTooltip content="Desactivar" placement="top">
-            <button
-              className="action-btn delete-btn"
-              disabled={!user_active?.permissions.some((p) => p.name === 'employees.delete')}
-              onClick={() => handleConfirmDelete(employee)}
-            >
-              <Trash2 size={18} strokeWidth={1.5} />
-            </button>
-          </CTooltip>
-        ) : (
-          <CTooltip content="Activar" placement="top">
-            <button
-              className="action-btn restore-btn"
-              disabled={!user_active?.permissions.some((p) => p.name === 'employees.restore')}
-              onClick={() => handleConfirmRestore(employee)}
-            >
-              <RotateCcw size={18} strokeWidth={1.5} />
-            </button>
-          </CTooltip>
-        )}
-      </div>
-    ),
-  }))
-
-  const handleSort = (column) => {
-    setParams((prev) => ({
-      ...prev,
-      column: column,
-      dir: prev.column === column && prev.dir === 'asc' ? 'desc' : 'asc',
+      ),
     }))
-  }
+
+    setFormattedData(mapped)
+  }, [data])
 
   const columns = [
     {
@@ -333,7 +336,7 @@ export const List = ({
   const { pages, start, end } = getPages()
 
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Empleados</span>
@@ -341,7 +344,7 @@ export const List = ({
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex gap-2 w-50 ms-4">
           <CFormInput
-            className="custom-input"
+            className="custom-input font-inter"
             placeholder="Buscar empleado..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -371,7 +374,7 @@ export const List = ({
           </tr>
         </thead>
         <tbody>
-          {loading ? (
+          {loading || !Array.isArray(formattedData) ? (
             <tr>
               <td colSpan={columns.length} className="py-5 border-0">
                 <div className="d-flex flex-column align-items-center justify-content-center">
@@ -391,7 +394,7 @@ export const List = ({
                 </div>
               </td>
             </tr>
-          ) : formattedData?.length > 0 ? (
+          ) : data?.employees?.length > 0 ? (
             formattedData.map((item, index) => (
               <tr key={index}>
                 {columns.map((col) => (

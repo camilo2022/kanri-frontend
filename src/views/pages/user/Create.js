@@ -26,6 +26,7 @@ import {
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
+import LoadingForm from '@/components/LoadingForm'
 
 const Create = ({ onChangeView, onSubmit, errors, employees }) => {
   const [validated, setValidated] = useState(false)
@@ -99,8 +100,18 @@ const Create = ({ onChangeView, onSubmit, errors, employees }) => {
     return words.every((word) => label.includes(word))
   }
 
+  if (!Array.isArray(employees)) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga el formulario..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Crear Usuario</span>
@@ -145,7 +156,7 @@ const Create = ({ onChangeView, onSubmit, errors, employees }) => {
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione un empleado'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -154,15 +165,32 @@ const Create = ({ onChangeView, onSubmit, errors, employees }) => {
                 borderColor: isInvalid ? '#dc3545' : isValid ? '#198754' : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -194,7 +222,7 @@ const Create = ({ onChangeView, onSubmit, errors, employees }) => {
             onChange={handleChange}
             invalid={!!errors?.email}
             valid={!errors?.email && formData.email !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.email?.map((error, index) => (
@@ -224,7 +252,7 @@ const Create = ({ onChangeView, onSubmit, errors, employees }) => {
               onChange={handleChange}
               invalid={!!errors?.password}
               valid={!errors?.password && formData.password !== '' && validated}
-              className="font-montserrat"
+              className="font-montserrat input-custom"
             />
             <CInputGroupText
               style={{ cursor: 'pointer', borderRadius: '0px 5px 5px 0px' }}
@@ -271,7 +299,7 @@ const Create = ({ onChangeView, onSubmit, errors, employees }) => {
                 !errors?.password &&
                 validated
               }
-              className="font-montserrat"
+              className="font-montserrat input-custom"
             />
             <CInputGroupText
               style={{ cursor: 'pointer', borderRadius: '0px 5px 5px 0px' }}
@@ -307,18 +335,18 @@ const Create = ({ onChangeView, onSubmit, errors, employees }) => {
         </CCol>
         <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
           <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
-          <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => {
               onChangeView({ name: 'list', title: 'Listar Usuarios', id: null })
             }}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

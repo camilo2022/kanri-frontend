@@ -15,11 +15,11 @@ const Areas = () => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
+    setLoading(true)
+    setArea('')
     if (view.name === 'show' && view.area?.id) {
       findArea(view.area.id)
     }
-    setLoading(true)
-    setArea('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Áreas' })
     }

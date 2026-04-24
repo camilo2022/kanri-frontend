@@ -18,6 +18,8 @@ const Positions = ({ area }) => {
   const [roles, setRoles] = useState({})
 
   useEffect(() => {
+    setLoading(true)
+    setPosition('')
     if (view.name === 'edit' && view.position?.id) {
       findPosition(view.position.id)
     }
@@ -25,8 +27,6 @@ const Positions = ({ area }) => {
       findPosition(view.position.id)
       allRoles()
     }
-    setLoading(true)
-    setPosition('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Cargos' })
     }

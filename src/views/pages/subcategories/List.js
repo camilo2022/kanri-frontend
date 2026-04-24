@@ -320,7 +320,7 @@ export const List = ({
 
   return (
     <>
-      <CCard className="mb-4 p-4 shadow-sm border-0">
+      <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
           <div className="font-montserrat d-flex flex-column lh-1">
@@ -330,34 +330,22 @@ export const List = ({
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
-              className="custom-input"
+              className="custom-input font-inter"
               placeholder="Buscar subcategoría..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
-          <div className="d-flex">
-            <CButton
-              className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-              onClick={() => {
-                onChangeView({ name: 'back', title: 'Listar Subcategorías' })
-              }}
-            >
-              <ArrowLeftCircle size={16} /> Volver
-            </CButton>
-            <CButton
-              variant="outline"
-              className="me-2 font-poppins btn-primary-dark"
-              disabled={
-                !user_active?.permissions.some(
-                  (p) => p.name === 'categorization.subcategories.store',
-                )
-              }
-              onClick={() => onChangeView({ name: 'create', title: 'Crear Subcategoría' })}
-            >
-              <CirclePlus /> Agregar Subcategoría
-            </CButton>
-          </div>
+          <CButton
+            variant="outline"
+            className="me-2 font-poppins btn-primary-dark"
+            disabled={
+              !user_active?.permissions.some((p) => p.name === 'categorization.subcategories.store')
+            }
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Subcategoría' })}
+          >
+            <CirclePlus /> Agregar Subcategoría
+          </CButton>
         </div>
 
         <CTable hover responsive align="middle" className="text-center font-inter">

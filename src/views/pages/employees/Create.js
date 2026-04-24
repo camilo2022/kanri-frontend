@@ -18,6 +18,7 @@ import {
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
+import LoadingForm from '@/components/LoadingForm'
 
 const Create = ({
   onChangeView,
@@ -116,32 +117,22 @@ const Create = ({
     return words.every((word) => label.includes(word))
   }
 
-  const isDataReady =
-    Array.isArray(people) &&
-    Array.isArray(areas) &&
-    Array.isArray(risk_managers) &&
-    Array.isArray(health_entities) &&
-    Array.isArray(pension_funds) &&
-    Array.isArray(compensation_funds)
-  if (!isDataReady) {
+  if (
+    !(
+      Array.isArray(people) &&
+      Array.isArray(areas) &&
+      Array.isArray(risk_managers) &&
+      Array.isArray(health_entities) &&
+      Array.isArray(pension_funds) &&
+      Array.isArray(compensation_funds)
+    )
+  ) {
     return (
-      <CCard
-        className="mb-4 p-4 shadow-sm border-0 d-flex justify-content-center align-items-center"
-        style={{ minHeight: '500px' }}
-      >
-        <div className="text-center">
-          <div className="gears-loader mb-3">
-            <div className="gears-container mb-3">
-              <Settings size={40} className="gear gear-large text-primary" />
-              <Settings size={24} className="gear gear-small text-secondary" />
-            </div>
-          </div>
-          <h5 className="fw-bold font-montserrat text-secondary">Preparando Formulario</h5>
-          <p className="text-muted font-inter small">
-            Estamos cargando la información necesaria...
-          </p>
-        </div>
-      </CCard>
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información necesaria de registro..."
+        height="400px"
+      />
     )
   }
 
@@ -190,7 +181,7 @@ const Create = ({
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
             classNamePrefix="react-select"
-            placeholder={null}
+            placeholder={'Seleccione una persona'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -203,15 +194,32 @@ const Create = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -223,7 +231,6 @@ const Create = ({
               </div>
             ))}
           </CFormFeedback>
-
           <CFormFeedback
             valid
             className={
@@ -248,7 +255,7 @@ const Create = ({
             onChange={handleChange}
             invalid={!!errors?.start_date}
             valid={!errors?.start_date && formData.start_date !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.start_date?.map((error, index) => (
@@ -288,7 +295,7 @@ const Create = ({
             onChange={handleChange}
             invalid={!!errors?.end_date}
             valid={!errors?.end_date && formData.end_date !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.end_date?.map((error, index) => (
@@ -343,7 +350,7 @@ const Create = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione un área'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -357,15 +364,32 @@ const Create = ({
                       : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -426,7 +450,7 @@ const Create = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione un cargo'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -439,15 +463,32 @@ const Create = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -459,7 +500,6 @@ const Create = ({
               </div>
             ))}
           </CFormFeedback>
-
           <CFormFeedback
             valid
             className={
@@ -485,7 +525,7 @@ const Create = ({
             onChange={handleChange}
             invalid={!!errors?.operation_center}
             valid={!errors?.operation_center && formData.operation_center !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.operation_center?.map((error, index) => (
@@ -542,7 +582,7 @@ const Create = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione una administradora'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -555,15 +595,32 @@ const Create = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -629,7 +686,7 @@ const Create = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione una entidad'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -642,15 +699,32 @@ const Create = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -716,7 +790,7 @@ const Create = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione un fondo de pensión'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -729,15 +803,32 @@ const Create = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -805,7 +896,7 @@ const Create = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione una caja de compensación'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -856,18 +947,18 @@ const Create = ({
         </CCol>
         <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
-          <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => {
               onChangeView({ name: 'list', title: 'Listar Empleados' })
             }}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import AuditService from '../../../services/audits.service'
-import UserService from '../../../services/users.service'
+import { useSelector } from 'react-redux'
 import {
   ChevronUp,
   ChevronDown,
@@ -11,7 +10,6 @@ import {
   FileText,
   Eye,
   FunnelX,
-  Building,
   User,
   Component,
 } from 'lucide-react'
@@ -28,25 +26,21 @@ import {
   CBadge,
   CCardBody,
 } from '@coreui/react'
-import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton } from '@coreui/react'
+import { CModal, CModalHeader, CModalTitle, CModalBody } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import no_data from '../../../assets/images/no-data.png'
 import Select from 'react-select'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { Toast } from '../../../components/Toast'
 dayjs.extend(utc)
 
-const Audits = () => {
+export const List = ({ data, models, audit, loading, fetchAudits, findAudit, users }) => {
+  const user = useSelector((state) => state.user)
   const [visible, setVisible] = useState(false)
-  const [selectedAudit, setSelectedAudit] = useState(null)
-  const [data, setData] = useState([])
-  const [users, setUsers] = useState([])
-  const [models, setModels] = useState([])
+  const [model, setModel] = useState('')
+  const [tags, setTags] = useState()
   const [startDate, setStartDate] = useState()
   const [endDate, setEndDate] = useState()
-  const [loadingAudits, setLoadingAudits] = useState(false)
-  const [loadingUsers, setLoadingUsers] = useState(true)
   const [params, setParams] = useState({
     search: '',
     per_page: 10,
@@ -61,53 +55,16 @@ const Audits = () => {
   })
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      const getAudits = async () => {
-        setLoadingAudits(true)
-        try {
-          const audits = await AuditService.all(params)
-          setData(audits.data)
-          setModels(audits.data.model_types)
-        } catch (err) {
-          Object.values(err.errors).map((messages) => {
-            Toast.fire({
-              icon: 'error',
-              title: messages[0],
-            })
-          })
-        } finally {
-          setLoadingAudits(false)
-        }
-      }
-      getAudits()
-    }, 500)
-
-    return () => clearTimeout(handler)
-  }, [
-    params.page,
-    params.per_page,
-    params.column,
-    params.dir,
-    params.start_date,
-    params.end_date,
-    params.user_id,
-    params.auditable_name,
-    params.event,
-  ])
+    fetchAudits(params)
+  }, [params.page, params.per_page, params.column, params.dir, params.start_date, params.end_date])
 
   useEffect(() => {
-    const getUsers = async () => {
-      try {
-        const users = await UserService.all()
-        setUsers(users.data.users)
-      } catch (err) {
-        console.log(err)
-      } finally {
-        setLoadingUsers(false)
-      }
-    }
-    getUsers()
-  }, [])
+    setParams((prev) => ({
+      ...prev,
+      page: 1,
+    }))
+    fetchAudits(params)
+  }, [params.user_id, params.auditable_name, params.event])
 
   useEffect(() => {
     setParams((prev) => ({
@@ -141,18 +98,18 @@ const Audits = () => {
     sync: 'Sincronizado',
   }
 
-  const formattedData = data?.audits?.map((audit) => {
-    const config = eventStyles[audit.event] || eventStyles.default
+  const formattedData = data?.audits?.map((log) => {
+    const config = eventStyles[log.event] || eventStyles.default
     return {
-      ...audit,
-      user: `${audit.user?.employee?.person?.names || ''} ${audit.user?.employee?.person?.last_names || ''}`,
-      evento: (
+      ...log,
+      user: `${log.user?.employee?.person?.names || ''} ${log.user?.employee?.person?.last_names || ''}`,
+      event: (
         <span className={`badge rounded-pill bg-${config.color} px-3 py-2`}>{config.label}</span>
       ),
       created_at: (
         <div className="d-flex flex-column">
-          <span className="fw-semibold">{dayjs.utc(audit.created_at).format('DD/MM/YYYY')}</span>
-          <span className="text-muted small">{dayjs.utc(audit.created_at).format('hh:mm A')}</span>
+          <span className="fw-semibold">{dayjs.utc(log.created_at).format('DD/MM/YYYY')}</span>
+          <span className="text-muted small">{dayjs.utc(log.created_at).format('hh:mm A')}</span>
         </div>
       ),
       acciones: (
@@ -160,8 +117,11 @@ const Audits = () => {
           <CTooltip content="Ver detalles del cambio" placement="top">
             <button
               className="action-btn show-btn"
+              disabled={!user?.permissions.some((p) => p.name === 'audits.find')}
               onClick={() => {
-                setSelectedAudit(audit) // 'audit' es el objeto original del map
+                findAudit(log.id)
+                setModel(log.auditable_name)
+                setTags(log.audit_tag)
                 setVisible(true)
               }}
             >
@@ -172,38 +132,6 @@ const Audits = () => {
       ),
     }
   })
-
-  const renderBlockData = (values, type) => {
-    if (!values || Object.keys(values).length === 0) {
-      return (
-        <div className="d-flex flex-column align-items-center justify-content-center py-5 text-muted opacity-50">
-          <FunnelX size={32} strokeWidth={1} />
-          <span className="small mt-2">Sin datos registrados</span>
-        </div>
-      )
-    }
-
-    return (
-      <div className="list-group list-group-flush">
-        {Object.entries(values).map(([key, value]) => (
-          <div key={key} className="py-2 border-bottom-0">
-            <label
-              className="d-block text-muted fw-bold mb-1"
-              style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}
-            >
-              {key.toUpperCase().replace('_', ' ')}
-            </label>
-            <div
-              className={`p-2 rounded-2 small font-monospace ${type === 'old' ? 'bg-danger bg-opacity-10 text-danger' : 'bg-success bg-opacity-10 text-success'}`}
-              style={{ wordBreak: 'break-all', border: '1px solid rgba(0,0,0,0.05)' }}
-            >
-              {value !== null && value !== undefined ? String(value) : 'NULL'}
-            </div>
-          </div>
-        ))}
-      </div>
-    )
-  }
 
   const handleSort = (column) => {
     setParams((prev) => ({
@@ -223,7 +151,7 @@ const Audits = () => {
       label: <div className="sortable-header text-center">Usuario</div>,
     },
     {
-      key: 'evento',
+      key: 'event',
       label: <div className="sortable-header text-center">Evento</div>,
     },
     {
@@ -334,15 +262,32 @@ const Audits = () => {
                         ...base,
                         boxShadow: 'none',
                         borderRadius: '0.375rem',
+                        '&:hover': {
+                          borderColor: '#1857b6',
+                          boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                        },
                       }),
                       menuPortal: (base) => ({
                         ...base,
                         zIndex: 9999,
-                        fontFamily: 'sans-serif',
+                        fontFamily: 'Montserrat, sans-serif',
                       }),
                       menu: (base) => ({
                         ...base,
                         zIndex: 9999,
+                        borderRadius: '0.375rem',
+                        overflow: 'hidden',
+                      }),
+                      menuList: (base) => ({
+                        ...base,
+                        padding: 0,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                        color: state.isSelected ? '#1b3761' : '#212529',
+                        fontWeight: state.isSelected ? 'bold' : '',
+                        borderRadius: '0px',
                       }),
                     }}
                   />
@@ -389,15 +334,32 @@ const Audits = () => {
                         ...base,
                         boxShadow: 'none',
                         borderRadius: '0.375rem',
+                        '&:hover': {
+                          borderColor: '#1857b6',
+                          boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                        },
                       }),
                       menuPortal: (base) => ({
                         ...base,
                         zIndex: 9999,
-                        fontFamily: 'sans-serif',
+                        fontFamily: 'Montserrat, sans-serif',
                       }),
                       menu: (base) => ({
                         ...base,
                         zIndex: 9999,
+                        borderRadius: '0.375rem',
+                        overflow: 'hidden',
+                      }),
+                      menuList: (base) => ({
+                        ...base,
+                        padding: 0,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                        color: state.isSelected ? '#1b3761' : '#212529',
+                        fontWeight: state.isSelected ? 'bold' : '',
+                        borderRadius: '0px',
                       }),
                     }}
                   />
@@ -444,15 +406,32 @@ const Audits = () => {
                         ...base,
                         boxShadow: 'none',
                         borderRadius: '0.375rem',
+                        '&:hover': {
+                          borderColor: '#1857b6',
+                          boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                        },
                       }),
                       menuPortal: (base) => ({
                         ...base,
                         zIndex: 9999,
-                        fontFamily: 'sans-serif',
+                        fontFamily: 'Montserrat, sans-serif',
                       }),
                       menu: (base) => ({
                         ...base,
                         zIndex: 9999,
+                        borderRadius: '0.375rem',
+                        overflow: 'hidden',
+                      }),
+                      menuList: (base) => ({
+                        ...base,
+                        padding: 0,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                        color: state.isSelected ? '#1b3761' : '#212529',
+                        fontWeight: state.isSelected ? 'bold' : '',
+                        borderRadius: '0px',
                       }),
                     }}
                   />
@@ -518,7 +497,7 @@ const Audits = () => {
           </tr>
         </thead>
         <tbody>
-          {loadingAudits || !Array.isArray(formattedData) ? (
+          {loading || !Array.isArray(formattedData) ? (
             <tr>
               <td colSpan={columns.length} className="py-5 border-0">
                 <div className="d-flex flex-column align-items-center justify-content-center">
@@ -616,12 +595,19 @@ const Audits = () => {
           </CPagination>
         </CCol>
       </CRow>
-      <CModal visible={visible} onClose={() => setVisible(false)} size="lg" scrollable>
+      <CModal
+        visible={visible}
+        onClose={() => {
+          setVisible(false)
+        }}
+        size="lg"
+        scrollable
+      >
         <CModalHeader className="bg-light">
           <CModalTitle className="fs-5 font-poppins">Detalle de Auditoría</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          {selectedAudit && (
+          {audit && (
             <div className="audit-detail-container font-inter">
               <CRow className="g-3 mb-3 align-items-stretch">
                 <CCol md={3}>
@@ -637,7 +623,7 @@ const Audits = () => {
                       </div>
                       <h4 className="text-dark fw-bolder mb-0">
                         <span className="text-primary op-50">#</span>
-                        {selectedAudit.id}
+                        {audit.id}
                       </h4>
                     </div>
                     <div>
@@ -649,11 +635,11 @@ const Audits = () => {
                       </span>
                       <CBadge
                         shape="rounded-pill"
-                        color={eventStyles[selectedAudit.event]?.color}
+                        color={eventStyles[audit.event]?.color}
                         className="px-3 py-2 shadow-sm"
                         style={{ fontSize: '0.75rem', fontWeight: '600' }}
                       >
-                        {events[selectedAudit.event]?.toUpperCase()}
+                        {events[audit.event]?.toUpperCase()}
                       </CBadge>
                     </div>
                   </div>
@@ -671,11 +657,11 @@ const Audits = () => {
                           </small>
                           <div className="ps-1">
                             <div className="fw-bold text-dark fs-5 mb-0">
-                              {dayjs(selectedAudit.created_at).format('DD/MM/YYYY')}
+                              {dayjs(audit.created_at).format('DD/MM/YYYY')}
                             </div>
                             <div className="text-muted" style={{ fontSize: '0.85rem' }}>
                               <i className="cil-clock me-1"></i>
-                              {dayjs(selectedAudit.created_at).format('hh:mm A')}
+                              {dayjs(audit.created_at).format('hh:mm A')}
                             </div>
                           </div>
                         </div>
@@ -690,7 +676,7 @@ const Audits = () => {
                           </small>
                           <div>
                             <code className="bg-danger bg-opacity-10 text-danger px-2 py-1 rounded fw-bold fs-5">
-                              {selectedAudit.ip_address}
+                              {audit.ip_address}
                             </code>
                           </div>
                         </div>
@@ -714,7 +700,7 @@ const Audits = () => {
                                 display: 'inline-block',
                               }}
                             >
-                              {selectedAudit.url || 'inicio'}
+                              {audit.url || 'inicio'}
                             </span>
                           </div>
                         </div>
@@ -745,8 +731,8 @@ const Audits = () => {
                             Nombre Completo
                           </span>
                           <span className="fw-bold text-dark fs-6">
-                            {selectedAudit.user?.employee?.person
-                              ? `${selectedAudit.user.employee.person.names} ${selectedAudit.user.employee.person.last_names}`
+                            {audit.user?.employee?.person
+                              ? `${audit.user.employee.person.names} ${audit.user.employee.person.last_names}`
                               : 'Super Admin'}
                           </span>
                         </div>
@@ -758,7 +744,7 @@ const Audits = () => {
                             Área
                           </span>
                           <span className="fw-semibold text-dark d-block">
-                            {selectedAudit.user?.employee?.position?.area[0].name || 'No aplica'}
+                            {audit.user?.employee?.position?.area[0].name || 'No aplica'}
                           </span>
                         </div>
                         <div className="p-2 rounded-3" style={{ backgroundColor: '#f8fafc' }}>
@@ -769,7 +755,7 @@ const Audits = () => {
                             Cargo
                           </span>
                           <span className="fw-semibold text-dark d-block">
-                            {selectedAudit.user?.employee?.position?.name || 'No aplica'}
+                            {audit.user?.employee?.position?.name || 'No aplica'}
                           </span>
                         </div>
                       </div>
@@ -792,30 +778,53 @@ const Audits = () => {
                         </h6>
                       </div>
                       <div className="d-grid gap-2 font-inter">
-                        <div className="p-2 border-bottom">
-                          <span className="text-muted d-block small fw-medium mb-1">
-                            Sección Alterada
-                          </span>
-                          <span className="fw-bold text-dark fs-5">
-                            {selectedAudit.auditable_name || 'No existe'}
-                          </span>
+                        <div className="p-2 border-bottom bg-light bg-opacity-10">
+                          <CRow className="align-items-start">
+                            <CCol>
+                              <span
+                                className="text-muted d-block small fw-medium mb-1 text-uppercase"
+                                style={{ letterSpacing: '0.5px' }}
+                              >
+                                Sección
+                              </span>
+                              <span className="fw-bold text-dark fs-5">{model || 'No existe'}</span>
+                            </CCol>
+                            {audit?.tags && (
+                              <CCol className="border-start ps-4">
+                                <span
+                                  className="text-muted d-block small fw-medium mb-1 text-uppercase"
+                                  style={{ letterSpacing: '0.5px' }}
+                                >
+                                  Etiqueta
+                                </span>
+                                <CBadge color="primary" shape="rounded-pill" className="px-3 py-2">
+                                  {tags}
+                                </CBadge>
+                              </CCol>
+                            )}
+                          </CRow>
                         </div>
                         <div className="-mt-2">
-                          <span className="text-muted d-block small fw-medium mb-1">
-                            Modelo Técnico
-                          </span>
-                          <code
-                            className="d-block p-2 bg-light rounded text-primary small"
-                            style={{ wordBreak: 'break-all', border: '1px solid #e2e8f0' }}
-                          >
-                            {selectedAudit.auditable_type || 'No existe'}
-                          </code>
+                          <span className="text-muted d-block small fw-medium mb-1">Elemento</span>
+                          {Object.keys(audit.auditable || {})
+                            .slice(2, 3)
+                            .map((key) => (
+                              <code
+                                key={key}
+                                className="d-block p-2 bg-light rounded text-primary small"
+                                style={{ wordBreak: 'break-all', border: '1px solid #e2e8f0' }}
+                              >
+                                {key}: {JSON.stringify(audit.auditable[key])}
+                              </code>
+                            ))}
                         </div>
                         <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                           <span className="text-muted small fw-medium">ID del Elemento</span>
-                          <span className="badge bg-secondary rounded-pill px-3 py-2">
-                            {selectedAudit.auditable?.id || 'No existe'}
-                          </span>
+                          <div className="d-flex gap-2 align-items-center">
+                            <span className="badge bg-secondary rounded-pill px-3 py-2">
+                              {audit.auditable?.id || 'No existe'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </CCardBody>
@@ -845,8 +854,7 @@ const Audits = () => {
                     </small>
                   </div>
                   <div className="json-container bg-white p-3">
-                    {!selectedAudit.old_values ||
-                    Object.keys(selectedAudit.old_values).length === 0 ? (
+                    {!audit.old_values || Object.keys(audit.old_values).length === 0 ? (
                       <div className="d-flex flex-column align-items-center justify-content-center py-5 text-muted opacity-50">
                         <FunnelX size={32} strokeWidth={1} />
                         <span className="small mt-2">Sin datos registrados</span>
@@ -866,7 +874,7 @@ const Audits = () => {
                         }}
                       >
                         <code style={{ color: '#ce9178' }}>
-                          {JSON.stringify(selectedAudit.old_values, null, 2)}
+                          {JSON.stringify(audit.old_values, null, 2)}
                         </code>
                       </pre>
                     )}
@@ -894,8 +902,7 @@ const Audits = () => {
                     </small>
                   </div>
                   <div className="json-container bg-white p-3">
-                    {!selectedAudit.new_values ||
-                    Object.keys(selectedAudit.new_values).length === 0 ? (
+                    {!audit.new_values || Object.keys(audit.new_values).length === 0 ? (
                       <div className="d-flex flex-column align-items-center justify-content-center py-5 text-muted opacity-50">
                         <FunnelX size={32} strokeWidth={1} />
                         <span className="small mt-2">Sin datos registrados</span>
@@ -915,7 +922,7 @@ const Audits = () => {
                         }}
                       >
                         <code style={{ color: '#78ce84' }}>
-                          {JSON.stringify(selectedAudit.new_values, null, 2)}
+                          {JSON.stringify(audit.new_values, null, 2)}
                         </code>
                       </pre>
                     )}
@@ -930,4 +937,4 @@ const Audits = () => {
   )
 }
 
-export default Audits
+export default List

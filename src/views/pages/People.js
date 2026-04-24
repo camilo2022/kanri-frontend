@@ -130,7 +130,6 @@ const People = () => {
   const generatePDF = async () => {
     try {
       const response = await PeopleService.pdf()
-      console.log('imprimir = ' + response)
       var blob = new Blob([response.data], {
         type: 'application/pdf',
       })
@@ -144,7 +143,6 @@ const People = () => {
   const generateExcel = async () => {
     try {
       const response = await PeopleService.excel()
-      console.log('excel = ' + response)
       var blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })

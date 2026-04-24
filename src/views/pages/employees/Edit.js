@@ -219,15 +219,32 @@ const Edit = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -264,7 +281,7 @@ const Edit = ({
             onChange={handleChange}
             invalid={!!errors?.start_date}
             valid={!errors?.start_date && formData.start_date !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.start_date?.map((error, index) => (
@@ -294,7 +311,7 @@ const Edit = ({
             onChange={handleChange}
             invalid={!!errors?.end_date}
             valid={!errors?.end_date && formData.end_date !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.end_date?.map((error, index) => (
@@ -349,7 +366,7 @@ const Edit = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione un área'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -363,15 +380,32 @@ const Edit = ({
                       : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -432,7 +466,7 @@ const Edit = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione un cargo'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -445,15 +479,32 @@ const Edit = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -491,7 +542,7 @@ const Edit = ({
             onChange={handleChange}
             invalid={!!errors?.operation_center}
             valid={!errors?.operation_center && formData.operation_center !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.operation_center?.map((error, index) => (
@@ -548,7 +599,7 @@ const Edit = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione una administradora'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -561,15 +612,32 @@ const Edit = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -635,7 +703,7 @@ const Edit = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione una entidad'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -648,15 +716,32 @@ const Edit = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+              '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -722,7 +807,7 @@ const Edit = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione un fondo de compensación'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -735,15 +820,32 @@ const Edit = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+              '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -811,7 +913,7 @@ const Edit = ({
             isSearchable
             filterOption={customFilterOption}
             className="w-100 font-montserrat"
-            placeholder={null}
+            placeholder={'Seleccione una caja de compensación'}
             menuPortalTarget={document.body}
             menuPosition="fixed"
             styles={{
@@ -826,15 +928,32 @@ const Edit = ({
                     : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
+              '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
               }),
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
-                fontFamily: 'sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
               }),
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
               }),
             }}
           />
@@ -863,18 +982,18 @@ const Edit = ({
 
         <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
-          <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => {
               onChangeView({ name: 'list', title: 'Listar Empleados' })
             }}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

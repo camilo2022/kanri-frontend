@@ -297,7 +297,7 @@ export const List = ({
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
-              className="custom-input"
+              className="custom-input font-inter"
               placeholder="Buscar tipo de prenda..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}

@@ -79,19 +79,6 @@ export const List = ({ data, loading, fetchRoles, onChangeView, errors }) => {
     ...rol,
     acciones: (
       <div className="d-flex gap-2 justify-content-center">
-        <CTooltip content="Visualizar" placement="top">
-          <button
-            className="action-btn show-btn"
-            disabled={
-              !!rol.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.roles.find') ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.permissions.all')
-            }
-            onClick={() => onChangeView({ name: 'show', title: 'Ver Rol', role: rol })}
-          >
-            <Eye size={18} strokeWidth={1.5} />
-          </button>
-        </CTooltip>
         <CTooltip content="Editar" placement="top">
           <button
             className="action-btn edit-btn"
@@ -103,6 +90,19 @@ export const List = ({ data, loading, fetchRoles, onChangeView, errors }) => {
             onClick={() => onChangeView({ name: 'edit', title: 'Editar Rol', rol: rol })}
           >
             <Pencil size={18} strokeWidth={1.5} />
+          </button>
+        </CTooltip>
+        <CTooltip content="Visualizar" placement="top">
+          <button
+            className="action-btn show-btn"
+            disabled={
+              !!rol.deleted_at ||
+              !user_active?.permissions.some((p) => p.name === 'authorization.roles.find') ||
+              !user_active?.permissions.some((p) => p.name === 'authorization.permissions.all')
+            }
+            onClick={() => onChangeView({ name: 'show', title: 'Ver Rol', role: rol })}
+          >
+            <Eye size={18} strokeWidth={1.5} />
           </button>
         </CTooltip>
       </div>
@@ -190,7 +190,7 @@ export const List = ({ data, loading, fetchRoles, onChangeView, errors }) => {
 
   return (
     <>
-      <CCard className="mb-4 p-4 shadow-sm border-0">
+      <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
           <span className="fw-bold fs-5 font-montserrat">Roles</span>
@@ -198,7 +198,7 @@ export const List = ({ data, loading, fetchRoles, onChangeView, errors }) => {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
-              className="custom-input"
+              className="custom-input font-inter"
               placeholder="Buscar rol..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}

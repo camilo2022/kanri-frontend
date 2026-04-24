@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
+import LoadingForm from '@/components/LoadingForm'
 
 const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
   const [validated, setValidated] = useState(false)
@@ -91,7 +92,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
               phone: '',
               photo: '',
             })
-            onChangeView({ name: 'list', title: 'Listar Personas'})
+            onChangeView({ name: 'list', title: 'Listar Personas' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -128,8 +129,18 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
 
   const limits = getBirthDateLimits()
 
+  if (!(Array.isArray(bloodTypes) && Array.isArray(genders))) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-4">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Crear Persona</span>
@@ -212,36 +223,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
           </CCol>
           <CCol md={9} className="ps-md-4 ">
             <div className="row g-3 mb-4">
-              <CCol md={4} sm={6}>
-                <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-                  <IdCard size={15} /> N° de Documento
-                  <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
-                </CFormLabel>
-                <CFormInput
-                  type="text"
-                  name="document"
-                  value={formData.document}
-                  onChange={handleChange}
-                  invalid={!!errors?.document}
-                  valid={!errors?.document && formData.document !== '' && validated}
-                  className="font-montserrat"
-                />
-                <CFormFeedback invalid>
-                  {errors?.document?.map((error, index) => (
-                    <div key={index} className="d-flex align-items-center gap-1">
-                      <BadgeAlert size={13} />
-                      <small className="font-inter">{error}</small>
-                    </div>
-                  ))}
-                </CFormFeedback>
-                <CFormFeedback valid>
-                  <div className="d-flex align-items-center gap-1">
-                    <BadgeCheck size={13} />
-                    <small className="font-inter">Dato Válido</small>
-                  </div>
-                </CFormFeedback>
-              </CCol>
-              <CCol md={4} sm={6}>
+              <CCol md={6} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <UserRound size={15} /> Nombres
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -253,7 +235,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                   onChange={handleChange}
                   invalid={!!errors?.names}
                   valid={!errors?.names && formData.names !== '' && validated}
-                  className="font-montserrat"
+                  className="font-montserrat input-custom"
                 />
                 <CFormFeedback invalid>
                   {errors?.names?.map((error, index) => (
@@ -270,7 +252,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                   </div>
                 </CFormFeedback>
               </CCol>
-              <CCol md={4} sm={6}>
+              <CCol md={6} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <UserRound size={15} /> Apellidos
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -282,7 +264,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                   onChange={handleChange}
                   invalid={!!errors?.last_names}
                   valid={!errors?.last_names && formData.last_names !== '' && validated}
-                  className="font-montserrat"
+                  className="font-montserrat input-custom"
                 />
                 <CFormFeedback invalid>
                   {errors?.last_names?.map((error, index) => (
@@ -301,22 +283,20 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
               </CCol>
               <CCol md={4} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-                  <UserRound size={15} /> Fecha de Nacimiento
+                  <IdCard size={15} /> N° de Documento
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
                 </CFormLabel>
                 <CFormInput
-                  type="date"
-                  name="birth_date"
-                  min={limits.min}
-                  max={limits.max}
-                  value={formData.birth_date}
+                  type="text"
+                  name="document"
+                  value={formData.document}
                   onChange={handleChange}
-                  invalid={!!errors?.birth_date}
-                  valid={!errors?.birth_date && formData.birth_date !== '' && validated}
-                  className="font-montserrat"
+                  invalid={!!errors?.document}
+                  valid={!errors?.document && formData.document !== '' && validated}
+                  className="font-montserrat input-custom"
                 />
                 <CFormFeedback invalid>
-                  {errors?.birth_date?.map((error, index) => (
+                  {errors?.document?.map((error, index) => (
                     <div key={index} className="d-flex align-items-center gap-1">
                       <BadgeAlert size={13} />
                       <small className="font-inter">{error}</small>
@@ -342,7 +322,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                   onChange={handleChange}
                   invalid={!!errors?.address}
                   valid={!errors?.address && formData.address !== '' && validated}
-                  className="font-montserrat"
+                  className="font-montserrat input-custom"
                 />
                 <CFormFeedback invalid>
                   {errors?.address?.map((error, index) => (
@@ -371,10 +351,42 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                   onChange={handleChange}
                   invalid={!!errors?.phone}
                   valid={!errors?.phone && formData.phone !== '' && validated}
-                  className="font-montserrat"
+                  className="font-montserrat input-custom"
                 />
                 <CFormFeedback invalid>
                   {errors?.phone?.map((error, index) => (
+                    <div key={index} className="d-flex align-items-center gap-1">
+                      <BadgeAlert size={13} />
+                      <small className="font-inter">{error}</small>
+                    </div>
+                  ))}
+                </CFormFeedback>
+                <CFormFeedback valid>
+                  <div className="d-flex align-items-center gap-1">
+                    <BadgeCheck size={13} />
+                    <small className="font-inter">Dato Válido</small>
+                  </div>
+                </CFormFeedback>
+              </CCol>
+
+              <CCol md={4} sm={6}>
+                <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+                  <UserRound size={15} /> Fecha de Nacimiento
+                  <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+                </CFormLabel>
+                <CFormInput
+                  type="date"
+                  name="birth_date"
+                  min={limits.min}
+                  max={limits.max}
+                  value={formData.birth_date}
+                  onChange={handleChange}
+                  invalid={!!errors?.birth_date}
+                  valid={!errors?.birth_date && formData.birth_date !== '' && validated}
+                  className="font-montserrat input-custom"
+                />
+                <CFormFeedback invalid>
+                  {errors?.birth_date?.map((error, index) => (
                     <div key={index} className="d-flex align-items-center gap-1">
                       <BadgeAlert size={13} />
                       <small className="font-inter">{error}</small>
@@ -395,7 +407,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                 </CFormLabel>
                 <CInputGroup>
                   <CFormSelect
-                    className="font-inter"
+                    className="font-montserrat input-custom"
                     name="blood_type_id"
                     value={formData.blood_type_id}
                     onChange={handleChange}
@@ -440,7 +452,7 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                 </CFormLabel>
                 <CInputGroup>
                   <CFormSelect
-                    className="font-inter"
+                    className="font-montserrat input-custom"
                     name="gender_id"
                     value={formData.gender_id}
                     onChange={handleChange}
@@ -479,20 +491,20 @@ const Create = ({ onChangeView, onSubmit, errors, genders, bloodTypes }) => {
                 </CInputGroup>
               </CCol>
             </div>
-            <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
+            <div className="d-flex justify-content-between align-items-center mt-5">
+              <CButton
+                className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
+                onClick={() => {
+                  onChangeView({ name: 'list', title: 'Listar Personas' })
+                }}
+              >
+                <ArrowLeftCircle size={16} /> Volver
+              </CButton>
               <CButton
                 className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
                 type="submit"
               >
                 <Save size={16} /> Guardar
-              </CButton>
-              <CButton
-                className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-                onClick={() => {
-                  onChangeView({ name: 'list', title: 'Listar Personas', id: null })
-                }}
-              >
-                <ArrowLeftCircle size={16} /> Volver
               </CButton>
             </div>
           </CCol>

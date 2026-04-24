@@ -16,8 +16,21 @@ const all = async (params) => {
   }
 }
 
+const find = async (id) => {
+  try {
+    const response = await api.get(`/audits/find/${id}`, getConfig())
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const AuditService = {
   all,
+  find,
 }
 
 export default AuditService

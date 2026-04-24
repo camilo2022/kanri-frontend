@@ -172,8 +172,6 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
             className="action-btn permisos-btn"
             disabled={
               !!user.deleted_at ||
-              !user_active?.permissions.some((p) => p.name === 'users.find') ||
-              !user_active?.permissions.some((p) => p.name === 'authorization.roles.all') ||
               !user_active?.permissions.some((p) => p.name === 'users.authorization.assign') ||
               !user_active?.permissions.some((p) => p.name === 'users.authorization.remove')
             }
@@ -271,7 +269,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
   const { pages, start, end } = getPages()
 
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Usuarios</span>
@@ -279,7 +277,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex gap-2 w-50 ms-4">
           <CFormInput
-            className="custom-input"
+            className="custom-input font-inter"
             placeholder="Buscar usuario..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}

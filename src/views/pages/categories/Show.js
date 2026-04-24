@@ -15,6 +15,7 @@ import { IoMdArrowDropright } from 'react-icons/io'
 import { ArrowLeftCircle, TextInitial, FileText } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import { Toast } from '../../../components/Toast'
+import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ category, loading, onChangeView, errors, subcategories = [], assign, remove }) => {
   const user_active = useSelector((state) => state.user)
@@ -27,8 +28,18 @@ const Show = ({ category, loading, onChangeView, errors, subcategories = [], ass
     }
   }, [errors])
 
+  if (!(category && Object.values(subcategories).length > 0)) {
+    return (
+      <LoadingForm
+        title="Cargando información"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <div className="fade-in">
+    <div className="animate-fade-in">
       <CCard className="mb-4 p-3 shadow-sm border-0">
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center">

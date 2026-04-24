@@ -29,6 +29,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
+import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {
   const user_active = useSelector((state) => state.user)
@@ -47,8 +48,18 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
     }
   }, [errors])
 
+  if (!(user && Array.isArray(roles))) {
+    return (
+      <LoadingForm
+        title="Cargando información"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <div className="fade-in">
+    <div className="animate-fade-in">
       <CCard className="mb-4 p-3 shadow-sm border-0">
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center">

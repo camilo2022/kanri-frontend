@@ -42,8 +42,12 @@ const BackTypes = React.lazy(() => import('./views/pages/BackTypes'))
 const WaistbandTypes = React.lazy(() => import('./views/pages/WaistbandTypes'))
 const Categories = React.lazy(() => import('./views/pages/Categories'))
 const Subcategories = React.lazy(() => import('./views/pages/Subcategories'))
-const Audits = React.lazy(() => import('./views/pages/logs/Audits'))
-
+const Audits = React.lazy(() => import('./views/pages/Audits'))
+const Processes = React.lazy(() => import('./views/pages/Processes'))
+const WashTones = React.lazy(() => import('./views/pages/WashTones'))
+const Colors = React.lazy(() => import('./views/pages/Colors'))
+const Collections = React.lazy(() => import('./views/pages/Collections'))
+const YokeTypes = React.lazy(() => import('./views/pages/YokeTypes'))
 /**
  * Array of route configuration objects
  *
@@ -63,34 +67,39 @@ const Audits = React.lazy(() => import('./views/pages/logs/Audits'))
  */
 const routes = [
   { path: '/', exact: true, name: 'Home' },
-  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '/profile', name: 'Perfil', element: Profile },
-  { path: '/users', name: 'Usuarios', element: Users },
-  { path: '/roles', name: 'Roles', element: Roles },
-  { path: '/permissions', name: 'Permisos', element: Permissions },
-  { path: '/modules', name: 'Módulos', element: Modules },
-  { path: '/people', name: 'Personas', element: People },
-  { path: '/employees', name: 'Empleados', element: Employees },
   { path: '/areas', name: 'Áreas', element: Areas },
-  { path: '/genders', name: 'Géneros', element: Genders },
+  { path: '/audits', name: 'Auditoría', element: Audits },
+  { path: '/back_types', name: 'Tipos de Trasero', element: BackTypes },
   { path: '/blood_types', name: 'Tipos de Sangre', element: BloodTypes },
-  { path: '/risk_managers', name: 'Administradoras de Riesgos', element: RiskManagers },
-  { path: '/health_entities', name: 'Entidades de Salud', element: HealthEntities },
+  { path: '/boot_types', name: 'Tipos de Bota', element: BootTypes },
+  { path: '/categories', name: 'Categorías', element: Categories },
+  { path: '/clothing_lines', name: 'Lineas', element: ClothingLines },
   { path: '/compensation_funds', name: 'Cajas de Compensación', element: CompensationFunds },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/employees', name: 'Empleados', element: Employees },
+  { path: '/genders', name: 'Géneros', element: Genders },
+  { path: '/health_entities', name: 'Entidades de Salud', element: HealthEntities },
+  { path: '/groups', name: 'Grupos', element: Groups },
+  { path: '/garment_types', name: 'Tipos de Prenda', element: GarmentTypes },
+  { path: '/modules', name: 'Módulos', element: Modules },
   { path: '/pension_funds', name: 'Fondos de Pensión', element: PensionFunds },
-  { path: '/trademarks', name: 'Marcas', element: Trademarks },
+  { path: '/people', name: 'Personas', element: People },
+  { path: '/permissions', name: 'Permisos', element: Permissions },
+  { path: '/processes', name: 'Procesos', element: Processes },
+  { path: '/profile', name: 'Perfil', element: Profile },
+  { path: '/risk_managers', name: 'Administradoras de Riesgos', element: RiskManagers },
+  { path: '/roles', name: 'Roles', element: Roles },
   { path: '/silhouettes', name: 'Siluetas', element: Silhouettes },
   { path: '/sizes', name: 'Tallas', element: Sizes },
-  { path: '/subgroups', name: 'Subgrupos', element: Subgroups },
-  { path: '/groups', name: 'Grupos', element: Groups },
-  { path: '/clothing_lines', name: 'Lineas', element: ClothingLines },
-  { path: '/garment_types', name: 'Tipos de Prenda', element: GarmentTypes },
-  { path: '/boot_types', name: 'Tipos de Bota', element: BootTypes },
-  { path: '/back_types', name: 'Tipos de Trasero', element: BackTypes },
-  { path: '/waistband_types', name: 'Tipos de Pretina', element: WaistbandTypes },
-  { path: '/categories', name: 'Categorías', element: Categories },
   { path: '/subcategories', name: 'Subcategorías', element: Subcategories },
-  { path: '/audits', name: 'Auditoría', element: Audits },
+  { path: '/subgroups', name: 'Subgrupos', element: Subgroups },
+  { path: '/trademarks', name: 'Marcas', element: Trademarks },
+  { path: '/users', name: 'Usuarios', element: Users },
+  { path: '/waistband_types', name: 'Tipos de Pretina', element: WaistbandTypes },
+  { path: '/wash_tones', name: 'Tonos de Lavado', element: WashTones },
+  { path: '/colors', name: 'Colores', element: Colors },
+  { path: '/collections', name: 'Colecciones', element: Collections },
+  { path: '/yoke_types', name: 'Tipos de Cotilla', element: YokeTypes },
 ]
 
 export default routes

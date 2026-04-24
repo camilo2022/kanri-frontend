@@ -274,7 +274,7 @@ export const List = ({ data, loading, fetchSizes, onChangeView, deleteSize, rest
 
   return (
     <>
-      <CCard className="mb-4 p-4 shadow-sm border-0">
+      <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
           <span className="fw-bold fs-5 font-montserrat">Tallas</span>
@@ -282,7 +282,7 @@ export const List = ({ data, loading, fetchSizes, onChangeView, deleteSize, rest
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
-              className="custom-input"
+              className="custom-input font-inter"
               placeholder="Buscar talla..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}

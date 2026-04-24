@@ -8,25 +8,13 @@ import {
   CFormFeedback,
   CFormLabel,
   CInputGroup,
-  CInputGroupText,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
-import {
-  UserRound,
-  Mail,
-  Lock,
-  Save,
-  ArrowLeftCircle,
-  BadgeCheck,
-  BadgeAlert,
-  Eye,
-  EyeOff,
-  Info,
-  TextInitial,
-} from 'lucide-react'
+import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '../../../components/Toast'
 import Swal from 'sweetalert2'
+import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ role, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
@@ -98,8 +86,18 @@ const Edit = ({ role, onChangeView, onSubmit, errors }) => {
     }))
   }
 
+  if (!role) {
+    return (
+      <LoadingForm
+        title="Cargando formulario"
+        subtitle="Un momento mientras se carga la información del rol..."
+        height="400px"
+      />
+    )
+  }
+
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Editar Rol</span>
@@ -145,7 +143,7 @@ const Edit = ({ role, onChangeView, onSubmit, errors }) => {
             onChange={handleChange}
             invalid={!!errors?.title}
             valid={!errors?.title && formData.title !== '' && validated}
-            className="font-montserrat"
+            className="font-montserrat input-custom"
           />
           <CFormFeedback invalid>
             {errors?.title?.map((error, index) => (
@@ -174,7 +172,7 @@ const Edit = ({ role, onChangeView, onSubmit, errors }) => {
               onChange={handleChange}
               invalid={!!errors?.description}
               valid={!errors?.description && formData.description !== '' && validated}
-              className="font-montserrat"
+              className="font-montserrat input-custom"
             />
             <CFormFeedback invalid>
               {errors?.description?.map((error, index) => (
@@ -194,18 +192,18 @@ const Edit = ({ role, onChangeView, onSubmit, errors }) => {
             </CFormFeedback>
           </CInputGroup>
         </CCol>
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-6">
-          <CButton
-            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
-            type="submit"
-          >
-            <Save size={16} /> Guardar
-          </CButton>
+        <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
             onClick={() => onChangeView({ name: 'list', title: 'Listar Roles' })}
           >
             <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add "
+            type="submit"
+          >
+            <Save size={16} /> Guardar
           </CButton>
         </div>
       </CForm>

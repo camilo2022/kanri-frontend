@@ -25,6 +25,7 @@ const Permissions = () => {
     }
     setLoading(true)
     setPermission('')
+    setRoles('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Permisos' })
     }

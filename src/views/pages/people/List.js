@@ -346,15 +346,15 @@ export const List = ({
   const { pages, start, end } = getPages()
 
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Personas</span>
       </div>
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
-        <div className="w-25">
+        <div className="w-25 ms-4">
           <CFormInput
-            className="custom-input"
+            className="custom-input font-inter"
             placeholder="Buscar persona..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
