@@ -18,8 +18,9 @@ import {
   TextInitial,
   ListTree,
   Workflow,
+  FileCheckCorner,
 } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
 
@@ -29,6 +30,7 @@ const Create = ({ onChangeView, onSubmit, errors, processes }) => {
     name: '',
     description: '',
     subprocesses: false,
+    in_technical_sheet: false,
     after_processes: [],
   })
 
@@ -61,6 +63,7 @@ const Create = ({ onChangeView, onSubmit, errors, processes }) => {
             after_processes: formData.after_processes.map((p) => p.value),
             settings: {
               subprocesses: formData.subprocesses,
+              in_technical_sheet: formData.in_technical_sheet,
             },
           }
           const response = await onSubmit(inf)
@@ -74,6 +77,7 @@ const Create = ({ onChangeView, onSubmit, errors, processes }) => {
               name: '',
               description: '',
               subprocesses: false,
+              in_technical_sheet: false,
               after_processes: [],
             })
             onChangeView({ name: 'list', title: 'Listar Procesos' })
@@ -170,7 +174,73 @@ const Create = ({ onChangeView, onSubmit, errors, processes }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={8} sm={12}>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <FileCheckCorner size={15} /> ¿Pertenece a la ficha técnica?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="in_technical_sheet"
+              label={
+                <span className="font-montserrat">
+                  Selecciona si el proceso pertenece a la ficha tecnica
+                </span>
+              }
+              checked={formData.in_technical_sheet}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  in_technical_sheet: e.target.checked,
+                }))
+              }}
+              valid={formData.in_technical_sheet && validated}
+            />
+          </div>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <Workflow size={15} /> ¿Tiene Subprocesos?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="subprocesses"
+              label={<span className="font-montserrat">Selecciona si tiene subprocesos</span>}
+              checked={formData.subprocesses}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  subprocesses: e.target.checked,
+                }))
+              }}
+              valid={formData.subprocesses && validated}
+            />
+          </div>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={12}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <ListTree size={15} /> Siguientes Procesos
           </CFormLabel>
@@ -196,59 +266,50 @@ const Create = ({ onChangeView, onSubmit, errors, processes }) => {
                 borderColor: isInvalid ? '#dc3545' : isValid ? '#198754' : '#dbdfe6',
                 boxShadow: 'none',
                 borderRadius: '0.375rem',
-                minHeight: '38px', // 👈 altura fija
+                minHeight: '38px',
                 maxHeight: '38px',
-                overflow: 'hidden', // 👈 evita crecimiento
+                overflow: 'hidden',
                 '&:hover': {
                   borderColor: '#1857b6',
                   boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
                 },
               }),
-
               valueContainer: (base) => ({
                 ...base,
-                flexWrap: 'nowrap', // 👈 todo en una sola línea
-                overflowX: 'auto', // 👈 scroll horizontal si hay muchos
+                flexWrap: 'nowrap',
+                overflowX: 'auto',
               }),
-
               multiValue: (base) => ({
                 ...base,
                 minWidth: 'max-content',
               }),
-
               multiValueLabel: (base) => ({
                 ...base,
                 whiteSpace: 'nowrap',
               }),
-
               input: (base) => ({
                 ...base,
                 margin: 0,
               }),
-
               indicatorsContainer: (base) => ({
                 ...base,
                 height: '38px',
               }),
-
               menuPortal: (base) => ({
                 ...base,
                 zIndex: 9999,
                 fontFamily: 'Montserrat, sans-serif',
               }),
-
               menu: (base) => ({
                 ...base,
                 zIndex: 9999,
                 borderRadius: '0.375rem',
                 overflow: 'hidden',
               }),
-
               menuList: (base) => ({
                 ...base,
                 padding: 0,
               }),
-
               option: (base, state) => ({
                 ...base,
                 backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
@@ -270,39 +331,6 @@ const Create = ({ onChangeView, onSubmit, errors, processes }) => {
               ))}
           </CFormFeedback>
           <CFormFeedback valid className={isValid ? 'd-block' : 'd-none'}>
-            <div className="d-flex align-items-center gap-1">
-              <BadgeCheck size={13} />
-              <small className="font-inter">Dato Válido</small>
-            </div>
-          </CFormFeedback>
-        </CCol>
-        <CCol md={4}>
-          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <Workflow size={15} /> ¿Tiene Subprocesos?
-          </CFormLabel>
-          <div
-            className="px-2 border rounded-3 d-flex align-items-center bg-white"
-            style={{
-              minHeight: '40px',
-              borderColor: '#dbdfea',
-            }}
-          >
-            <CFormCheck
-              name="subprocesses"
-              label={
-                <span className="font-montserrat">Selecciona si el proceso tiene subprocesos</span>
-              }
-              checked={formData.subprocesses}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  subprocesses: e.target.checked,
-                }))
-              }}
-              valid={formData.subprocesses && validated}
-            />
-          </div>
-          <CFormFeedback valid>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />
               <small className="font-inter">Dato Válido</small>

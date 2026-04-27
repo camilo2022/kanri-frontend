@@ -48,6 +48,10 @@ const WashTones = React.lazy(() => import('./views/pages/WashTones'))
 const Colors = React.lazy(() => import('./views/pages/Colors'))
 const Collections = React.lazy(() => import('./views/pages/Collections'))
 const YokeTypes = React.lazy(() => import('./views/pages/YokeTypes'))
+const Locations = React.lazy(() => import('./views/pages/Locations'))
+const FabricTypes = React.lazy(() => import('./views/pages/FabricTypes'))
+const ThreadTypes = React.lazy(() => import('./views/pages/ThreadTypes'))
+const SupplyTypes = React.lazy(() => import('./views/pages/SupplyTypes'))
 /**
  * Array of route configuration objects
  *
@@ -100,6 +104,10 @@ const routes = [
   { path: '/colors', name: 'Colores', element: Colors },
   { path: '/collections', name: 'Colecciones', element: Collections },
   { path: '/yoke_types', name: 'Tipos de Cotilla', element: YokeTypes },
+  { path: '/locations', name: 'Ubicaciones', element: Locations },
+  { path: '/fabric_types', name: 'Tipos de Tela', element: FabricTypes },
+  { path: '/thread_types', name: 'Tipos de Hilo', element: ThreadTypes },
+  { path: '/supply_types', name: 'Tipos de Insumo', element: SupplyTypes },
 ]
 
 export default routes

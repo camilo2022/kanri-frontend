@@ -3,7 +3,7 @@ import { CCard, CTable, CRow, CCol, CButton, CForm, CFormLabel, CFormInput } fro
 import { IoMdArrowDropright } from 'react-icons/io'
 import { ArrowLeftCircle, TextInitial, FileText } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ subcategory, loading, onChangeView, errors }) => {

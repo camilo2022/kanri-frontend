@@ -24,7 +24,7 @@ import CIcon from '@coreui/icons-react'
 import { FaRegUser } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
 import AuthService from '../../services/auth.service'
-import { Toast } from '../../components/Toast'
+import { Toast } from '@/components/Toast'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 

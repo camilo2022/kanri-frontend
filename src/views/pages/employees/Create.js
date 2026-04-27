@@ -15,7 +15,7 @@ import {
   CalendarRange,
   Settings,
 } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
 import LoadingForm from '@/components/LoadingForm'

@@ -28,7 +28,7 @@ import {
   UserRound,
   FileText,
 } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {

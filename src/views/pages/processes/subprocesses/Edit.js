@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react'
-import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
+import {
+  CCard,
+  CFormInput,
+  CCol,
+  CButton,
+  CForm,
+  CFormFeedback,
+  CFormLabel,
+  CFormCheck,
+} from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
-import { Toast } from '../../../../components/Toast'
+import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial, Workflow } from 'lucide-react'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import LoadingForm from '@/components/LoadingForm'
 
@@ -13,9 +22,10 @@ const Edit = ({ process, subprocess, onChangeView, onSubmit, errors }) => {
   useEffect(() => {
     if (subprocess) {
       setFormData({
+        process_id: process.id,
         name: subprocess.name || '',
         description: subprocess.description || '',
-        process_id: process.id,
+        operations: subprocess.settings.operations,
       })
     }
   }, [subprocess])
@@ -32,12 +42,20 @@ const Edit = ({ process, subprocess, onChangeView, onSubmit, errors }) => {
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, crear',
+      confirmButtonText: 'Si, actualizar',
       cancelButtonText: 'Cancelar',
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(subprocess?.id, formData)
+          const inf = {
+            process_id: formData.process_id,
+            name: formData.name,
+            description: formData.description,
+            settings: {
+              operations: formData.operations,
+            },
+          }
+          const response = await onSubmit(subprocess?.id, inf)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -88,7 +106,7 @@ const Edit = ({ process, subprocess, onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Editar Subproceso</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -117,7 +135,7 @@ const Edit = ({ process, subprocess, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -139,6 +157,39 @@ const Edit = ({ process, subprocess, onChangeView, onSubmit, errors }) => {
               </div>
             ))}
           </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <Workflow size={15} /> ¿Tiene Operaciones?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="operations"
+              label={
+                <span className="font-montserrat">Selecciona si el proceso tiene operaciones</span>
+              }
+              checked={formData.operations}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  operations: e.target.checked,
+                }))
+              }}
+              valid={formData.operations && validated}
+            />
+          </div>
           <CFormFeedback valid>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />

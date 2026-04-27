@@ -1,8 +1,24 @@
 import { useState } from 'react'
-import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
+import {
+  CCard,
+  CFormInput,
+  CCol,
+  CButton,
+  CForm,
+  CFormFeedback,
+  CFormLabel,
+  CFormCheck,
+} from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import {
+  Save,
+  ArrowLeftCircle,
+  BadgeCheck,
+  BadgeAlert,
+  TextInitial,
+  ListChecks,
+} from 'lucide-react'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 
 const Create = ({ onChangeView, onSubmit, errors }) => {
@@ -10,6 +26,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    finished_product: false,
   })
 
   const handleSubmit = async (event) => {
@@ -29,7 +46,14 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(formData)
+          const inf = {
+            name: formData.name,
+            description: formData.description,
+            settings: {
+              finished_product: formData.finished_product,
+            },
+          }
+          const response = await onSubmit(inf)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -39,6 +63,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             setFormData({
               name: '',
               description: '',
+              finished_product: false,
             })
             onChangeView({ name: 'list', title: 'Listar Tallas' })
           }, 2510)
@@ -70,7 +95,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Crear Talla</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={6}>
+        <CCol md={6} lg={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -99,7 +124,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6}>
+        <CCol md={6} lg={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -121,6 +146,41 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
               </div>
             ))}
           </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={12} lg={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <ListChecks size={15} /> ¿Aplica a Producto Terminado?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="finished_product"
+              label={
+                <span className="font-montserrat">
+                  Selecciona si la talla aplica a producto terminado
+                </span>
+              }
+              checked={formData.finished_product}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  finished_product: e.target.checked,
+                }))
+              }}
+              valid={formData.finished_product && validated}
+            />
+          </div>
           <CFormFeedback valid>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />

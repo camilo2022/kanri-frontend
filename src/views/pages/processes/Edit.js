@@ -18,9 +18,9 @@ import {
   TextInitial,
   ListTree,
   Workflow,
-  Settings,
+  FileCheckCorner,
 } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
 import LoadingForm from '@/components/LoadingForm'
@@ -35,6 +35,7 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
         name: process.name || '',
         description: process.description || '',
         subprocesses: process.settings.subprocesses,
+        in_technical_sheet: process.settings.in_technical_sheet,
         after_processes: process.after_processes.map((p) => ({ value: p.id, label: p.name })),
       })
     }
@@ -43,7 +44,7 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
   const isInvalid = Object.keys(errors).some((key) => key.startsWith('after_processes'))
   const isValid =
     !Object.keys(errors).some((key) => key.startsWith('after_processes')) &&
-    formData.after_processes !== '' &&
+    formData?.after_processes?.length > 0 &&
     validated
 
   const handleSubmit = async (event) => {
@@ -69,6 +70,7 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
             after_processes: formData.after_processes.map((p) => p.value),
             settings: {
               subprocesses: formData.subprocesses,
+              in_technical_sheet: formData.in_technical_sheet,
             },
           }
           const response = await onSubmit(process?.id, inf)
@@ -130,7 +132,7 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
         <span className="fw-bold fs-5 font-montserrat">Editar Proceso</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={4}>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -159,7 +161,7 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={4}>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -188,8 +190,55 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
             </div>
           </CFormFeedback>
         </CCol>
-
-        <CCol md={12} lg={4}>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <FileCheckCorner size={15} /> ¿Pertenece a la ficha técnica?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="in_technical_sheet"
+              label={
+                <span className="font-montserrat">
+                  Selecciona si el proceso pertenece a la ficha tecnica
+                </span>
+              }
+              checked={formData.in_technical_sheet}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  in_technical_sheet: e.target.checked,
+                }))
+              }}
+              invalid={!!errors['settings.in_technical_sheet']}
+              valid={
+                !errors['settings.in_technical_sheet'] &&
+                formData.in_technical_sheet !== '' &&
+                validated
+              }
+            />
+          </div>
+          <CFormFeedback invalid>
+            {errors['settings.in_technical_sheet']?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <Workflow size={15} /> ¿Tiene Subprocesos?
           </CFormLabel>
@@ -212,11 +261,14 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
                   subprocesses: e.target.checked,
                 }))
               }}
-              valid={formData.subprocesses && validated}
+              invalid={!!errors['settings.subprocesses']}
+              valid={
+                !errors['settings.after_processes'] && formData.after_processes !== '' && validated
+              }
             />
           </div>
-          <CFormFeedback invalid className={!!errors?.after_processes ? 'd-block' : 'd-none'}>
-            {errors?.settings?.map((error, index) => (
+          <CFormFeedback invalid>
+            {errors['settings.subprocesses']?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>

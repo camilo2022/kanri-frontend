@@ -1,9 +1,25 @@
 import { useState } from 'react'
-import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
+import {
+  CCard,
+  CFormInput,
+  CCol,
+  CButton,
+  CForm,
+  CFormFeedback,
+  CFormLabel,
+  CFormCheck,
+} from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
-import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import {
+  Save,
+  ArrowLeftCircle,
+  BadgeCheck,
+  BadgeAlert,
+  TextInitial,
+  ListChecks,
+} from 'lucide-react'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import LoadingForm from '@/components/LoadingForm'
 
@@ -12,6 +28,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    finished_product: false,
   })
 
   useEffect(() => {
@@ -19,6 +36,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
       setFormData({
         name: size.name || '',
         description: size.description || '',
+        finished_product: size.settings.finished_product || '',
       })
     }
   }, [size])
@@ -40,7 +58,14 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(size.id, formData)
+          const inf = {
+            name: formData.name,
+            description: formData.description,
+            settings: {
+              finished_product: formData.finished_product,
+            },
+          }
+          const response = await onSubmit(size.id, inf)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -50,6 +75,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
             setFormData({
               name: '',
               description: '',
+              finished_product: false,
             })
             onChangeView({ name: 'list', title: 'Listar Tallas' })
           }, 2510)
@@ -91,7 +117,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Editar Talla</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={6}>
+        <CCol md={6} lg={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -120,7 +146,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6}>
+        <CCol md={6} lg={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -136,6 +162,49 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={12} lg={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <ListChecks size={15} /> ¿Aplica a Producto Terminado?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="finished_product"
+              label={
+                <span className="font-montserrat">
+                  Selecciona si la talla aplica a producto terminado
+                </span>
+              }
+              checked={formData.finished_product}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  finished_product: e.target.checked,
+                }))
+              }}
+              valid={formData.finished_product && validated}
+            />
+          </div>
+          <CFormFeedback invalid className={!!errors?.finished_product ? 'd-block' : 'd-none'}>
+            {errors?.settings?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>

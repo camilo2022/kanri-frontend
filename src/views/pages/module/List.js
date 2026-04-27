@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import { useSelector } from 'react-redux'
 import * as FaIcons from 'react-icons/fa'
 

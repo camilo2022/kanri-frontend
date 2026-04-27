@@ -28,7 +28,7 @@ import {
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import { useSelector } from 'react-redux'
 
 export const List = ({
@@ -308,7 +308,7 @@ export const List = ({
             />
           </div>
           <CButton
-            variant="outwaistband_type"
+            variant="outline"
             className="me-2 font-poppins btn-primary-dark"
             disabled={!user_active?.permissions.some((p) => p.name === 'waistband_types.store')}
             onClick={() => onChangeView({ name: 'create', title: 'Crear Tipo de Pretina' })}

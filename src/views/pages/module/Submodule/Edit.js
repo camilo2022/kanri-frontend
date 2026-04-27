@@ -28,7 +28,7 @@ import {
   ChevronsRight,
   Link,
 } from 'lucide-react'
-import { Toast } from '../../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import * as FaIcons from 'react-icons/fa'
 import LoadingForm from '@/components/LoadingForm'

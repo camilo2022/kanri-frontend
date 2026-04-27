@@ -24,14 +24,13 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
-  Boxes,
   FileText,
-  UsersRound,
   ListTree,
+  FolderCog,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import { useSelector } from 'react-redux'
 
 export const List = ({
@@ -178,6 +177,7 @@ export const List = ({
       description: process.description || 'No Aplica',
       next: names(process.after_processes) || 'No Aplica',
       back: names(process.before_processes) || 'No Aplica',
+      in_technical_sheet: process.settings.in_technical_sheet ? 'Si' : 'No' || 'No Aplica',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -234,6 +234,19 @@ export const List = ({
               </button>
             </CTooltip>
           )}
+          <CTooltip content="Configuraciones" placement="top">
+            <button
+              className="action-btn show-btn"
+              disabled={
+                !user_active?.permissions.some((p) => p.name === 'workflow.processes.settings')
+              }
+              onClick={() =>
+                onChangeView({ name: 'show', title: 'Configurar Proceso', process: process })
+              }
+            >
+              <FolderCog size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
         </div>
       ),
     }
@@ -285,6 +298,14 @@ export const List = ({
     {
       key: 'back',
       label: <div className="sortable-header text-center">Proceso Anterior</div>,
+    },
+    {
+      key: 'in_technical_sheet',
+      label: (
+        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
+          ¿Pertenece a la ficha técnica?
+        </div>
+      ),
     },
     {
       key: 'acciones',
@@ -352,7 +373,7 @@ export const List = ({
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan="6" className="py-5 border-0">
+              <td colSpan="7" className="py-5 border-0">
                 <div className="d-flex flex-column align-items-center justify-content-center">
                   <div className="data-loader-container mb-3">
                     <div className="radar-circle"></div>

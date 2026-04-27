@@ -26,7 +26,7 @@ import {
   ChevronRight,
   FileText,
 } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ role, loading, onChangeView, errors, permissions = [], allPermissions }) => {

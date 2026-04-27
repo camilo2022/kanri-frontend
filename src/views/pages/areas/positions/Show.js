@@ -23,7 +23,7 @@ import {
   FileText,
   TextInitial,
 } from 'lucide-react'
-import { Toast } from '../../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import LoadingForm from '@/components/LoadingForm'
 
 const Show = ({ position, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {

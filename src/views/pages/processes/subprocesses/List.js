@@ -26,10 +26,12 @@ import {
   ChevronRight,
   FileText,
   ArrowLeftCircle,
+  Settings,
+  FolderCog,
 } from 'lucide-react'
 import no_data from '../../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
-import { Toast } from '../../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import { useSelector } from 'react-redux'
 
 export const List = ({
@@ -197,6 +199,22 @@ export const List = ({
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
+          <CTooltip content="Gestionar Operaciones" placement="top">
+            <button
+              className="action-btn permisos-btn"
+              disabled={
+                !subprocess.settings['operations'] ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'workflow.processes.subprocesses.operations.all',
+                )
+              }
+              onClick={() =>
+                onChangeView({ name: 'show', title: 'Operaciones', subprocess: subprocess })
+              }
+            >
+              <Settings size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
           {subprocess.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
@@ -226,6 +244,22 @@ export const List = ({
               </button>
             </CTooltip>
           )}
+          <CTooltip content="Configuraciones" placement="top">
+            <button
+              className="action-btn show-btn"
+              disabled={
+                subprocess.settings['operations'] ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'workflow.processes.subprocesses.settings',
+                )
+              }
+              onClick={() =>
+                onChangeView({ name: 'show', title: 'Configurar Proceso', subprocess: subprocess })
+              }
+            >
+              <FolderCog size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
         </div>
       ),
     }

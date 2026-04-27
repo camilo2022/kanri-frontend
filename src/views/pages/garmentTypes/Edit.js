@@ -3,7 +3,7 @@ import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } fr
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 
 const Edit = ({ garment_type, onChangeView, onSubmit, errors }) => {

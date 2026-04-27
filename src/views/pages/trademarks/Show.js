@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import { IoMdArrowDropright } from 'react-icons/io'
 import no_data from '../../../assets/images/no-data.png'
 import {

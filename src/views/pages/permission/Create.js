@@ -12,7 +12,7 @@ import {
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
-import { Toast } from '../../../components/Toast'
+import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import LoadingForm from '@/components/LoadingForm'
 

@@ -5,8 +5,9 @@ import List from './processes/subprocesses/List'
 import Create from './processes/subprocesses/Create'
 import Edit from './processes/subprocesses/Edit'
 import Processes from './Processes'
+import Operations from './Operations'
 
-const Subsubprocesses = ({ process }) => {
+const Subprocesses = ({ process }) => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Subprocesos' })
   const [data, setData] = useState({})
@@ -21,6 +22,9 @@ const Subsubprocesses = ({ process }) => {
       dispatch({ type: 'set', action: 'Listar Subprocesos' })
     }
     if (view.name === 'edit' && view.subprocess?.id) {
+      findSubprocess(view.subprocess?.id)
+    }
+    if (view.name === 'show' && view.subprocess?.id) {
       findSubprocess(view.subprocess?.id)
     }
   }, [view])
@@ -121,6 +125,9 @@ const Subsubprocesses = ({ process }) => {
       case 'back':
         return <Processes />
 
+      case 'show':
+        return <Operations subprocess={subprocess} />
+
       default:
         return (
           <List
@@ -140,4 +147,4 @@ const Subsubprocesses = ({ process }) => {
   return <div>{renderView()}</div>
 }
 
-export default Subsubprocesses
+export default Subprocesses
