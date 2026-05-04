@@ -34,7 +34,6 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    console.log(id, data)
     const response = await api.put(
       `/workflow/processes/subprocesses/operations/update/${id}`,
       data,
@@ -51,12 +50,10 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    console.log('Estes es el id', id)
     const response = await api.get(
       `/workflow/processes/subprocesses/operations/find/${id}`,
       getConfig(),
     )
-    console.log(response)
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {

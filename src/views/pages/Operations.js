@@ -56,7 +56,6 @@ const Operations = ({ subprocess }) => {
 
   const editOperation = async (id, data) => {
     try {
-      console.log(id, data)
       const response = await OperationsService.update(id, data)
       setErrors({})
       return response
@@ -68,7 +67,6 @@ const Operations = ({ subprocess }) => {
 
   const findOperation = async (id) => {
     try {
-      console.log(id)
       const response = await OperationsService.find(id)
       setOperation(response.data.operation)
       return response
@@ -96,8 +94,6 @@ const Operations = ({ subprocess }) => {
       throw error
     }
   }
-
-  console.log(operation)
 
   const renderView = () => {
     switch (view.name) {

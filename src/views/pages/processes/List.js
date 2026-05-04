@@ -241,7 +241,7 @@ export const List = ({
                 !user_active?.permissions.some((p) => p.name === 'workflow.processes.settings')
               }
               onClick={() =>
-                onChangeView({ name: 'show', title: 'Configurar Proceso', process: process })
+                onChangeView({ name: 'settings', title: 'Configurar Proceso', process: process })
               }
             >
               <FolderCog size={18} strokeWidth={1.5} />
@@ -300,14 +300,6 @@ export const List = ({
       label: <div className="sortable-header text-center">Proceso Anterior</div>,
     },
     {
-      key: 'in_technical_sheet',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
-          ¿Pertenece a la ficha técnica?
-        </div>
-      ),
-    },
-    {
       key: 'acciones',
       label: <div className="sortable-header text-center">Acciones</div>,
     },
@@ -338,7 +330,7 @@ export const List = ({
   const { pages, start, end } = getPages()
 
   return (
-    <CCard className="mb-4 p-4 shadow-sm border-0">
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
         <span className="fw-bold fs-5 font-montserrat">Procesos</span>

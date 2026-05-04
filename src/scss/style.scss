@@ -635,3 +635,86 @@ json-container pre {
   border-color: #1857b6;
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
+
+.node {
+  padding: 10px 18px;
+  border-radius: 12px;
+  min-width: 150px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.node-secondary {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+}
+
+.node-active {
+  background: #c21111;
+  transform: scale(1.05);
+  z-index: 5;
+}
+
+.node-label {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.node-content {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.custom-entity-input:focus {
+  border-bottom: 2px solid #c21111 !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+.hover-scale:hover {
+  transform: scale(1.1);
+  color: #c21111 !important;
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-input-editing {
+  background-color: #fff !important;
+  border: 1px solid #ebedef !important;
+  border-bottom: 2px solid #c21111 !important;
+  border-radius: 4px 4px 0 0 !important;
+}
+
+.custom-input-readonly {
+  cursor: default;
+  outline: none;
+}
+
+.btn-edit-hover:hover {
+  color: #c21111 !important;
+  background: #fff5f5 !important;
+  transform: translateY(-1px);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

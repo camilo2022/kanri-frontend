@@ -4,12 +4,14 @@ import ProcessesService from '../../services/processes.service'
 import List from './processes/List'
 import Create from './processes/Create'
 import Edit from './processes/Edit'
+import Settings from './processes/Settings'
 import Subprocesses from './Subprocesses'
 
 const Processes = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Procesos' })
   const [data, setData] = useState({})
+  const [models, setModels] = useState({})
   const [process, setProcess] = useState({})
   const [processes, setProcesses] = useState({})
   const [loading, setLoading] = useState(false)
@@ -29,6 +31,9 @@ const Processes = () => {
       fetchProcesses({ process_id: view.process?.id, only_next: true })
     }
     if (view.name === 'show' && view.process?.id) {
+      findProcess(view.process?.id)
+    }
+    if (view.name === 'settings' && view.process?.id) {
       findProcess(view.process?.id)
     }
   }, [view])
@@ -78,6 +83,7 @@ const Processes = () => {
     try {
       const response = await ProcessesService.find(id)
       setProcess(response.data.process)
+      setModels(response.data.model_types)
       return response
     } catch (error) {
       throw error
@@ -100,6 +106,19 @@ const Processes = () => {
       return response
     } catch (error) {
       setErrors(error.error)
+      throw error
+    }
+  }
+
+  const setting = async (id, data) => {
+    try {
+      const response = await ProcessesService.setting(id, data)
+      setErrors({})
+      setProcess(response.data.process)
+      return response
+    } catch (error) {
+      console.log(error)
+      setErrors(error)
       throw error
     }
   }
@@ -129,6 +148,18 @@ const Processes = () => {
 
       case 'show':
         return <Subprocesses process={process} />
+
+      case 'settings':
+        return (
+          <Settings
+            process={process}
+            onChangeView={changeView}
+            errors={errors}
+            loading={loading}
+            setting={setting}
+            models={models}
+          />
+        )
 
       default:
         return (
