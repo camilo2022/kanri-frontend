@@ -19,7 +19,22 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/trademarks/store`, data, getConfig())
+    const formData = new FormData()
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (typeof value === 'object' && !(value instanceof File)) {
+          Object.entries(value).forEach(([subKey, subValue]) => {
+            formData.append(`${key}[${subKey}]`, subValue)
+          })
+        } else {
+          formData.append(key, value)
+        }
+      }
+    })
+
+    const response = await api.post(`/trademarks/store`, formData, getConfig())
+
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -31,7 +46,23 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(`/trademarks/update/${id}`, data, getConfig())
+    const formData = new FormData()
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (typeof value === 'object' && !(value instanceof File)) {
+          Object.entries(value).forEach(([subKey, subValue]) => {
+            formData.append(`${key}[${subKey}]`, subValue)
+          })
+        } else {
+          formData.append(key, value)
+        }
+      }
+    })
+
+    formData.append('_method', 'PUT')
+
+    const response = await api.post(`/trademarks/update/${id}`, formData, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -91,6 +122,30 @@ const setting = async (id, data) => {
   }
 }
 
+const assign = async (id, size_id) => {
+  try {
+    const response = await api.post(`/trademarks/size/assign/${id}`, { size_id }, getConfig())
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
+const remove = async (id, size_id) => {
+  try {
+    const response = await api.post(`/trademarks/size/remove/${id}`, { size_id }, getConfig())
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const TrademarksService = {
   all,
   store,
@@ -99,6 +154,8 @@ const TrademarksService = {
   destroy,
   restore,
   setting,
+  remove,
+  assign,
 }
 
 export default TrademarksService

@@ -170,7 +170,8 @@ export const List = ({
   const formattedData = data?.back_types?.map((back_type) => {
     return {
       ...back_type,
-      description: back_type.description || 'No Aplica',
+      description: back_type.description || '-',
+      code: back_type.settings?.code || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -256,6 +257,10 @@ export const List = ({
             (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>
       ),
+    },
+    {
+      key: 'code',
+      label: <div className="sortable-header text-center">Código</div>,
     },
     {
       key: 'acciones',

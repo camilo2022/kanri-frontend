@@ -172,7 +172,7 @@ export const List = ({
   const formattedData = data?.positions?.map((position) => {
     return {
       ...position,
-      description: position.description || 'No Aplica',
+      description: position.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -196,7 +196,7 @@ export const List = ({
           </CTooltip>
           <CTooltip content="Gestionar permisos" placement="top">
             <button
-              className="action-btn permisos-btn"
+              className="action-btn gestion-btn"
               disabled={
                 !!position.deleted_at ||
                 !user_active?.permissions.some(

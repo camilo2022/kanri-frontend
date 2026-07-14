@@ -34,9 +34,8 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
       setFormData({
         name: process.name || '',
         description: process.description || '',
-        subprocesses: process.settings.subprocesses,
-        in_technical_sheet: process.settings.in_technical_sheet,
         after_processes: process.after_processes.map((p) => ({ value: p.id, label: p.name })),
+        settings: process.settings || {},
       })
     }
   }, [process])
@@ -69,8 +68,9 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
             description: formData.description,
             after_processes: formData.after_processes.map((p) => p.value),
             settings: {
-              subprocesses: formData.subprocesses,
-              in_technical_sheet: formData.in_technical_sheet,
+              ...formData.settings,
+              subprocesses: formData.settings.subprocesses,
+              in_technical_sheet: formData.settings.in_technical_sheet,
             },
           }
           const response = await onSubmit(process?.id, inf)
@@ -80,12 +80,6 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
             title: response.message,
           })
           setTimeout(() => {
-            setFormData({
-              name: '',
-              description: '',
-              subprocesses: false,
-              after_processes: [],
-            })
             onChangeView({ name: 'list', title: 'Listar Procesos' })
           }, 2510)
         } catch (error) {
@@ -105,7 +99,7 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 
@@ -208,17 +202,20 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
                   Selecciona si el proceso pertenece a la ficha tecnica
                 </span>
               }
-              checked={formData.in_technical_sheet}
+              checked={formData?.settings?.in_technical_sheet}
               onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
-                  in_technical_sheet: e.target.checked,
+                  settings: {
+                    ...prev.settings,
+                    in_technical_sheet: e.target.checked,
+                  },
                 }))
               }}
               invalid={!!errors['settings.in_technical_sheet']}
               valid={
                 !errors['settings.in_technical_sheet'] &&
-                formData.in_technical_sheet !== '' &&
+                formData?.settings?.in_technical_sheet !== '' &&
                 validated
               }
             />
@@ -254,16 +251,21 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
               label={
                 <span className="font-montserrat">Selecciona si el proceso tiene subprocesos</span>
               }
-              checked={formData.subprocesses}
+              checked={formData?.settings?.subprocesses}
               onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
-                  subprocesses: e.target.checked,
+                  settings: {
+                    ...prev.settings,
+                    subprocesses: e.target.checked,
+                  },
                 }))
               }}
               invalid={!!errors['settings.subprocesses']}
               valid={
-                !errors['settings.after_processes'] && formData.after_processes !== '' && validated
+                !errors['settings.after_processes'] &&
+                formData?.settings?.after_processes !== '' &&
+                validated
               }
             />
           </div>

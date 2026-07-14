@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.compensation_funds?.map((compensationFund) => {
     return {
       ...compensationFund,
-      description: compensationFund.description || 'No Aplica',
+      description: compensationFund.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

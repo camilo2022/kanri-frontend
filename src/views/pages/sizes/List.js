@@ -161,7 +161,8 @@ export const List = ({ data, loading, fetchSizes, onChangeView, deleteSize, rest
   const formattedData = data?.sizes?.map((size) => {
     return {
       ...size,
-      description: size.description || 'No Aplica',
+      description: size.description || '*',
+      code: size.settings?.code || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -241,6 +242,10 @@ export const List = ({ data, loading, fetchSizes, onChangeView, deleteSize, rest
             (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>
       ),
+    },
+    {
+      key: 'code',
+      label: <div className="sortable-header text-center">Código</div>,
     },
     {
       key: 'acciones',

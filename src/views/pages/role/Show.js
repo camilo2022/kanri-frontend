@@ -198,9 +198,9 @@ const Show = ({ role, loading, onChangeView, errors, permissions = [], allPermis
             </CForm>
           </CCol>
           <CCol md={12} className="mb-4">
-            <CCard className="h-100 p-4 shadow-sm border-0">
+            <div className="mb-4 mt-3 px-4">
               <h6 className="mb-3 fw-bold d-flex align-items-center gap-2 font-poppins">
-                <ShieldCheck size={18} className="text-primary" />
+                <ShieldCheck size={18} style={{ color: '#C21111' }} />
                 Permisos
               </h6>
               <div className="d-flex justify-content-between align-items-center mb-4">
@@ -360,7 +360,7 @@ const Show = ({ role, loading, onChangeView, errors, permissions = [], allPermis
                   </CRow>
                 </>
               )}
-            </CCard>
+            </div>
           </CCol>
         </CRow>
       </CCard>

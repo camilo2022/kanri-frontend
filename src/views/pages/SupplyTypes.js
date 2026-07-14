@@ -1,26 +1,36 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import SupplyTypesService from '../../services/supply_types.service'
+import VariantsService from '../../services/variants.service'
 import List from './supplyTypes/List'
 import Create from './supplyTypes/Create'
 import Edit from './supplyTypes/Edit'
+import Variants from './Variants'
+import Settings from './supplyTypes/Settings'
 
 const SupplyTypes = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Tipos de Insumo' })
   const [data, setData] = useState({})
+  const [models, setModels] = useState({})
   const [supplyType, setSupplyType] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (view.name === 'edit' && view.supply_type?.id) {
-      findSupplyType(view.supply_type.id)
-    }
     setLoading(true)
     setSupplyType('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Tipos de Insumo' })
+    }
+    if (view.name === 'edit' && view.supply_type?.id) {
+      findSupplyType(view.supply_type.id)
+    }
+    if (view.name === 'show' && view.supply_type?.id) {
+      findSupplyType(view.supply_type.id)
+    }
+    if (view.name === 'settings' && view.supply_type?.id) {
+      findSupplyType(view.supply_type.id)
     }
   }, [view])
 
@@ -68,6 +78,7 @@ const SupplyTypes = () => {
     try {
       const response = await SupplyTypesService.find(id)
       setSupplyType(response.data.supply_type)
+      setModels(response.data.model_types)
       return response
     } catch (error) {
       throw error
@@ -94,6 +105,48 @@ const SupplyTypes = () => {
     }
   }
 
+  const setting = async (id, data) => {
+    try {
+      const response = await SupplyTypesService.setting(id, data)
+      setErrors({})
+      setSupplyType(response.data.supply_type)
+      return response
+    } catch (error) {
+      console.log(error)
+      setErrors(error)
+      throw error
+    }
+  }
+
+  const generateExcel = async (supply_type_id) => {
+    try {
+      const response = await VariantsService.excel(supply_type_id)
+      var blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      var url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'variants.xlsx'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const importExcel = async (file, id) => {
+    try {
+      const response = await VariantsService.upload(file, id)
+      setErrors({})
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+
   const renderView = () => {
     switch (view.name) {
       case 'create':
@@ -109,6 +162,23 @@ const SupplyTypes = () => {
           />
         )
 
+      case 'show':
+        return <Variants supply_type_id={supplyType.id} />
+
+      case 'settings':
+        return (
+          <Settings
+            supply_type={supplyType}
+            onChangeView={changeView}
+            errors={errors}
+            loading={loading}
+            setting={setting}
+            models={models}
+            supply_types={data?.supply_types}
+            fetchSupplyTypes={fetchSupplyTypes}
+          />
+        )
+
       default:
         return (
           <List
@@ -119,6 +189,8 @@ const SupplyTypes = () => {
             deleteSupplyType={deleteSupplyType}
             restore={restore}
             errors={errors}
+            generateExcel={generateExcel}
+            importExcel={importExcel}
           />
         )
     }

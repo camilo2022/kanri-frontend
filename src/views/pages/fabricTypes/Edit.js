@@ -70,7 +70,7 @@ const Edit = ({ fabric_type, onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 

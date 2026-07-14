@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.risk_managers?.map((risk_manager) => {
     return {
       ...risk_manager,
-      description: risk_manager.description || 'No Aplica',
+      description: risk_manager.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

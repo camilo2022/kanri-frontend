@@ -27,6 +27,7 @@ import {
   Boxes,
   FileText,
   UsersRound,
+  ListTree,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -64,15 +65,6 @@ export const List = ({ data, loading, fetchAreas, onChangeView, deleteArea, rest
 
     return () => clearTimeout(handler)
   }, [searchInput])
-
-  useEffect(() => {
-    if (Object.keys(errors).length !== 0) {
-      Toast.fire({
-        icon: 'error',
-        title: errors.message,
-      })
-    }
-  }, [errors])
 
   const handleConfirmDelete = (area) => {
     Swal.fire({
@@ -161,7 +153,7 @@ export const List = ({ data, loading, fetchAreas, onChangeView, deleteArea, rest
   const formattedData = data?.areas?.map((area) => {
     return {
       ...area,
-      description: area.description || 'No Aplica',
+      description: area.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -192,7 +184,7 @@ export const List = ({ data, loading, fetchAreas, onChangeView, deleteArea, rest
               }
               onClick={() => onChangeView({ name: 'show', title: 'Cargos', area: area })}
             >
-              <UsersRound size={18} strokeWidth={1.5} />
+              <ListTree size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
           {area.deleted_at === null ? (

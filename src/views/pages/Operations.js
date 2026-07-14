@@ -4,12 +4,14 @@ import OperationsService from '../../services/operations.service'
 import List from './processes/subprocesses/operations/List'
 import Create from './processes/subprocesses/operations/Create'
 import Edit from './processes/subprocesses/operations/Edit'
+import Settings from './processes/subprocesses/operations/Settings'
 import Subprocesses from './Subprocesses'
 
 const Operations = ({ subprocess }) => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Operaciones' })
   const [data, setData] = useState({})
+  const [models, setModels] = useState({})
   const [operation, setOperation] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -21,6 +23,9 @@ const Operations = ({ subprocess }) => {
       dispatch({ type: 'set', action: 'Listar Operaciones' })
     }
     if (view.name === 'edit' && view.operation?.id) {
+      findOperation(view.operation?.id)
+    }
+    if (view.name === 'settings' && view.operation?.id) {
       findOperation(view.operation?.id)
     }
   }, [view])
@@ -69,6 +74,7 @@ const Operations = ({ subprocess }) => {
     try {
       const response = await OperationsService.find(id)
       setOperation(response.data.operation)
+      setModels(response.data.model_types)
       return response
     } catch (error) {
       throw error
@@ -91,6 +97,18 @@ const Operations = ({ subprocess }) => {
       return response
     } catch (error) {
       setErrors(error.error)
+      throw error
+    }
+  }
+  const setting = async (id, data) => {
+    try {
+      const response = await OperationsService.setting(id, data)
+      setErrors({})
+      setOperation(response.data.operation)
+      return response
+    } catch (error) {
+      console.log(error)
+      setErrors(error)
       throw error
     }
   }
@@ -120,6 +138,19 @@ const Operations = ({ subprocess }) => {
 
       case 'back':
         return <Subprocesses process={subprocess.process[0]} />
+
+      case 'settings':
+        return (
+          <Settings
+            operation={operation}
+            onChangeView={changeView}
+            errors={errors}
+            loading={loading}
+            setting={setting}
+            models={models}
+            subprocess={subprocess}
+          />
+        )
 
       default:
         return (

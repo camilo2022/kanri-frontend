@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Boxes,
   FileText,
+  ListTree,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -215,7 +216,7 @@ export const List = ({
               }
               onClick={() => onChangeView({ name: 'show', title: 'Submódulos', module: modulo })}
             >
-              <Boxes size={18} strokeWidth={1.5} />
+              <ListTree size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
           {modulo.deleted_at === null ? (

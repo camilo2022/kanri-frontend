@@ -10,6 +10,11 @@ import {
   CCol,
   CTooltip,
   CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
@@ -25,6 +30,12 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Settings,
+  FolderCog,
+  ListTree,
+  ArrowUpToLine,
+  ArrowDownFromLine,
+  Upload,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -39,7 +50,12 @@ export const List = ({
   deleteSupplyType,
   restore,
   errors,
+  generateExcel,
+  importExcel,
 }) => {
+  const [modalUpload, setModalUpload] = useState(false)
+  const [file, setFile] = useState(null)
+  const [supplyTypeSeleted, setSupplyTypeSelected] = useState(null)
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -71,15 +87,6 @@ export const List = ({
 
     return () => clearTimeout(handler)
   }, [searchInput])
-
-  useEffect(() => {
-    if (Object.keys(errors).length !== 0) {
-      Toast.fire({
-        icon: 'error',
-        title: errors.message,
-      })
-    }
-  }, [errors])
 
   const handleConfirmDelete = (supply_type) => {
     Swal.fire({
@@ -167,10 +174,24 @@ export const List = ({
     })
   }
 
+  const handleImportExcel = async (file, supply_type) => {
+    try {
+      await importExcel(file, supply_type.id)
+      Toast.fire({
+        icon: 'success',
+        title: 'Datos cargados con éxito',
+      })
+      setModalUpload(false)
+      setFile(null)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const formattedData = data?.supply_types?.map((supply_type) => {
     return {
       ...supply_type,
-      description: supply_type.description || 'No Aplica',
+      description: supply_type.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -178,8 +199,10 @@ export const List = ({
               className="action-btn edit-btn"
               disabled={
                 !!supply_type.deleted_at ||
-                !user_active?.permissions.some((p) => p.name === 'supply_types.find') ||
-                !user_active?.permissions.some((p) => p.name === 'supply_types.update')
+                !user_active?.permissions.some(
+                  (p) => p.name === 'typification.supply_types.find',
+                ) ||
+                !user_active?.permissions.some((p) => p.name === 'typification.supply_types.update')
               }
               onClick={() =>
                 onChangeView({
@@ -192,11 +215,50 @@ export const List = ({
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
+          <CTooltip content="Gestionar Variantes" placement="top">
+            <button
+              className="action-btn permisos-btn"
+              disabled={
+                !supply_type.settings['has_variants'] ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'typification.supply_types.variants.all',
+                )
+              }
+              onClick={() =>
+                onChangeView({ name: 'show', title: 'Variantes', supply_type: supply_type })
+              }
+            >
+              <ListTree size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          <CTooltip content="Configuraciones" placement="top">
+            <button
+              className="action-btn show-btn"
+              disabled={
+                !user_active?.permissions.some(
+                  (p) => p.name === 'typification.supply_types.settings',
+                )
+              }
+              onClick={() =>
+                onChangeView({
+                  name: 'settings',
+                  title: 'Configurar Tipo de Insumo',
+                  supply_type: supply_type,
+                })
+              }
+            >
+              <FolderCog size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
           {supply_type.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'supply_types.delete')}
+                disabled={
+                  !user_active?.permissions.some(
+                    (p) => p.name === 'typification.supply_types.delete',
+                  )
+                }
                 onClick={() => handleConfirmDelete(supply_type)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
@@ -206,13 +268,50 @@ export const List = ({
             <CTooltip content="Activar" placement="top">
               <button
                 className="action-btn restore-btn"
-                disabled={!user_active?.permissions.some((p) => p.name === 'supply_types.restore')}
+                disabled={
+                  !user_active?.permissions.some(
+                    (p) => p.name === 'typification.supply_types.restore',
+                  )
+                }
                 onClick={() => handleConfirmRestore(supply_type)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
             </CTooltip>
           )}
+          <CTooltip content="Cargar Información" placement="top">
+            <button
+              className="action-btn upload-btn"
+              disabled={
+                !!supply_type.deleted_at ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'typification.supply_types.find',
+                ) ||
+                !user_active?.permissions.some((p) => p.name === 'typification.supply_types.update')
+              }
+              onClick={() => {
+                setSupplyTypeSelected(supply_type)
+                setModalUpload(true)
+              }}
+            >
+              <ArrowUpToLine size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          <CTooltip content="Descargar Información" placement="top">
+            <button
+              className="action-btn download-btn"
+              disabled={
+                !!supply_type.deleted_at ||
+                !user_active?.permissions.some(
+                  (p) => p.name === 'typification.supply_types.find',
+                ) ||
+                !user_active?.permissions.some((p) => p.name === 'typification.supply_types.update')
+              }
+              onClick={() => generateExcel(supply_type.id)}
+            >
+              <ArrowDownFromLine size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
         </div>
       ),
     }
@@ -306,7 +405,9 @@ export const List = ({
           <CButton
             variant="outline"
             className="me-2 font-poppins btn-primary-dark"
-            disabled={!user_active?.permissions.some((p) => p.name === 'supply_types.store')}
+            disabled={
+              !user_active?.permissions.some((p) => p.name === 'typification.supply_types.store')
+            }
             onClick={() => onChangeView({ name: 'create', title: 'Crear Tipo de Insumo' })}
           >
             <CirclePlus /> Agregar Tipo de Insumo
@@ -421,6 +522,104 @@ export const List = ({
             </CPagination>
           </CCol>
         </CRow>
+        <CModal
+          visible={modalUpload}
+          onClose={() => setModalUpload(false)}
+          alignment="center"
+          className="font-montserrat"
+        >
+          <CModalHeader
+            style={{
+              borderBottom: '1px solid #E2E8F0',
+              backgroundColor: '#F8FAFC',
+            }}
+          >
+            <CModalTitle
+              style={{
+                fontSize: '1.05rem',
+                fontWeight: 700,
+                color: '#0F172A',
+              }}
+            >
+              Cargar información
+            </CModalTitle>
+          </CModalHeader>
+          <CModalBody className="p-4">
+            <p
+              className="font-inter mb-4"
+              style={{
+                fontSize: '.87rem',
+                color: '#64748B',
+                lineHeight: '1.5',
+              }}
+            >
+              Selecciona el archivo con la información que deseas importar. Solo se permiten
+              archivos Excel (.xlsx).
+            </p>
+            <div
+              className="border rounded-3 p-4 text-center"
+              style={{
+                borderStyle: 'dashed',
+                borderColor: '#CBD5E1',
+                background: '#F8FAFC',
+              }}
+            >
+              <Upload
+                size={28}
+                style={{
+                  color: '#6366F1',
+                  marginBottom: '10px',
+                }}
+              />
+              <div
+                className="font-inter fw-semibold mb-1"
+                style={{
+                  color: '#334155',
+                  fontSize: '.9rem',
+                }}
+              >
+                Selecciona un archivo
+              </div>
+              <div
+                className="font-inter mb-3"
+                style={{
+                  color: '#64748B',
+                  fontSize: '.8rem',
+                }}
+              >
+                Arrastra el archivo aquí o selecciónalo desde tu equipo.
+              </div>
+              <CFormInput
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => setFile(e.target.files[0])}
+              />
+            </div>
+          </CModalBody>
+          <CModalFooter
+            style={{
+              borderTop: '1px solid #E2E8F0',
+              gap: '8px',
+            }}
+          >
+            <CButton color="secondary" size="sm" onClick={() => setModalUpload(false)}>
+              Cancelar
+            </CButton>
+
+            <CButton
+              size="sm"
+              className="text-white d-flex align-items-center gap-2"
+              style={{
+                backgroundColor: '#24247F',
+                border: 'none',
+              }}
+              onClick={() => handleImportExcel(file, supplyTypeSeleted)}
+            >
+              <Upload size={15} />
+              Cargar información
+            </CButton>
+          </CModalFooter>
+        </CModal>
       </CCard>
     </>
   )

@@ -70,7 +70,7 @@ const Edit = ({ thread_type, onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 

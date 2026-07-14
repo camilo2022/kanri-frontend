@@ -169,7 +169,7 @@ export const List = ({ data, loading, fetchUsers, onChangeView, deleteUser, rest
         </CTooltip>
         <CTooltip content="Gestionar permisos" placement="top">
           <button
-            className="action-btn permisos-btn"
+            className="action-btn gestion-btn"
             disabled={
               !!user.deleted_at ||
               !user_active?.permissions.some((p) => p.name === 'users.authorization.assign') ||

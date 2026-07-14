@@ -95,6 +95,23 @@ const restore = async (id) => {
   }
 }
 
+const setting = async (id, data) => {
+  try {
+    const response = await api.put(
+      `/workflow/processes/subprocesses/operations/setting/${id}`,
+      data,
+      getConfig(),
+    )
+    return response.data
+  } catch (error) {
+    console.log(error)
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const OperationsService = {
   all,
   store,
@@ -102,6 +119,7 @@ const OperationsService = {
   find,
   destroy,
   restore,
+  setting,
 }
 
 export default OperationsService

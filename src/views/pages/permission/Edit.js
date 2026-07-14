@@ -19,12 +19,7 @@ import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    title: '',
-    description: '',
-    role_id: '',
-  })
+  const [formData, setFormData] = useState({})
 
   useEffect(() => {
     if (permission) {
@@ -119,7 +114,6 @@ const Edit = ({ roles, permission, onChangeView, onSubmit, errors }) => {
             invalid={!!errors?.name}
             valid={!errors?.name && formData.name !== '' && validated}
             className="font-montserrat input-custom"
-            disabled
           />
           <CFormFeedback invalid>
             {errors?.name?.map((error, index) => (

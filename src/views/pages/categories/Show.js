@@ -12,7 +12,7 @@ import {
   CFormSwitch,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { ArrowLeftCircle, TextInitial, FileText } from 'lucide-react'
+import { ArrowLeftCircle, TextInitial, FileText, LayersPlus } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import { Toast } from '@/components/Toast'
 import LoadingForm from '@/components/LoadingForm'
@@ -86,9 +86,10 @@ const Show = ({ category, loading, onChangeView, errors, subcategories = [], ass
               </CCol>
             </CForm>
           </CCol>
-          <CCol md={12} className="mb-4">
-            <CCard className="h-100 p-4 shadow-sm border-0">
+          <CCol md={12}>
+            <div className="mb-3 mt-3 px-4">
               <h6 className="mb-3 fw-bold d-flex align-items-center gap-2 font-poppins">
+                <LayersPlus size={18} style={{ color: '#C21111' }} />
                 Subcategorías
               </h6>
               <div className="mb-4">
@@ -163,7 +164,7 @@ const Show = ({ category, loading, onChangeView, errors, subcategories = [], ass
                   </tbody>
                 </CTable>
               </div>
-            </CCard>
+            </div>
           </CCol>
         </CRow>
       </CCard>

@@ -1,24 +1,39 @@
 import { useState } from 'react'
-import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
+import {
+  CCard,
+  CFormInput,
+  CCol,
+  CButton,
+  CForm,
+  CFormFeedback,
+  CFormLabel,
+  CFormCheck,
+} from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
-import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
+import {
+  Save,
+  ArrowLeftCircle,
+  BadgeCheck,
+  BadgeAlert,
+  TextInitial,
+  ListChecks,
+  FileCheckCorner,
+} from 'lucide-react'
 import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  })
+  const [formData, setFormData] = useState({})
 
   useEffect(() => {
     if (supply_type) {
       setFormData({
         name: supply_type.name || '',
         description: supply_type.description || '',
+        settings: supply_type.settings || {},
       })
     }
   }, [supply_type])
@@ -40,17 +55,22 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(supply_type.id, formData)
+          const inf = {
+            name: formData.name,
+            description: formData.description,
+            settings: {
+              ...formData.settings,
+              has_variants: formData.settings.has_variants,
+              in_technical_sheet: formData.settings.in_technical_sheet,
+            },
+          }
+          const response = await onSubmit(supply_type.id, inf)
           setValidated(true)
           Toast.fire({
             icon: 'success',
             title: response.message,
           })
           setTimeout(() => {
-            setFormData({
-              name: '',
-              description: '',
-            })
             onChangeView({ name: 'list', title: 'Listar Tipos de Insumo' })
           }, 2510)
         } catch (error) {
@@ -70,7 +90,7 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 
@@ -142,6 +162,85 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
               </div>
             ))}
           </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <ListChecks size={15} /> ¿Tiene variantes?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              id="has_variants"
+              name="has_variants"
+              checked={formData?.settings?.has_variants}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  settings: {
+                    ...prev.settings,
+                    has_variants: e.target.checked,
+                  },
+                }))
+              }}
+              label={
+                <label
+                  htmlFor="has_variants"
+                  className="font-montserrat cursor-pointer"
+                  style={{ marginBottom: 0 }}
+                >
+                  Selecciona si el tipo de insumo tendrá variantes
+                </label>
+              }
+              valid={formData?.settings?.has_variants && validated}
+            />
+          </div>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <FileCheckCorner size={15} /> ¿Pertenece a la ficha técnica?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="in_technical_sheet"
+              label={
+                <span className="font-montserrat">Selecciona si pertenece a la ficha tecnica</span>
+              }
+              checked={formData?.settings?.in_technical_sheet}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  settings: {
+                    ...prev.settings,
+                    in_technical_sheet: e.target.checked,
+                  },
+                }))
+              }}
+              valid={formData?.settings?.in_technical_sheet && validated}
+            />
+          </div>
           <CFormFeedback valid>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />

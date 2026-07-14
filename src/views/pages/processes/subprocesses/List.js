@@ -28,6 +28,7 @@ import {
   ArrowLeftCircle,
   Settings,
   FolderCog,
+  ListTree,
 } from 'lucide-react'
 import no_data from '../../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -173,7 +174,7 @@ export const List = ({
   const formattedData = data?.subprocesses?.map((subprocess) => {
     return {
       ...subprocess,
-      description: subprocess.description || 'No Aplica',
+      description: subprocess.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -212,7 +213,7 @@ export const List = ({
                 onChangeView({ name: 'show', title: 'Operaciones', subprocess: subprocess })
               }
             >
-              <Settings size={18} strokeWidth={1.5} />
+              <ListTree size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
           {subprocess.deleted_at === null ? (
@@ -248,13 +249,16 @@ export const List = ({
             <button
               className="action-btn show-btn"
               disabled={
-                subprocess.settings['operations'] ||
                 !user_active?.permissions.some(
                   (p) => p.name === 'workflow.processes.subprocesses.settings',
                 )
               }
               onClick={() =>
-                onChangeView({ name: 'show', title: 'Configurar Proceso', subprocess: subprocess })
+                onChangeView({
+                  name: 'settings',
+                  title: 'Configurar Subproceso',
+                  subprocess: subprocess,
+                })
               }
             >
               <FolderCog size={18} strokeWidth={1.5} />

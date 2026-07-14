@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.health_entities?.map((health_entity) => {
     return {
       ...health_entity,
-      description: health_entity.description || 'No Aplica',
+      description: health_entity.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

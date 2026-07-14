@@ -169,7 +169,7 @@ export const List = ({
   const formattedData = data?.silhouettes?.map((silhouette) => {
     return {
       ...silhouette,
-      description: silhouette.description || 'No Aplica',
+      description: silhouette.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

@@ -25,17 +25,14 @@ import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ size, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    finished_product: false,
-  })
+  const [formData, setFormData] = useState({})
 
   useEffect(() => {
     if (size) {
       setFormData({
         name: size.name || '',
         description: size.description || '',
+        code: size.settings.code || '',
         finished_product: size.settings.finished_product || '',
       })
     }
@@ -62,6 +59,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
             name: formData.name,
             description: formData.description,
             settings: {
+              code: formData.code,
               finished_product: formData.finished_product,
             },
           }
@@ -96,7 +94,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 
@@ -117,7 +115,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Editar Talla</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={6} lg={4}>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -146,7 +144,7 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6} lg={4}>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -175,7 +173,36 @@ const Edit = ({ size, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={12} lg={4}>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <TextInitial size={15} /> Código
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CFormInput
+            type="text"
+            name="code"
+            value={formData.code}
+            onChange={handleChange}
+            invalid={!!errors['settings.code']}
+            valid={!errors['settings.code'] && formData.code !== '' && validated}
+            className="font-montserrat custom-input"
+          />
+          <CFormFeedback invalid>
+            {errors['settings.code']?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <ListChecks size={15} /> ¿Aplica a Producto Terminado?
           </CFormLabel>

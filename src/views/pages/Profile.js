@@ -355,7 +355,7 @@ const Profile = () => {
                         </tr>
                         <tr>
                           <td className="text-muted fw-medium py-1">Fecha Fin:</td>
-                          <td className="py-1">{user.employee.end_date || 'No Aplica'}</td>
+                          <td className="py-1">{user.employee.end_date || '-'}</td>
                         </tr>
                       </tbody>
                     </CTable>
@@ -413,7 +413,11 @@ const Profile = () => {
                               </div>
                               <div
                                 className="text-muted mb-1"
-                                style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                                style={{
+                                  fontSize: '0.7rem',
+                                  fontFamily: 'monospace',
+                                  wordBreak: 'break-all',
+                                }}
                               >
                                 {r?.name}
                               </div>
@@ -463,7 +467,11 @@ const Profile = () => {
                                   </div>
                                   <div
                                     className="text-muted mb-1"
-                                    style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                                    style={{
+                                      fontSize: '0.7rem',
+                                      fontFamily: 'monospace',
+                                      wordBreak: 'break-all',
+                                    }}
                                   >
                                     {p.name}
                                   </div>

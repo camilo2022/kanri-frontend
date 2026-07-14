@@ -473,7 +473,7 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                   </div>
                   {employee.user?.roles ? (
                     <CRow>
-                      <CCol md={6} className="border-end">
+                      <CCol sm={12} md={6} className="border-end">
                         <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
                           <Fingerprint size={14} /> Roles Asignados
                         </div>
@@ -482,8 +482,9 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                             {employee.user?.roles?.map((r, index) => (
                               <CCol
                                 key={r.id}
-                                sm={4}
-                                lg={4}
+                                sm={12}
+                                lg={6}
+                                xxl={4}
                                 className="permission-card-wrapper"
                                 style={{ animationDelay: `${index * 50}ms` }}
                               >
@@ -508,7 +509,11 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                                       </div>
                                       <div
                                         className="text-muted mb-1"
-                                        style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                                        style={{
+                                          fontSize: '0.7rem',
+                                          fontFamily: 'monospace',
+                                          wordBreak: 'break-all',
+                                        }}
                                       >
                                         {r?.name}
                                       </div>
@@ -526,7 +531,7 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                           </CRow>
                         </div>
                       </CCol>
-                      <CCol md={6} className="ps-4">
+                      <CCol sm={12} md={6} className="ps-4">
                         <div className="small text-muted mb-3 fw-medium d-flex align-items-center gap-1">
                           <Lock size={14} /> Detalle de Permisos para {role?.title}
                         </div>
@@ -557,7 +562,11 @@ const Show = ({ employee, role, findRole, permissions, onChangeView }) => {
                                           </div>
                                           <div
                                             className="text-muted mb-1"
-                                            style={{ fontSize: '0.7rem', fontFamily: 'monospace' }}
+                                            style={{
+                                              fontSize: '0.7rem',
+                                              fontFamily: 'monospace',
+                                              wordBreak: 'break-all',
+                                            }}
                                           >
                                             {p.name}
                                           </div>

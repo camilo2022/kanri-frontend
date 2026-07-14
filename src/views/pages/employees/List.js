@@ -213,10 +213,10 @@ export const List = ({
       ),
       document: employee.person.document,
       name: `${employee.person.names || ''} ${employee.person.last_names || ''}`,
-      position: employee.position?.name || 'No Aplica',
-      area: employee.position?.area[0].name || 'No Aplica',
-      risk_manager: employee.risk_manager?.name || 'No Aplica',
-      health_entity: employee.health_entity?.name || 'No Aplica',
+      position: employee.position?.name || '-',
+      area: employee.position?.area[0].name || '-',
+      risk_manager: employee.risk_manager?.name || '-',
+      health_entity: employee.health_entity?.name || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -236,7 +236,7 @@ export const List = ({
           </CTooltip>
           <CTooltip content="Visualizar" placement="top">
             <button
-              className="action-btn show-btn"
+              className="action-btn btn-teal"
               disabled={
                 !!employee.deleted_at ||
                 !user_active?.permissions.some((p) => p.name === 'employees.find')

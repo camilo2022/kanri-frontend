@@ -35,7 +35,7 @@ const Silhouettes = React.lazy(() => import('./views/pages/Silhouettes'))
 const Sizes = React.lazy(() => import('./views/pages/Sizes'))
 const Subgroups = React.lazy(() => import('./views/pages/Subgroups'))
 const Groups = React.lazy(() => import('./views/pages/Groups'))
-const ClothingLines = React.lazy(() => import('./views/pages/ClothingLines'))
+const Pieces = React.lazy(() => import('./views/pages/Pieces'))
 const GarmentTypes = React.lazy(() => import('./views/pages/GarmentTypes'))
 const BootTypes = React.lazy(() => import('./views/pages/BootTypes'))
 const BackTypes = React.lazy(() => import('./views/pages/BackTypes'))
@@ -48,10 +48,12 @@ const WashTones = React.lazy(() => import('./views/pages/WashTones'))
 const Colors = React.lazy(() => import('./views/pages/Colors'))
 const Collections = React.lazy(() => import('./views/pages/Collections'))
 const YokeTypes = React.lazy(() => import('./views/pages/YokeTypes'))
-const Locations = React.lazy(() => import('./views/pages/Locations'))
 const FabricTypes = React.lazy(() => import('./views/pages/FabricTypes'))
 const ThreadTypes = React.lazy(() => import('./views/pages/ThreadTypes'))
 const SupplyTypes = React.lazy(() => import('./views/pages/SupplyTypes'))
+const Suppliers = React.lazy(() => import('./views/pages/Suppliers'))
+const ManagementCollection = React.lazy(() => import('./views/pages/ManagementCollection'))
+const Products = React.lazy(() => import('./views/pages/Products'))
 /**
  * Array of route configuration objects
  *
@@ -77,7 +79,7 @@ const routes = [
   { path: '/blood_types', name: 'Tipos de Sangre', element: BloodTypes },
   { path: '/boot_types', name: 'Tipos de Bota', element: BootTypes },
   { path: '/categories', name: 'Categorías', element: Categories },
-  { path: '/clothing_lines', name: 'Lineas', element: ClothingLines },
+  { path: '/pieces', name: 'Piezas', element: Pieces },
   { path: '/compensation_funds', name: 'Cajas de Compensación', element: CompensationFunds },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/employees', name: 'Empleados', element: Employees },
@@ -104,10 +106,16 @@ const routes = [
   { path: '/colors', name: 'Colores', element: Colors },
   { path: '/collections', name: 'Colecciones', element: Collections },
   { path: '/yoke_types', name: 'Tipos de Cotilla', element: YokeTypes },
-  { path: '/locations', name: 'Ubicaciones', element: Locations },
+  { path: '/suppliers', name: 'Proveedores', element: Suppliers },
   { path: '/fabric_types', name: 'Tipos de Tela', element: FabricTypes },
   { path: '/thread_types', name: 'Tipos de Hilo', element: ThreadTypes },
   { path: '/supply_types', name: 'Tipos de Insumo', element: SupplyTypes },
+  {
+    path: '/management/collections',
+    name: 'Gestión de Colecciones',
+    element: ManagementCollection,
+  },
+  { path: '/products', name: 'Productos', element: Products },
 ]
 
 export default routes

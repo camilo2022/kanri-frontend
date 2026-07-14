@@ -173,7 +173,7 @@ export const List = ({
   const formattedData = data?.operations?.map((operation) => {
     return {
       ...operation,
-      description: operation.description || 'No Aplica',
+      description: operation.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -238,8 +238,8 @@ export const List = ({
               }
               onClick={() =>
                 onChangeView({
-                  name: 'show',
-                  title: 'Configurar Proceso',
+                  name: 'settings',
+                  title: 'Configurar Operación',
                   operation: operation,
                 })
               }

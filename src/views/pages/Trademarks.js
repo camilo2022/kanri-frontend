@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import TrademarksService from '../../services/trademarks.service'
-import CategoriesService from '../../services/categories.service'
+import GroupsService from '../../services/groups.service'
+import SizesService from '../../services/sizes.service'
 import List from './trademarks/List'
 import Create from './trademarks/Create'
 import Edit from './trademarks/Edit'
@@ -10,10 +11,12 @@ import Show from './trademarks/Show'
 const Trademarks = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Marcas' })
+  const [sizes, setSizes] = useState({})
   const [data, setData] = useState({})
-  const [categories, setCategories] = useState({})
+  const [groups, setGroups] = useState({})
   const [trademark, setTrademark] = useState({})
   const [loading, setLoading] = useState(false)
+  const [loadingSizes, setLoadingSizes] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
@@ -21,16 +24,18 @@ const Trademarks = () => {
     setTrademark('')
     if (view.name === 'show' && view.trademark?.id) {
       findTrademark(view.trademark.id)
+      allSizes({ is_finished_product: true })
     }
     if (view.name === 'edit' && view.trademark?.id) {
       findTrademark(view.trademark.id)
-      allCategories({ with_user: false })
+      allGroups({ with_user: false })
     }
     if (view.name === 'create') {
-      allCategories({ with_user: false })
+      allGroups({ with_user: false })
     }
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Marcas' })
+      fetchTrademarks()
     }
   }, [view])
 
@@ -119,15 +124,49 @@ const Trademarks = () => {
     }
   }
 
-  const allCategories = async (params) => {
+  const allGroups = async (params) => {
     try {
-      const response = await CategoriesService.all(params)
-      setCategories(response.data.categories)
+      const response = await GroupsService.all(params)
+      setGroups(response.data.groups)
     } catch (error) {
       setErrors(error.error)
       throw error
     } finally {
       setLoading(false)
+    }
+  }
+
+  const allSizes = async (params) => {
+    setLoadingSizes(true)
+    try {
+      const response = await SizesService.all(params)
+      setSizes(response.data)
+    } catch (error) {
+      console.log(error)
+      setErrors(error)
+    } finally {
+      setLoadingSizes(false)
+    }
+  }
+
+  const assign = async (id, size_id) => {
+    try {
+      const response = await TrademarksService.assign(id, size_id)
+      setTrademark(response.data.trademark)
+      return response
+    } catch (error) {
+      setErrors(error)
+      throw error
+    }
+  }
+
+  const remove = async (id, size_id) => {
+    try {
+      const response = await TrademarksService.remove(id, size_id)
+      setTrademark(response.data.trademark)
+      return response
+    } catch (error) {
+      throw error
     }
   }
 
@@ -139,7 +178,7 @@ const Trademarks = () => {
             onChangeView={changeView}
             onSubmit={createTrademark}
             errors={errors}
-            categories={categories}
+            groups={groups}
           />
         )
 
@@ -150,7 +189,7 @@ const Trademarks = () => {
             onChangeView={changeView}
             onSubmit={editTrademark}
             errors={errors}
-            categories={categories}
+            groups={groups}
           />
         )
 
@@ -162,6 +201,10 @@ const Trademarks = () => {
             errors={errors}
             loading={loading}
             setting={setting}
+            sizes={sizes}
+            loadingSizes={loadingSizes}
+            assign={assign}
+            remove={remove}
           />
         )
 

@@ -3,7 +3,7 @@ import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {
-    const response = await api.get(`/risk_manager/all`, {
+    const response = await api.get(`/risk_managers/all`, {
       ...getConfig(),
       params: params,
     })
@@ -18,7 +18,7 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/risk_manager/store`, data, getConfig())
+    const response = await api.post(`/risk_managers/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -30,7 +30,7 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(`/risk_manager/update/${id}`, data, getConfig())
+    const response = await api.put(`/risk_managers/update/${id}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -42,7 +42,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await api.get(`/risk_manager/find/${id}`, getConfig())
+    const response = await api.get(`/risk_managers/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -54,7 +54,7 @@ const find = async (id) => {
 
 const destroy = async (id) => {
   try {
-    const response = await api.delete(`/risk_manager/delete/${id}`, getConfig())
+    const response = await api.delete(`/risk_managers/delete/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -66,7 +66,7 @@ const destroy = async (id) => {
 
 const restore = async (id) => {
   try {
-    const response = await api.patch(`/risk_manager/restore/${id}`, {}, getConfig())
+    const response = await api.patch(`/risk_managers/restore/${id}`, {}, getConfig())
     return response.data
   } catch (error) {
     console.log(error)

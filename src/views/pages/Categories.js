@@ -1,26 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import CategoriesService from '../../services/categories.service'
-import SubcategoriesService from '../../services/subcategories.service'
 import List from './categories/List'
 import Create from './categories/Create'
 import Edit from './categories/Edit'
-import Show from './categories/Show'
+import Subcategories from './Subcategories'
 
 const Categories = () => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Categorías' })
   const [data, setData] = useState({})
   const [category, setCategory] = useState({})
-  const [subcategories, setSubcategories] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (view.name === 'show' && view.category?.id) {
-      findCategory(view.category.id)
-      allSubcategories()
-    }
     if (view.name === 'edit' && view.category?.id) {
       findCategory(view.category.id)
     }
@@ -28,6 +22,9 @@ const Categories = () => {
     setCategory('')
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Categorías' })
+    }
+    if (view.name === 'show' && view.category?.id) {
+      findCategory(view.category.id)
     }
   }, [view])
 
@@ -101,40 +98,6 @@ const Categories = () => {
     }
   }
 
-  const allSubcategories = async (params) => {
-    setLoading(true)
-    try {
-      const response = await SubcategoriesService.all(params)
-      setSubcategories(response.data)
-    } catch (error) {
-      console.log(error)
-      setErrors(error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const assign = async (id, subcategory_id) => {
-    try {
-      const response = await CategoriesService.assign(id, subcategory_id)
-      setCategory(response.data.category)
-      return response
-    } catch (error) {
-      setErrors(error)
-      throw error
-    }
-  }
-
-  const remove = async (id, subcategory_id) => {
-    try {
-      const response = await CategoriesService.remove(id, subcategory_id)
-      setCategory(response.data.category)
-      return response
-    } catch (error) {
-      throw error
-    }
-  }
-
   const renderView = () => {
     switch (view.name) {
       case 'create':
@@ -151,17 +114,7 @@ const Categories = () => {
         )
 
       case 'show':
-        return (
-          <Show
-            category={category}
-            loading={loading}
-            onChangeView={changeView}
-            errors={errors}
-            subcategories={subcategories}
-            assign={assign}
-            remove={remove}
-          />
-        )
+        return <Subcategories category={category} />
 
       default:
         return (

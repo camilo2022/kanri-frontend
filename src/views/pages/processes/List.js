@@ -174,10 +174,10 @@ export const List = ({
   const formattedData = data?.processes?.map((process) => {
     return {
       ...process,
-      description: process.description || 'No Aplica',
-      next: names(process.after_processes) || 'No Aplica',
-      back: names(process.before_processes) || 'No Aplica',
-      in_technical_sheet: process.settings.in_technical_sheet ? 'Si' : 'No' || 'No Aplica',
+      description: process.description || '-',
+      next: names(process.after_processes) || '-',
+      back: names(process.before_processes) || '-',
+      in_technical_sheet: process.settings.in_technical_sheet ? 'Si' : 'No' || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

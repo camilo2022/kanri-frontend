@@ -169,8 +169,8 @@ export const List = ({
   const formattedData = data?.colors?.map((color) => {
     return {
       ...color,
-      description: color.description || 'No Aplica',
-      code: color.settings?.code || 'No Aplica',
+      description: color.description || '-',
+      code: color.settings?.code || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -259,11 +259,7 @@ export const List = ({
     },
     {
       key: 'code',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
-          Código
-        </div>
-      ),
+      label: <div className="sortable-header text-center">Código</div>,
     },
     {
       key: 'acciones',

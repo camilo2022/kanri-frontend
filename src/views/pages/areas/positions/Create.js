@@ -60,7 +60,7 @@ const Create = ({ onChangeView, onSubmit, errors, areaId }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 

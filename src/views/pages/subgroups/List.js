@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.subgroups?.map((subgroup) => {
     return {
       ...subgroup,
-      description: subgroup.description || 'No Aplica',
+      description: subgroup.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

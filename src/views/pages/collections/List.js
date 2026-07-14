@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.collections?.map((collection) => {
     return {
       ...collection,
-      description: collection.description || 'No Aplica',
+      description: collection.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

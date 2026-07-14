@@ -10,6 +10,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    code: '',
   })
 
   const handleSubmit = async (event) => {
@@ -32,6 +33,9 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
           const inf = {
             name: formData.name,
             description: formData.description,
+            settings: {
+              code: formData.code,
+            },
           }
           const response = await onSubmit(inf)
           setValidated(true)
@@ -43,6 +47,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             setFormData({
               name: '',
               description: '',
+              code: '',
             })
             onChangeView({ name: 'list', title: 'Listar Tipos de Cotilla' })
           }, 2510)
@@ -63,7 +68,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 
@@ -74,7 +79,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Crear Tipo de Cotilla</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -103,7 +108,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -119,6 +124,35 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <TextInitial size={15} /> Código
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CFormInput
+            type="text"
+            name="code"
+            value={formData.code}
+            onChange={handleChange}
+            invalid={!!errors['settings.code']}
+            valid={!errors['settings.code'] && formData.code !== '' && validated}
+            className="font-montserrat custom-input"
+          />
+          <CFormFeedback invalid>
+            {errors['settings.code']?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>

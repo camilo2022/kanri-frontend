@@ -6,11 +6,13 @@ import Create from './processes/subprocesses/Create'
 import Edit from './processes/subprocesses/Edit'
 import Processes from './Processes'
 import Operations from './Operations'
+import Settings from './processes/subprocesses/Settings'
 
 const Subprocesses = ({ process }) => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Subprocesos' })
   const [data, setData] = useState({})
+  const [models, setModels] = useState({})
   const [subprocess, setSubprocess] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -25,6 +27,9 @@ const Subprocesses = ({ process }) => {
       findSubprocess(view.subprocess?.id)
     }
     if (view.name === 'show' && view.subprocess?.id) {
+      findSubprocess(view.subprocess?.id)
+    }
+    if (view.name === 'settings' && view.subprocess?.id) {
       findSubprocess(view.subprocess?.id)
     }
   }, [view])
@@ -73,6 +78,7 @@ const Subprocesses = ({ process }) => {
     try {
       const response = await SubprocessesService.find(id)
       setSubprocess(response.data.subprocess)
+      setModels(response.data.model_types)
       return response
     } catch (error) {
       throw error
@@ -95,6 +101,19 @@ const Subprocesses = ({ process }) => {
       return response
     } catch (error) {
       setErrors(error.error)
+      throw error
+    }
+  }
+
+  const setting = async (id, data) => {
+    try {
+      const response = await SubprocessesService.setting(id, data)
+      setErrors({})
+      setSubprocess(response.data.subprocess)
+      return response
+    } catch (error) {
+      console.log(error)
+      setErrors(error)
       throw error
     }
   }
@@ -127,6 +146,18 @@ const Subprocesses = ({ process }) => {
 
       case 'show':
         return <Operations subprocess={subprocess} />
+
+      case 'settings':
+        return (
+          <Settings
+            subprocess={subprocess}
+            onChangeView={changeView}
+            errors={errors}
+            loading={loading}
+            setting={setting}
+            models={models}
+          />
+        )
 
       default:
         return (

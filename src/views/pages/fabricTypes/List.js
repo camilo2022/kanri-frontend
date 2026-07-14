@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.fabric_types?.map((fabric_type) => {
     return {
       ...fabric_type,
-      description: fabric_type.description || 'No Aplica',
+      description: fabric_type.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

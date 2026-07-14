@@ -93,7 +93,7 @@ export const List = ({ data, loading, fetchRoles, onChangeView, errors }) => {
         </CTooltip>
         <CTooltip content="Visualizar" placement="top">
           <button
-            className="action-btn show-btn"
+            className="action-btn btn-teal"
             disabled={
               !!rol.deleted_at ||
               !user_active?.permissions.some((p) => p.name === 'authorization.roles.find') ||

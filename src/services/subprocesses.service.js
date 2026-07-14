@@ -85,6 +85,23 @@ const restore = async (id) => {
   }
 }
 
+const setting = async (id, data) => {
+  try {
+    const response = await api.put(
+      `/workflow/processes/subprocesses/setting/${id}`,
+      data,
+      getConfig(),
+    )
+    return response.data
+  } catch (error) {
+    console.log(error)
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const SubprocessesService = {
   all,
   store,
@@ -92,6 +109,7 @@ const SubprocessesService = {
   find,
   destroy,
   restore,
+  setting,
 }
 
 export default SubprocessesService

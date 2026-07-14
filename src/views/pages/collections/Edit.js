@@ -15,6 +15,9 @@ const Edit = ({ collection, onChangeView, onSubmit, errors }) => {
       setFormData({
         name: collection.name || '',
         description: collection.description || '',
+        code: collection.settings.code || '',
+        start_date: collection.settings.start_date || '',
+        end_date: collection.settings.end_date || '',
       })
     }
   }, [collection])
@@ -36,7 +39,16 @@ const Edit = ({ collection, onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(collection?.id, formData)
+          const inf = {
+            name: formData.name,
+            description: formData.description,
+            settings: {
+              code: formData.code,
+              start_date: formData.start_date,
+              end_date: formData.end_date,
+            },
+          }
+          const response = await onSubmit(collection?.id, inf)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -66,7 +78,7 @@ const Edit = ({ collection, onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 
@@ -132,6 +144,105 @@ const Edit = ({ collection, onChangeView, onSubmit, errors }) => {
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <TextInitial size={15} /> Código
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CFormInput
+            type="text"
+            name="code"
+            value={formData.code}
+            onChange={handleChange}
+            invalid={!!errors['settings.code']}
+            valid={!errors['settings.code'] && formData.code !== '' && validated}
+            className="font-montserrat custom-input"
+          />
+          <CFormFeedback invalid>
+            {errors['settings.code']?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <TextInitial size={15} /> Fecha Inicio
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CFormInput
+            type="date"
+            name="start_date"
+            value={formData.start_date}
+            onChange={handleChange}
+            invalid={!!errors['settings.start_date']}
+            valid={!errors['settings.start_date'] && formData.start_date !== '' && validated}
+            className="font-montserrat custom-input"
+          />
+          <CFormFeedback invalid>
+            {errors['settings.start_date']?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <TextInitial size={15} /> Fecha Fin
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CFormInput
+            type="date"
+            name="end_date"
+            disabled={!formData.start_date}
+            min={
+              formData.start_date
+                ? new Date(
+                    new Date(formData.start_date).setDate(
+                      new Date(formData.start_date).getDate() + 1,
+                    ),
+                  )
+                    .toISOString()
+                    .split('T')[0]
+                : ''
+            }
+            value={formData.end_date}
+            onChange={handleChange}
+            invalid={!!errors['settings.end_date']}
+            valid={!errors['settings.end_date'] && formData.end_date !== '' && validated}
+            className="font-montserrat custom-input"
+          />
+          <CFormFeedback invalid>
+            {errors['settings.end_date']?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>

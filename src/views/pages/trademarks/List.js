@@ -170,8 +170,37 @@ export const List = ({
   const formattedData = data?.trademarks?.map((trademark) => {
     return {
       ...trademark,
-      description: trademark.description || 'No Aplica',
-      category: trademark.category[0]?.name || 'No Aplica',
+      logo: (
+        <div className="d-flex justify-content-center align-items-center">
+          <div
+            style={{
+              width: '75px',
+              height: '50px',
+              overflow: 'hidden',
+              borderRadius: '8px',
+              padding: '4px',
+            }}
+          >
+            {trademark.logo ? (
+              <img
+                src={trademark.logo.path}
+                alt="profile"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              <div className="d-flex align-items-center justify-content-center h-100 text-muted">
+                <small className="fw-bold">{trademark.name?.charAt(0)}</small>
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+      description: trademark.description || '-',
+      group: trademark.group[0]?.name || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -191,7 +220,7 @@ export const List = ({
           </CTooltip>
           <CTooltip content="Gestionar Configuración" placement="top">
             <button
-              className="action-btn permisos-btn"
+              className="action-btn show-btn"
               disabled={
                 !!trademark.deleted_at ||
                 !user_active?.permissions.some((p) => p.name === 'trademarks.settings')
@@ -247,6 +276,10 @@ export const List = ({
       ),
     },
     {
+      key: 'logo',
+      label: <div className="text-center">Logo</div>,
+    },
+    {
       key: 'name',
       label: (
         <div className="sortable-header text-center" onClick={() => handleSort('name')}>
@@ -267,8 +300,8 @@ export const List = ({
       ),
     },
     {
-      key: 'category',
-      label: <div className="sortable-header text-center">Categoría</div>,
+      key: 'group',
+      label: <div className="sortable-header text-center">Grupo</div>,
     },
     {
       key: 'acciones',
@@ -337,7 +370,7 @@ export const List = ({
           <tbody>
             {!data?.trademarks?.length && loading ? (
               <tr>
-                <td colSpan="5" className="py-5 border-0">
+                <td colSpan="6" className="py-5 border-0">
                   <div className="d-flex flex-column align-items-center justify-content-center">
                     <div className="data-loader-container mb-3">
                       <div className="radar-circle"></div>

@@ -211,7 +211,7 @@ export const List = ({
       </div>
     ),
     name: `${person.names || ''} ${person.last_names || ''}`,
-    gender: person.gender?.description || 'No Aplica',
+    gender: person.gender?.description || '-',
     blood_type: person.blood_type ? person.blood_type?.name : 'No Aplica',
     birth_date: dayjs.utc(person.birth_date).format('DD/MM/YYYY'),
     acciones: (

@@ -26,6 +26,7 @@ import {
   ChevronRight,
   FileText,
   LayersPlus,
+  ListTree,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
@@ -171,7 +172,7 @@ export const List = ({
   const formattedData = data?.categories?.map((category) => {
     return {
       ...category,
-      description: category.description || 'No Aplica',
+      description: category.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -202,7 +203,7 @@ export const List = ({
                 onChangeView({ name: 'show', title: 'Subcategorías', category: category })
               }
             >
-              <LayersPlus size={18} strokeWidth={1.5} />
+              <ListTree size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
           {category.deleted_at === null ? (

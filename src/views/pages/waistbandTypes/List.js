@@ -170,7 +170,8 @@ export const List = ({
   const formattedData = data?.waistband_types?.map((waistband_type) => {
     return {
       ...waistband_type,
-      description: waistband_type.description || 'No Aplica',
+      description: waistband_type.description || '-',
+      code: waistband_type.settings?.code || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
@@ -260,6 +261,10 @@ export const List = ({
             (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>
       ),
+    },
+    {
+      key: 'code',
+      label: <div className="sortable-header text-center">Código</div>,
     },
     {
       key: 'acciones',

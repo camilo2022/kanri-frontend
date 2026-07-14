@@ -32,6 +32,7 @@ import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import * as FaIcons from 'react-icons/fa'
 import LoadingForm from '@/components/LoadingForm'
+import Select from 'react-select'
 
 const Edit = ({ submodule, onChangeView, onSubmit, errors, moduleId, roles }) => {
   const [validated, setValidated] = useState(false)
@@ -134,6 +135,12 @@ const Edit = ({ submodule, onChangeView, onSubmit, errors, moduleId, roles }) =>
         height="400px"
       />
     )
+  }
+
+  const customFilterOption = (option, rawInput) => {
+    const words = rawInput.toLowerCase().split(' ')
+    const label = option.label.toLowerCase()
+    return words.every((word) => label.includes(word))
   }
 
   return (
@@ -338,52 +345,104 @@ const Edit = ({ submodule, onChangeView, onSubmit, errors, moduleId, roles }) =>
             Permiso Asociado
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
           </CFormLabel>
-          <CInputGroup>
-            <CFormSelect
-              className="font-montserrat input-custom"
-              name="permission_id"
-              value={formData.permission_id}
-              onChange={handleChange}
-              disabled={!Array.isArray(roles)}
-              invalid={!!errors?.permission_id}
-              valid={!errors?.permission_id && formData.permission_id !== '' && validated}
-              style={{ borderRadius: '5px 5px 5px 5px' }}
-            >
-              {Array.isArray(roles) ? (
-                <>
-                  <option value="">Seleccione un permiso</option>
-
-                  {roles.map((role) => (
-                    <optgroup key={role.id} label={role.name}>
-                      {role.permissions?.map((perm) => (
-                        <option key={perm.id} value={perm.id}>
-                          {perm.title} ({perm.name})
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </>
-              ) : (
-                <option disabled>Cargando roles...</option>
-              )}
-            </CFormSelect>
-            <CFormFeedback invalid>
-              {errors?.permission_id?.map((error, index) => (
-                <div key={index} className="d-flex align-items-center gap-1">
-                  <BadgeAlert size={13} />
-                  <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
-                    {error}
-                  </small>
-                </div>
-              ))}
-            </CFormFeedback>
-            <CFormFeedback valid>
-              <div className="d-flex align-items-center gap-1">
-                <BadgeCheck size={13} />
-                <small className="font-inter">Dato Válido</small>
+          <Select
+            name="permission_id"
+            placeholder="Seleccione un permiso"
+            options={
+              Array.isArray(roles)
+                ? roles.map((role) => ({
+                    label: role.title,
+                    options: role.permissions?.map((perm) => ({
+                      value: perm.id,
+                      label: `${perm.title} (${perm.name})`,
+                    })),
+                  }))
+                : []
+            }
+            value={
+              Array.isArray(roles)
+                ? roles
+                    .flatMap((role) => role.permissions || [])
+                    .map((perm) => ({
+                      value: perm.id,
+                      label: `${perm.title} (${perm.name})`,
+                    }))
+                    .find((opt) => opt.value == formData.permission_id)
+                : null
+            }
+            onChange={(selected) =>
+              setFormData((prev) => ({
+                ...prev,
+                permission_id: selected?.value || '',
+              }))
+            }
+            isDisabled={!Array.isArray(roles)}
+            isSearchable
+            filterOption={customFilterOption}
+            className="w-100 font-montserrat"
+            classNamePrefix="react-select"
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            styles={{
+              control: (base) => ({
+                ...base,
+                borderColor: !!errors?.permission_id
+                  ? '#dc3545'
+                  : !errors?.permission_id && formData.permission_id !== '' && validated
+                    ? '#198754'
+                    : '#dbdfe6',
+                boxShadow: 'none',
+                borderRadius: '0.375rem',
+                '&:hover': {
+                  borderColor: '#1857b6',
+                  boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                },
+              }),
+              menuPortal: (base) => ({
+                ...base,
+                zIndex: 9999,
+                fontFamily: 'Montserrat, sans-serif',
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 9999,
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+              }),
+              menuList: (base) => ({
+                ...base,
+                padding: 0,
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+                color: state.isSelected ? '#1b3761' : '#212529',
+                fontWeight: state.isSelected ? 'bold' : '',
+                borderRadius: '0px',
+              }),
+            }}
+          />
+          <CFormFeedback invalid className={!!errors?.permission_id ? 'd-block' : 'd-none'}>
+            {errors?.permission_id?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
               </div>
-            </CFormFeedback>
-          </CInputGroup>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback
+            valid
+            className={
+              !errors?.permission_id && formData.permission_id !== '' && validated
+                ? 'd-block'
+                : 'd-none'
+            }
+          >
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
         </CCol>
         <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton

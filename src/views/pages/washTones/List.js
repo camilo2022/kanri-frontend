@@ -170,8 +170,8 @@ export const List = ({
   const formattedData = data?.wash_tones?.map((wash_tone) => {
     return {
       ...wash_tone,
-      description: wash_tone.description || 'No Aplica',
-      code: wash_tone.settings?.code || 'No Aplica',
+      description: wash_tone.description || '-',
+      code: wash_tone.settings?.code || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

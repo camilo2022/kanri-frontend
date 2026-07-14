@@ -15,6 +15,7 @@ const Edit = ({ yoke_type, onChangeView, onSubmit, errors }) => {
       setFormData({
         name: yoke_type.name || '',
         description: yoke_type.description || '',
+        code: yoke_type.settings.code || '',
       })
     }
   }, [yoke_type])
@@ -36,7 +37,14 @@ const Edit = ({ yoke_type, onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(yoke_type?.id, formData)
+          const inf = {
+            name: formData.name,
+            description: formData.description,
+            settings: {
+              code: formData.code,
+            },
+          }
+          const response = await onSubmit(yoke_type?.id, inf)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -46,6 +54,7 @@ const Edit = ({ yoke_type, onChangeView, onSubmit, errors }) => {
             setFormData({
               name: '',
               description: '',
+              code: '',
             })
             onChangeView({ name: 'list', title: 'Listar Tipos de Cotilla' })
           }, 2510)
@@ -66,7 +75,7 @@ const Edit = ({ yoke_type, onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 
@@ -87,7 +96,7 @@ const Edit = ({ yoke_type, onChangeView, onSubmit, errors }) => {
         <span className="fw-bold fs-5 font-montserrat">Editar Tipo de Cotilla</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -116,7 +125,7 @@ const Edit = ({ yoke_type, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={6}>
+        <CCol md={4}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -132,6 +141,35 @@ const Edit = ({ yoke_type, onChangeView, onSubmit, errors }) => {
           />
           <CFormFeedback invalid>
             {errors?.description?.map((error, index) => (
+              <div key={index} className="d-flex align-items-center gap-1">
+                <BadgeAlert size={13} />
+                <small className="font-inter">{error}</small>
+              </div>
+            ))}
+          </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={4}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <TextInitial size={15} /> Código
+            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+          </CFormLabel>
+          <CFormInput
+            type="text"
+            name="code"
+            value={formData.code}
+            onChange={handleChange}
+            invalid={!!errors['settings.code']}
+            valid={!errors['settings.code'] && formData.code !== '' && validated}
+            className="font-montserrat custom-input"
+          />
+          <CFormFeedback invalid>
+            {errors['settings.code']?.map((error, index) => (
               <div key={index} className="d-flex align-items-center gap-1">
                 <BadgeAlert size={13} />
                 <small className="font-inter">{error}</small>

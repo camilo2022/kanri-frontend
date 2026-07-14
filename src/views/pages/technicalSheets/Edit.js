@@ -1,0 +1,694 @@
+import api from '../../../API/api'
+import { getConfig } from '../../../axiosConfig'
+import { useState } from 'react'
+import { CCard, CButton, CPopover, CFormSelect } from '@coreui/react'
+import { IoMdArrowDropright } from 'react-icons/io'
+import { useEffect } from 'react'
+import { ArrowLeftCircle, CheckCircle2, Clock, AlertCircle, Save, BadgeAlert } from 'lucide-react'
+import LoadingForm from '@/components/LoadingForm'
+import { useRef } from 'react'
+import InformationTechnicalSheet from '@/components/InformationTechnicalSheet'
+import TechnicalSheetDetail from '@/components/TechnicalSheetDetail'
+import Swal from 'sweetalert2'
+import { Toast } from '@/components/Toast'
+
+export const Edit = ({
+  product,
+  technical_sheet,
+  fetchCollections,
+  collections,
+  fetchSubgroups,
+  subgroups,
+  fetchGarmentTypes,
+  garment_types,
+  fetchWashTones,
+  wash_tones,
+  fetchColors,
+  colors,
+  fetchBackTypes,
+  back_types,
+  fetchBootTypes,
+  boot_types,
+  fetchYokeTypes,
+  yoke_types,
+  fetchWaistbandTypes,
+  waistband_types,
+  fetchEmployees,
+  employees,
+  processes,
+  supply_types,
+  variants,
+  onChangeView,
+  edit,
+  errors,
+  models,
+  statusCollection,
+  statusTechnical,
+}) => {
+  const [editingField, setEditingField] = useState(null)
+  const inputRefs = useRef({})
+  const [formData, setFormData] = useState({
+    product_id: product?.id || '',
+    collection_id: '',
+    subgroup_id: '',
+    garment_type_id: '',
+    wash_tone_id: '',
+    color_id: '',
+    back_type_id: '',
+    boot_type_id: '',
+    yoke_type_id: '',
+    waistband_type_id: '',
+    date: '',
+    measure_of_waistband: 1,
+    physical_sample: false,
+    number_of_buttons: 1,
+    pattern_maker_id: '',
+    observation: '',
+    description: '',
+    photo_d: '',
+    photo_t: '',
+    code: '',
+    status: '',
+  })
+  const [details, setDetails] = useState({})
+  const [tecVariants, setTecVariants] = useState({})
+  const [validated, setValidated] = useState(false)
+  const [catalogsData, setCatalogsData] = useState({})
+  const [dependentFields, setDependentFields] = useState({})
+  const [dinamicValues, setDinamicValues] = useState({})
+  const [staticValues, setStaticValues] = useState({})
+  const [openPopoverVariant, setOpenPopoverVariant] = useState({
+    id: null,
+  })
+  const [editingVariants, setEditingVariants] = useState(null)
+
+  useEffect(() => {
+    if (!processes || !technical_sheet?.technical_sheet_details) return
+
+    const aux_details = {}
+    const detailsMap = technical_sheet?.technical_sheet_details || {}
+
+    Object.values(processes).forEach((process) => {
+      const processDetail = detailsMap[process.id]
+
+      if (!processDetail) {
+        aux_details[process.id] = {
+          model_id: process.id,
+          model_type: 'App\\Models\\Process',
+          technical_sheet_id: technical_sheet?.id,
+          settings: {
+            dinamic: {
+              ...process?.settings?.schema?.dinamic,
+              insert_values: false,
+              values: [],
+            },
+            static: {
+              ...process?.settings?.schema?.static,
+              insert_values: false,
+              values: {},
+            },
+          },
+          status: 'Pendiente',
+        }
+      } else {
+        aux_details[process.id] = {
+          ...processDetail,
+          settings: {
+            dinamic: {
+              ...processDetail?.settings?.dinamic,
+              insert_values:
+                !processDetail?.settings?.dinamic?.body?.length &&
+                !processDetail?.settings?.dinamic?.header?.trim()
+                  ? false
+                  : (processDetail?.settings?.dinamic?.insert_values ?? false),
+            },
+            static: {
+              ...processDetail?.settings?.static,
+              insert_values:
+                !processDetail?.settings?.static?.body?.length &&
+                !processDetail?.settings?.static?.header?.length
+                  ? false
+                  : (processDetail?.settings?.static?.insert_values ?? false),
+            },
+          },
+        }
+      }
+      Object.values(process?.subprocesses || {}).forEach((subprocess) => {
+        const subDetail = detailsMap[subprocess.id]
+
+        if (!subDetail) return
+
+        aux_details[subprocess.id] = {
+          ...subDetail,
+          settings: {
+            dinamic: {
+              ...subDetail?.settings?.dinamic,
+              insert_values:
+                !subDetail?.settings?.dinamic?.body?.length &&
+                !subDetail?.settings?.dinamic?.header?.trim()
+                  ? false
+                  : (subDetail?.settings?.dinamic?.insert_values ?? false),
+            },
+            static: {
+              ...subDetail?.settings?.static,
+              insert_values:
+                !subDetail?.settings?.static?.body?.length &&
+                !subDetail?.settings?.static?.header?.length
+                  ? false
+                  : (subDetail?.settings?.static?.insert_values ?? false),
+            },
+          },
+        }
+
+        Object.values(subprocess?.operations || {}).forEach((operation) => {
+          const opDetail = detailsMap[operation.id]
+
+          if (!opDetail) return
+
+          aux_details[operation.id] = {
+            ...opDetail,
+            settings: {
+              static: {
+                ...opDetail?.settings?.static,
+                insert_values:
+                  !opDetail?.settings?.static?.body?.length &&
+                  !opDetail?.settings?.static?.header?.length
+                    ? false
+                    : (opDetail?.settings?.static?.insert_values ?? false),
+              },
+            },
+          }
+        })
+      })
+    })
+
+    setDetails({ ...aux_details })
+  }, [processes, technical_sheet])
+
+  useEffect(() => {
+    if (!details) return
+
+    setDinamicValues(
+      Array.isArray(Object.values(details))
+        ? Object.values(details).reduce((acc, detail) => {
+            const values = detail?.settings?.dinamic?.values ?? {}
+            let counter = 1
+            acc[detail.model_id] = Object.fromEntries(
+              Object.values(values).map((item) => {
+                const id = item.id ?? counter++
+                return [
+                  id,
+                  structuredClone({
+                    ...item,
+                    id,
+                  }),
+                ]
+              }),
+            )
+            return acc
+          }, {})
+        : {},
+    )
+
+    setStaticValues(
+      Array.isArray(Object.values(details))
+        ? Object.values(details).reduce((acc, detail) => {
+            acc[detail.model_id] = detail?.settings?.static?.values ?? {}
+            return acc
+          }, {})
+        : {},
+    )
+
+    const loadAllCatalogs = async () => {
+      const modelsToLoad = new Set()
+      const dependentFieldsAux = []
+      Object.values(details).forEach(async (detail) => {
+        const settings = detail?.settings || {}
+
+        if (settings.dinamic) {
+          for (const field of settings?.dinamic?.body || []) {
+            if (field.type === 'selectdinamic' && !field.param && !catalogsData[field.model]) {
+              modelsToLoad.add(field.model)
+            }
+            if (field.type === 'selectdinamic' && field.param) {
+              dependentFieldsAux.push({
+                model: field.model,
+                param: field.param,
+                field: field.field,
+              })
+            }
+          }
+        }
+
+        if (settings.static) {
+          for (const row of settings?.static?.body || []) {
+            for (const field of row || []) {
+              if (field.type === 'selectdinamic' && !field.param && !catalogsData[field.model]) {
+                modelsToLoad.add(field.model)
+              }
+              if (field.type === 'selectdinamic' && field.param) {
+                dependentFieldsAux.push({
+                  model: field.model,
+                  param: field.param,
+                  field: field.field,
+                })
+              }
+            }
+          }
+        }
+      })
+
+      for (const model of modelsToLoad) {
+        await loadCatalog(model)
+      }
+
+      setDependentFields(dependentFieldsAux)
+    }
+
+    loadAllCatalogs()
+  }, [details])
+
+  const getCatalog = async (key, modelParam = null, dependencyValue = null) => {
+    try {
+      let url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url
+
+      if (modelParam && dependencyValue && url.includes(`{${modelParam}}`)) {
+        url = url.replace(`{${modelParam}}`, dependencyValue)
+      }
+
+      const response = await api.get(url, {
+        ...getConfig(),
+      })
+
+      return response.data
+    } catch (error) {
+      console.log(error)
+      throw error.response?.data || { message: 'Error desconocido' }
+    }
+  }
+
+  const loadCatalog = async (key, modelParam = null, dependencyValue = null) => {
+    try {
+      const cacheKey = dependencyValue ? `${key}_${dependencyValue}` : key
+      if (catalogsData[cacheKey]) return
+      const res = await getCatalog(key, modelParam, dependencyValue)
+      const aux = Array.isArray(
+        res.data[Object.entries(models).find(([_, value]) => value.model === key)[0]],
+      )
+        ? res.data[Object.entries(models).find(([_, value]) => value.model === key)[0]].reduce(
+            (acc, item) => {
+              acc[item.id] = {
+                id: item.id,
+                ...(!item.person ? { ...item } : { person: item.person }),
+              }
+              return acc
+            },
+            {},
+          )
+        : {}
+
+      setCatalogsData((prev) => ({
+        ...prev,
+        [cacheKey]: aux,
+      }))
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const dataGet = (path, data, defaultValue = undefined, separator = ' ') => {
+    const getSingleValue = (singlePath) => {
+      if (!singlePath) return undefined
+
+      return singlePath
+        .replace(/\[(\w+)\]/g, '.$1')
+        .replace(/^\./, '')
+        .split('.')
+        .reduce((acc, key) => {
+          if (acc === null || acc === undefined) {
+            return undefined
+          }
+
+          return acc[key]
+        }, data)
+    }
+
+    if (Array.isArray(path)) {
+      const values = path
+        .map((p) => getSingleValue(p))
+        .filter((value) => value !== undefined && value !== null && value !== '')
+      return values.length ? values.join(separator) : defaultValue
+    }
+
+    return getSingleValue(path) ?? defaultValue
+  }
+
+  useEffect(() => {
+    if (!editingField) return
+
+    const ref = inputRefs.current[editingField]
+
+    if (ref) {
+      ref.focus()
+      if (typeof ref.openMenu === 'function') {
+        ref.openMenu('first')
+      }
+    }
+  }, [editingField])
+
+  /*
+  useEffect(() => {
+    if (Object.keys(errors).length !== 0) {
+      Toast.fire({
+        icon: 'error',
+        title: errors.message,
+      })
+    }
+  }, [errors])*/
+
+  const handleSubmit = async () => {
+    Swal.fire({
+      title: 'Editar Ficha Técnica',
+      html: `<div style="font-size:14px">
+                Se guardará la información actualizada de la ficha técnica del producto en el sistema.<br/>
+                <strong>¿Deseas continuar?</strong>
+              </div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, actualizar',
+      cancelButtonText: 'Cancelar',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await edit(technical_sheet.id, {
+            ...formData,
+            technical_sheet_details: Object.values(details).map((detail) => {
+              const settings = {
+                ...detail.settings,
+                static: {
+                  ...detail.settings.static,
+                  values: staticValues[detail.model_id] ?? {},
+                },
+              }
+
+              if (detail.model_type !== 'App\\Models\\Operations') {
+                settings.dinamic = {
+                  ...detail.settings.dinamic,
+                  values: Object.values(dinamicValues[detail.model_id] ?? {}),
+                }
+              }
+
+              return {
+                ...detail,
+                settings,
+              }
+            }),
+            variants: Object.values(tecVariants)
+              .map((item) => item?.id)
+              .filter(Boolean),
+          })
+          setValidated(true)
+          Toast.fire({
+            icon: 'success',
+            title: response.message,
+          })
+          setTimeout(() => {
+            onChangeView({ name: 'back', title: 'Listar Productos' })
+          }, 2510)
+        } catch (error) {
+          console.log(error)
+          setValidated(true)
+        }
+      } else {
+        Toast.fire({
+          icon: 'error',
+          title: 'Acción cancelada',
+        })
+      }
+    })
+  }
+
+  useEffect(() => {
+    if (!technical_sheet) return
+
+    setTecVariants({ ...technical_sheet.variants })
+  }, [technical_sheet])
+
+  const handleVariantChange = async (supply_type, data) => {
+    try {
+      setTecVariants((prev) => ({
+        ...prev,
+        [supply_type]: {
+          ...data,
+        },
+      }))
+    } catch (error) {
+      setValidated(true)
+    }
+  }
+
+  if (!product && !technical_sheet && !processes) {
+    return (
+      <LoadingForm
+        title="Cargando Información"
+        subtitle="Un momento mientras se carga la información..."
+        height="400px"
+      />
+    )
+  }
+
+  return (
+    <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
+      <div className="d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center">
+          <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
+          <span className="fw-bold fs-5 font-montserrat">Editar Ficha Tecnica</span>
+        </div>
+        <div className="d-flex justify-content-end align-items-center mt-3 gap-2">
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-add"
+            type="submit"
+            onClick={() => handleSubmit(formData)}
+          >
+            <Save size={16} /> Guardar
+          </CButton>
+          <CButton
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-revolve me-2"
+            onClick={() => {
+              onChangeView({ name: 'back', title: 'Listar Productos' })
+            }}
+          >
+            <ArrowLeftCircle size={16} /> Volver
+          </CButton>
+        </div>
+      </div>
+      <InformationTechnicalSheet
+        product={product}
+        technical_sheet={technical_sheet}
+        fetchCollections={fetchCollections}
+        collections={collections}
+        fetchSubgroups={fetchSubgroups}
+        subgroups={subgroups}
+        fetchGarmentTypes={fetchGarmentTypes}
+        garment_types={garment_types}
+        fetchWashTones={fetchWashTones}
+        wash_tones={wash_tones}
+        fetchColors={fetchColors}
+        colors={colors}
+        fetchBackTypes={fetchBackTypes}
+        back_types={back_types}
+        fetchBootTypes={fetchBootTypes}
+        boot_types={boot_types}
+        fetchYokeTypes={fetchYokeTypes}
+        yoke_types={yoke_types}
+        fetchWaistbandTypes={fetchWaistbandTypes}
+        waistband_types={waistband_types}
+        fetchEmployees={fetchEmployees}
+        employees={employees}
+        handleSubmit={handleSubmit}
+        errors={errors}
+        validated={validated}
+        formData={formData}
+        setFormData={setFormData}
+        statusTechnical={statusTechnical}
+      />
+      <div className="mt-3 mb-2 p-4">
+        <div className="d-flex align-items-center gap-3">
+          <h4 className="mb-0 fw-bold font-montserrat">Tipos de Insumos</h4>
+          <div
+            style={{
+              flex: 1,
+              height: '2px',
+              backgroundColor: '#e9ecef',
+            }}
+          />
+        </div>
+
+        <p className="text-muted mt-2 mb-3 font-poppins">
+          Seleccione la variante correspondiente para cada tipo de insumo requerido por la ficha
+          técnica.
+        </p>
+
+        <div className="custom-table-responsive font-inter">
+          <table className="table align-middle custom-corporate-table mb-0">
+            <thead>
+              <tr>
+                <th
+                  scope="col"
+                  className="text-dark fw-bold font-montserrat"
+                  style={{ fontSize: '14px', whiteSpace: 'nowrap' }}
+                >
+                  Tipo de Insumo
+                </th>
+                <th
+                  scope="col"
+                  className="text-dark fw-bold font-montserrat"
+                  style={{ fontSize: '14px' }}
+                >
+                  Descripción
+                </th>
+                <th
+                  scope="col"
+                  className="text-dark fw-bold font-montserrat"
+                  style={{ minWidth: 220, fontSize: '14px' }}
+                >
+                  Variante
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {supply_types?.map((supply_type) => {
+                const hasError = !!errors?.[`variant.${supply_type.id}`]
+
+                return (
+                  <tr key={supply_type.id} className={hasError ? 'table-row-error' : ''}>
+                    <td className="text-slate font-inter">{supply_type.name}</td>
+                    <td className="text-slate font-inter">{supply_type.description}</td>
+                    <td
+                      className="d-flex gap-2 align-items-center justify-content-between position-relative"
+                      style={{ minHeight: '53px' }}
+                    >
+                      {editingVariants === supply_type.id ? (
+                        <CFormSelect
+                          autoFocus
+                          className="custom-table-select"
+                          value={
+                            variants[supply_type.id][tecVariants?.[supply_type.id]?.id]?.value || ''
+                          }
+                          onChange={(e) => {
+                            handleVariantChange(
+                              supply_type.id,
+                              variants[supply_type.id][e.target.value].data,
+                            )
+                            setEditingVariants(null)
+                          }}
+                          onBlur={() => setEditingVariants(null)}
+                          placeholder="Seleccione..."
+                        >
+                          <option value={''}>Seleccione...</option>
+                          {Object.values(variants[supply_type.id]).map((v) => (
+                            <option key={v.value} value={v.value}>
+                              {v.label}
+                            </option>
+                          ))}
+                        </CFormSelect>
+                      ) : (
+                        <span
+                          className="text-slate editable-span-trigger font-inter"
+                          onClick={() => setEditingVariants(supply_type.id)}
+                        >
+                          {tecVariants?.[supply_type.id]?.name || 'Seleccione...'}
+                        </span>
+                      )}
+                      {hasError && (
+                        <CPopover
+                          visible={openPopoverVariant?.id === supply_type.id}
+                          placement="left"
+                          onHide={() => setOpenPopoverVariant(null)}
+                          title={
+                            <div
+                              className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                              style={{
+                                color: '#991B1B',
+                                fontSize: '0.85rem',
+                                padding: '2px 0',
+                              }}
+                            >
+                              <BadgeAlert size={15} className="text-danger" />
+                              <span>Errores de validación</span>
+                            </div>
+                          }
+                          content={
+                            <div
+                              className="font-inter custom-popover-error"
+                              style={{
+                                maxWidth: '260px',
+                                fontSize: '0.82rem',
+                              }}
+                            >
+                              {errors?.[`variant.${supply_type.id}`].map((err, i) => (
+                                <div
+                                  key={i}
+                                  className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                >
+                                  <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                </div>
+                              ))}
+                            </div>
+                          }
+                        >
+                          <span
+                            style={{
+                              cursor: 'pointer',
+                              color: '#ef4444',
+                              display: 'flex',
+                              alignItems: 'center',
+                              paddingLeft: '4px',
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setOpenPopoverVariant((prev) => {
+                                if (prev?.id === supply_type.id) {
+                                  return null
+                                }
+                                return { id: supply_type.id }
+                              })
+                            }}
+                          >
+                            <BadgeAlert size={16} />
+                          </span>
+                        </CPopover>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <TechnicalSheetDetail
+        product={product}
+        technical_sheet={technical_sheet}
+        processes={processes}
+        errors={errors}
+        models={models}
+        statusCollection={statusCollection}
+        details={details}
+        setDetails={setDetails}
+        dinamicValues={dinamicValues}
+        setDinamicValues={setDinamicValues}
+        validated={validated}
+        staticValues={staticValues}
+        setStaticValues={setStaticValues}
+        catalogsData={catalogsData}
+        dataGet={dataGet}
+        loadCatalog={loadCatalog}
+      />
+    </CCard>
+  )
+}
+
+export default Edit

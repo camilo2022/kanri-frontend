@@ -99,7 +99,7 @@ const Create = ({ onChangeView, onSubmit, errors, processes }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 

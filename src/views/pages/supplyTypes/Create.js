@@ -1,7 +1,24 @@
 import { useState } from 'react'
-import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
+import {
+  CCard,
+  CFormInput,
+  CCol,
+  CButton,
+  CForm,
+  CFormFeedback,
+  CFormLabel,
+  CFormCheck,
+} from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
-import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
+import {
+  Save,
+  ArrowLeftCircle,
+  BadgeCheck,
+  BadgeAlert,
+  TextInitial,
+  ListChecks,
+  FileCheckCorner,
+} from 'lucide-react'
 import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 
@@ -10,6 +27,8 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    has_variants: true,
+    in_technical_sheet: true,
   })
 
   const handleSubmit = async (event) => {
@@ -29,7 +48,25 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(formData)
+          const inf = {
+            name: formData.name,
+            description: formData.description,
+            settings: {
+              has_variants: formData.has_variants,
+              in_technical_sheet: formData.in_technical_sheet,
+              form: [
+                {
+                  id: 1,
+                  type: 'selectdinamic',
+                  field: 'supplier',
+                  label: 'PROVEEDOR',
+                  model: 'App\\Models\\Supplier',
+                  rules: ['nullable', 'exists:subitems,id,item_id,App\\Models\\Supplier::ITEM_ID'],
+                },
+              ],
+            },
+          }
+          const response = await onSubmit(inf)
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -39,6 +76,8 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             setFormData({
               name: '',
               description: '',
+              has_variants: true,
+              in_technical_sheet: false,
             })
             onChangeView({ name: 'list', title: 'Listar Tipos de Insumo' })
           }, 2510)
@@ -59,7 +98,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toUpperCase(),
     }))
   }
 
@@ -121,6 +160,79 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
               </div>
             ))}
           </CFormFeedback>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <ListChecks size={15} /> ¿Tiene variantes?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              id="has_variants"
+              name="has_variants"
+              checked={formData.has_variants}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  has_variants: e.target.checked,
+                }))
+              }}
+              label={
+                <label
+                  htmlFor="has_variants"
+                  className="font-montserrat cursor-pointer"
+                  style={{ marginBottom: 0 }}
+                >
+                  Selecciona si el tipo de insumo tendrá variantes
+                </label>
+              }
+              valid={formData.has_variants && validated}
+            />
+          </div>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <FileCheckCorner size={15} /> ¿Pertenece a la ficha técnica?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="in_technical_sheet"
+              label={
+                <span className="font-montserrat">Selecciona si pertenece a la ficha tecnica</span>
+              }
+              checked={formData.in_technical_sheet}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  in_technical_sheet: e.target.checked,
+                }))
+              }}
+              valid={formData.in_technical_sheet && validated}
+            />
+          </div>
           <CFormFeedback valid>
             <div className="d-flex align-items-center gap-1">
               <BadgeCheck size={13} />

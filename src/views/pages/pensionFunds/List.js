@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.pension_funds?.map((pensionFund) => {
     return {
       ...pensionFund,
-      description: pensionFund.description || 'No Aplica',
+      description: pensionFund.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

@@ -170,7 +170,7 @@ export const List = ({
   const formattedData = data?.thread_types?.map((thread_type) => {
     return {
       ...thread_type,
-      description: thread_type.description || 'No Aplica',
+      description: thread_type.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

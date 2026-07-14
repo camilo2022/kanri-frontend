@@ -11,12 +11,9 @@ import {
   CForm,
   CFormLabel,
   CFormInput,
-  CFormCheck,
-  CSpinner,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import {
-  User,
   Mail,
   ShieldCheck,
   Key,
@@ -104,12 +101,11 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
               </CCol>
             </CForm>
           </CCol>
-          <CCol md={12} className="mb-4">
-            <CCard className="h-100 p-4 shadow-sm border-0">
+          <CCol md={12}>
+            <div className="mb-4 mt-3 px-4">
               <h6 className="mb-3 fw-bold d-flex align-items-center gap-2 font-poppins">
-                <ShieldCheck size={18} className="text-primary" /> Roles y Permisos Disponibles
+                <ShieldCheck size={18} style={{ color: '#C21111' }} /> Roles y Permisos Disponibles
               </h6>
-
               {!Array.isArray(roles) ? (
                 <div className="text-center">
                   <div className="d-flex flex-column align-items-center justify-content-center">
@@ -207,12 +203,6 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
                                           }
                                         }}
                                       />
-                                      <small
-                                        className="text-muted mt-1"
-                                        style={{ fontSize: '9px', fontWeight: 'bold' }}
-                                      >
-                                        TODOS
-                                      </small>
                                     </div>
                                   </div>
                                 </th>
@@ -254,7 +244,7 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
                   )
                 })
               )}
-            </CCard>
+            </div>
           </CCol>
         </CRow>
       </CCard>

@@ -171,7 +171,7 @@ export const List = ({
   const formattedData = data?.genders?.map((gender) => {
     return {
       ...gender,
-      description: gender.description || 'No Aplica',
+      description: gender.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">

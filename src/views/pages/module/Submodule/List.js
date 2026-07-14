@@ -176,7 +176,7 @@ export const List = ({
           )}
         </>
       ),
-      permission: submodulo.permission.title || 'No Aplica',
+      permission: submodulo.permission.title || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
