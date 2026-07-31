@@ -1855,6 +1855,10 @@ th.sticky-actions-products {
   background-color: #fef2f2 !important;
 }
 
+.table-row-error td {
+  background-color: #fef2f2 !important;
+}
+
 .editable-span-trigger {
   display: block;
   width: 100%;
@@ -2008,6 +2012,17 @@ input[type='number']::-webkit-inner-spin-button {
   transition: background-color 0.2s ease;
 }
 
+.btn-edit-ref {
+  width: 20px;
+  height: 20px;
+  background-color: #cee3ff;
+  transition: background-color 0.2s ease;
+}
+
+.btn-edit-ref:hover {
+  background-color: #b6d2f5 !important;
+}
+
 .btn-close-ref:hover {
   background-color: #cbd5e1 !important;
 }
@@ -2025,6 +2040,18 @@ input[type='number']::-webkit-inner-spin-button {
 
 .btn-reasignar-lote:hover {
   background-color: #d97706 !important;
+}
+
+.btn-reasignar-lote:disabled {
+  background-color: #f0ad00 !important;
+  border-color: #f0ad00 !important;
+  color: white !important;
+  filter: grayscale(20%);
+  opacity: 0.7;
+}
+
+.btn-reasignar-lote:disabled svg {
+  opacity: 0.8;
 }
 
 .table-totals-row {

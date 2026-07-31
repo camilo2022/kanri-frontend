@@ -102,8 +102,6 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
         url = url.replace(`{supply_type_id}`, dependencyValue)
       }
 
-      console.log(url)
-
       const response = await api.get(url, {
         ...getConfig(),
       })
@@ -115,7 +113,6 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
   }
 
   const loadCatalog = async (key, dependencyValue = null) => {
-    console.log(key, dependencyValue)
     const cacheKey = dependencyValue ? `${key}_${dependencyValue}` : key
     if (catalogsData[cacheKey]) return
     const res = await getCatalog(key, dependencyValue)

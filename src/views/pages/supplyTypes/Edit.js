@@ -8,6 +8,8 @@ import {
   CFormFeedback,
   CFormLabel,
   CFormCheck,
+  CInputGroup,
+  CFormSelect,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
@@ -62,6 +64,8 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
               ...formData.settings,
               has_variants: formData.settings.has_variants,
               in_technical_sheet: formData.settings.in_technical_sheet,
+              in_production_order: formData.settings.in_production_order,
+              paragraph: formData.settings.paragraph,
             },
           }
           const response = await onSubmit(supply_type.id, inf)
@@ -247,6 +251,91 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
               <small className="font-inter">Dato Válido</small>
             </div>
           </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <ListChecks size={15} /> ¿Pertenece a la orden de producción?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="in_production_order"
+              label={
+                <span className="font-montserrat">
+                  Selecciona si pertenece a la orden de producción
+                </span>
+              }
+              checked={formData?.settings?.in_production_order}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  settings: {
+                    ...prev.settings,
+                    in_production_order: e.target.checked,
+                    paragraph: '',
+                  },
+                }))
+              }}
+              valid={formData?.settings?.in_production_order && validated}
+            />
+          </div>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <ListChecks size={15} /> ¿A que apartado pertenece?
+          </CFormLabel>
+          <CInputGroup>
+            <CFormSelect
+              name="paragraph"
+              value={formData?.settings?.paragraph}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  settings: {
+                    ...prev.settings,
+                    paragraph: e.target.value,
+                  },
+                }))
+              }}
+              disabled={!formData.settings?.in_production_order}
+              options={[
+                { label: 'Seleccione una opción', value: '' },
+                { label: 'TELA', value: 'fabric' },
+                { label: 'ROLLO', value: 'roll' },
+              ]}
+              invalid={!!errors?.paragraph}
+              valid={!errors?.paragraph && formData.settings?.paragraph !== '' && validated}
+              style={{ borderRadius: '5px 5px 5px 5px' }}
+              className="font-montserrat input-custom"
+            />
+            <CFormFeedback invalid>
+              {errors?.paragraph?.map((error, index) => (
+                <div key={index} className="d-flex align-items-center gap-1">
+                  <BadgeAlert size={13} />
+                  <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                    {error}
+                  </small>
+                </div>
+              ))}
+            </CFormFeedback>
+            <CFormFeedback valid>
+              <div className="d-flex align-items-center gap-1">
+                <BadgeCheck size={13} />
+                <small className="font-inter">Dato Válido</small>
+              </div>
+            </CFormFeedback>
+          </CInputGroup>
         </CCol>
         <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton

@@ -1,5 +1,5 @@
-import { CFormInput, CButton, CTooltip } from '@coreui/react'
-import { Plus, Trash2, ClipboardPaste, ScissorsLineDashed, Shell } from 'lucide-react'
+import { CFormInput, CButton, CTooltip, CPopover } from '@coreui/react'
+import { Plus, Trash2, ClipboardPaste, ScissorsLineDashed, Shell, BadgeAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
@@ -9,14 +9,9 @@ import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
 import LoadingForm from '@/components/LoadingForm'
 
 const TableRolls = ({
-  pieces,
-  piecesAux,
-  setPiecesAux,
   rollsAux,
   setRollsAux,
   setModalAddRoll,
-  structure,
-  models,
   errors,
   validated,
   rolls,
@@ -27,54 +22,8 @@ const TableRolls = ({
   const [editing, setEditing] = useState({})
   const [rows, setRows] = useState([])
   const [openPopover, setOpenPopover] = useState({
-    row: null,
-    field: null,
+    id: null,
   })
-
-  const totalQuantities = Object.values(piecesAux).reduce((sum, item) => {
-    const qty = parseFloat(item?.quantity)
-    return !isNaN(qty) ? sum + qty : sum
-  }, 0)
-
-  const customFilterOption = (option, rawInput) => {
-    const words = rawInput.toLowerCase().split(' ')
-    const label = option.label.toLowerCase()
-    return words.every((word) => label.includes(word))
-  }
-
-  const clearChildren = (row, parentField) => {
-    structure.body.forEach((item) => {
-      let depends = false
-
-      if (item.param) {
-        const modelParam = Object.values(models).find((model) => model.model === item.param)?.field
-
-        if (modelParam === parentField) {
-          depends = true
-        }
-      }
-
-      if (item.depend === parentField) {
-        depends = true
-      }
-
-      if (depends) {
-        row[item.field] = null
-
-        clearChildren(row, item.field)
-      }
-    })
-  }
-
-  const handleChange = (index, field, value) => {
-    setPiecesAux((prev) => ({
-      ...prev,
-      [index]: {
-        ...prev[index],
-        [field]: value,
-      },
-    }))
-  }
 
   const handleDeleteRow = async (index) => {
     const result = await Swal.fire({
@@ -110,14 +59,6 @@ const TableRolls = ({
     })
   }
 
-  useEffect(() => {
-    const closePopover = () => setOpenPopover(null)
-    document.addEventListener('click', closePopover)
-    return () => {
-      document.removeEventListener('click', closePopover)
-    }
-  }, [])
-
   const loadRolls = async () => {
     if (rolls) return
     try {
@@ -137,8 +78,6 @@ const TableRolls = ({
     )
   }
 
-  console.log(rollsAux)
-
   const rollsArray = rollsAux ? Object.values(rollsAux) : []
 
   const totalMetros = rollsArray.reduce((sum, item) => {
@@ -152,7 +91,7 @@ const TableRolls = ({
   }, 0)
 
   const totalUtilizados = rollsArray.reduce((sum, item) => {
-    const val = parseFloat(item?.used)
+    const val = parseFloat(item?.utilized)
     return !isNaN(val) ? sum + val : sum
   }, 0)
 
@@ -163,7 +102,7 @@ const TableRolls = ({
         style={{ borderColor: '#E2E8F0' }}
       >
         <div
-          className="d-flex align-items-center justify-content-between px-3 py-2"
+          className={`d-flex align-items-center justify-content-between px-3 py-2 ${errors?.['rolls'] ? 'header-switch-container-error' : ''}`}
           style={{ borderBottom: '1px solid #E2E8F0' }}
         >
           <div className="d-flex align-items-center text-center gap-2">
@@ -179,6 +118,61 @@ const TableRolls = ({
             >
               ROLLOS DE TELA A UTILIZAR
             </span>
+            {errors?.['rolls'] && (
+              <CPopover
+                visible={openPopover?.table === 'rolls'}
+                placement="top"
+                onHide={() => setOpenPopover(null)}
+                title={
+                  <div
+                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                    style={{
+                      color: '#991B1B',
+                      fontSize: '0.85rem',
+                      padding: '2px 0',
+                    }}
+                  >
+                    <BadgeAlert size={15} className="text-danger" />
+                    <span>Errores de validación</span>
+                  </div>
+                }
+                content={
+                  <div
+                    className="font-inter custom-popover-error"
+                    style={{
+                      maxWidth: '260px',
+                      fontSize: '0.82rem',
+                    }}
+                  >
+                    {errors?.['rolls'].map((err, i) => (
+                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                      </div>
+                    ))}
+                  </div>
+                }
+              >
+                <span
+                  style={{
+                    cursor: 'pointer',
+                    color: '#ef4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setOpenPopover((prev) => {
+                      if (prev?.table === 'rolls') {
+                        return null
+                      }
+                      return { table: 'rolls' }
+                    })
+                  }}
+                >
+                  <BadgeAlert size={16} />
+                </span>
+              </CPopover>
+            )}
           </div>
           <div className="d-flex align-items-center gap-2">
             <CButton
@@ -189,18 +183,6 @@ const TableRolls = ({
               onClick={async () => {
                 setModalAddRoll(true)
                 await loadRolls()
-                /*
-                const ids = Object.keys(piecesAux ?? {})
-                const newId = ids.length === 0 ? 1 : Math.max(...ids) + 1
-
-                setPiecesAux((prev) => ({
-                  ...prev,
-                  [newId]: {
-                    piece: null,
-                    quantity: 1,
-                  },
-                }))
-                  */
               }}
             >
               <Plus size={16} /> Agregar Rollo
@@ -289,13 +271,11 @@ const TableRolls = ({
                 <>
                   {Object.entries(rollsAux).map(([index, value]) => (
                     <tr key={index}>
-                      {console.log(value)}
                       <td
                         key={`${index}-fabric`}
                         className={`py-2 px-2 text-muted text-center border-end border-light align-middle ${validated && errors?.[index]?.[field.field] ? 'table-cell-errors' : ''} ${validated === false ? (editing[index]?.includes(field.field) ? 'table-cell-modified' : rows.includes(index) ? 'table-cell-row-modified' : '') : ''}`}
                         style={{ minWidth: '350px' }}
                       >
-                        {console.log(index, value)}
                         <span className="table-input font-inter">
                           {`${value.variant.name} - ${value.variant.description}`}{' '}
                         </span>
@@ -331,16 +311,31 @@ const TableRolls = ({
                         <CFormInput
                           type="number"
                           min={0}
-                          value={value.used || ''}
-                          onChange={(e) =>
-                            setRollsAux((prev) => ({
-                              ...prev,
-                              [index]: {
-                                ...prev[index],
-                                used: e.target.value,
-                              },
-                            }))
-                          }
+                          max={value.available}
+                          value={value.utilized || ''}
+                          onChange={(e) => {
+                            const input = e.target.value
+                            if (input === '') {
+                              setRollsAux((prev) => ({
+                                ...prev,
+                                [index]: {
+                                  ...prev[index],
+                                  utilized: 0,
+                                },
+                              }))
+                              return
+                            }
+                            const utilized = Number(input)
+                            if (utilized <= value.available) {
+                              setRollsAux((prev) => ({
+                                ...prev,
+                                [index]: {
+                                  ...prev[index],
+                                  utilized,
+                                },
+                              }))
+                            }
+                          }}
                           className="table-input border-0 shadow-none py-1 font-inter w-100 text-center"
                         />
                       </td>

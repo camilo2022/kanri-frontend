@@ -1,5 +1,6 @@
 import api from '../API/api'
 import { getConfig } from '../axiosConfig'
+
 /*
 const all = async (params) => {
   try {

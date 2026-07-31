@@ -23,6 +23,7 @@ import {
   FileText,
   ChevronUp,
   ArrowLeftCircle,
+  FileDown,
 } from 'lucide-react'
 import no_data from '../../../../assets/images/no-data.png'
 import { Toast } from '@/components/Toast'
@@ -36,6 +37,7 @@ export const List = ({
   onChangeView,
   errors,
   technical_sheet,
+  generatePDF,
 }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
@@ -80,10 +82,45 @@ export const List = ({
     }
   }, [errors])
 
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'Aprobado':
+        return 'status-badge-approved'
+
+      case 'En revision':
+        return 'status-badge-review'
+
+      case 'Pendiente':
+        return 'status-badge-pending'
+
+      case 'Cancelado':
+        return 'status-badge-rejected'
+
+      default:
+        return 'status-badge-empty'
+    }
+  }
+
   const formattedData = data?.production_orders?.map((production_order) => {
     return {
       ...production_order,
+      references: `${production_order.technical_sheet.product.code}${
+        production_order.production_order_details.some((item) => item.destination === 'STARA')
+          ? ` | ${production_order.technical_sheet.products[0].code}`
+          : ''
+      }`,
+      consecutive: production_order.consecutive || '-',
       cut: production_order.cut || '-',
+      total: production_order.production_order_details
+        .find((item) => item.model_type === 'App\\Models\\Variant')
+        ?.production_order_detail_quantities?.reduce((acc, item) => {
+          return acc + item.quantity
+        }, 0),
+      status: (
+        <div className={`status-badge ${getStatusClass(production_order.status)}`}>
+          {production_order.status}
+        </div>
+      ),
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <div className="position-relative">
@@ -95,9 +132,30 @@ export const List = ({
                   !user_active?.permissions.some((p) => p.name === 'products.find') ||
                   !user_active?.permissions.some((p) => p.name === 'products.update')
                 }
-                onClick={() => setShowEditMenu(showEditMenu === product.id ? null : product.id)}
+                onClick={() =>
+                  onChangeView({
+                    name: 'edit',
+                    title: 'Editar Orden de Producción',
+                    production_order: production_order.id,
+                  })
+                }
               >
                 <Pencil size={18} strokeWidth={1.5} />
+              </button>
+            </CTooltip>
+          </div>
+          <div className="position-relative">
+            <CTooltip content="Descargar PDF" placement="top">
+              <button
+                className="action-btn download-btn"
+                disabled={
+                  !!production_order.deleted_at ||
+                  !user_active?.permissions.some((p) => p.name === 'products.find') ||
+                  !user_active?.permissions.some((p) => p.name === 'products.update')
+                }
+                onClick={() => generatePDF(production_order.id)}
+              >
+                <FileDown size={18} strokeWidth={1.5} />
               </button>
             </CTooltip>
           </div>
@@ -150,8 +208,24 @@ export const List = ({
       ),
     },
     {
+      key: 'consecutive',
+      label: <div className="text-center">Código</div>,
+    },
+    {
       key: 'cut',
-      label: <div className="text-center">Corte</div>,
+      label: <div className="text-center">Lote</div>,
+    },
+    {
+      key: 'references',
+      label: <div className="text-center">Referencias</div>,
+    },
+    {
+      key: 'total',
+      label: <div className="text-center">Cantidad</div>,
+    },
+    {
+      key: 'status',
+      label: <div className="text-center">Estado</div>,
     },
     {
       key: 'acciones',
@@ -175,7 +249,7 @@ export const List = ({
     }
   }
 
-  if (!technical_sheet) {
+  if (!technical_sheet || !data) {
     return (
       <LoadingForm
         title="Cargando ordenes de producción"
@@ -218,9 +292,9 @@ export const List = ({
                   (p) => p.name === 'technical_sheets.production_orders.store',
                 )
               }
-              onClick={() => onChangeView({ name: 'create', title: 'Agregar Lote' })}
+              onClick={() => onChangeView({ name: 'create', title: 'Crear orden de producción' })}
             >
-              <CirclePlus /> Agregar Lote
+              <CirclePlus /> Crear Orden
             </CButton>
           </div>
         </div>

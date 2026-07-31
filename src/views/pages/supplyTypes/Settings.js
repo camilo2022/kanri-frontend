@@ -41,8 +41,6 @@ const Settings = ({
   fetchSupplyTypes,
   supply_types,
 }) => {
-  console.log(models)
-  console.log(supply_types)
   const [catalogsData, setCatalogsData] = useState({})
   const [validated, setValidated] = useState(false)
   const [editingIndex, setEditingIndex] = useState(null)
@@ -665,7 +663,6 @@ const Settings = ({
                                     const selected = fieldTypes
                                       .flatMap((group) => group.options)
                                       .find((option) => option.value === e.target.value)
-                                    console.log(selected)
                                     const newType = e.target.value
                                     const newSchema = structure.map((item, i) =>
                                       i === index
@@ -767,7 +764,6 @@ const Settings = ({
                                           style={{ fontSize: '12px' }}
                                           value={field.supply_type_id || ''}
                                           onChange={(e) => {
-                                            console.log(e.target.value)
                                             updateField(index, 'supply_type_id', e.target.value)
                                           }}
                                         >

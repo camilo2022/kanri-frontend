@@ -9,6 +9,26 @@ export const thStyle = {
   verticalAlign: 'middle',
 }
 
+export const thStyleSpc = {
+  backgroundColor: '#F8FAFC',
+  color: '#334155',
+  fontSize: '.78rem',
+  fontWeight: 700,
+  padding: '14px 12px',
+  borderBottom: '1px solid #E2E8F0',
+  verticalAlign: 'middle',
+}
+
+export const thStyleSpcf = {
+  backgroundColor: '#F8FAFC',
+  color: '#334155',
+  fontSize: '.78rem',
+  fontWeight: 700,
+  padding: '14px 12px',
+  borderRight: '1px solid #E2E8F0',
+  verticalAlign: 'middle',
+}
+
 export const thStyleSpecific = {
   backgroundColor: '#F8FAFC',
   color: '#334155',
@@ -396,6 +416,93 @@ export const getSelectStylesInsert = ({ isInvalid = false, isValid = false } = {
   singleValue: (base, state) => ({
     ...base,
     color: '#212529',
+  }),
+})
+
+export const getSelectStylesInsertUniq = ({ isInvalid = false, isValid = false } = {}) => ({
+  dropdownIndicator: (base, state) => ({
+    ...base,
+    display: !state.isFocused && 'none',
+  }),
+  indicatorSeparator: (state) => ({
+    display: !state.isFocused && 'none',
+  }),
+  control: (base, state) => ({
+    ...base,
+    fontSize: '0.82rem ',
+    border: 'none',
+    display: 'flex',
+    minHeight: '30px',
+    alignItems: 'center',
+    borderRadius: '0.375rem',
+    cursor: 'pointer',
+    color: '#212529',
+    borderColor: state.isFocused
+      ? isInvalid
+        ? '#dc3545'
+        : isValid
+          ? '#198754'
+          : '#1857b6'
+      : 'transparent',
+    boxShadow: state.isFocused
+      ? isInvalid
+        ? '0 0 0 0.2rem rgba(253, 21, 13, 0.25)'
+        : isValid
+          ? '0 0 0 0.2rem rgba(25, 135, 84, 0.25)'
+          : '0 0 0 2px rgba(36, 36, 127, 0.1)'
+      : 'none',
+
+    backgroundColor: state.isFocused
+      ? isInvalid
+        ? '0 0 0 0.2rem rgba(253, 21, 13, 0.25)'
+        : isValid
+          ? '0 0 0 0.2rem rgba(25, 135, 84, 0.25)'
+          : '#f8fafc'
+      : 'none',
+  }),
+
+  menuPortal: (base) => ({
+    ...base,
+    zIndex: 9999,
+    fontFamily: 'Inter, sans-serif',
+    fontSize: '0.82rem ',
+  }),
+
+  menu: (base) => ({
+    ...base,
+    zIndex: 9999,
+    borderRadius: '0.375rem',
+    overflow: 'hidden',
+  }),
+
+  menuList: (base) => ({
+    ...base,
+    padding: 0,
+  }),
+
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused ? '#f1f3f5' : 'white',
+    color: state.isSelected ? '#1b3761' : '#212529',
+    fontWeight: state.isSelected ? 'bold' : 'normal',
+    borderRadius: 0,
+  }),
+
+  singleValue: (base, state) => ({
+    ...base,
+    margin: 0,
+    color: '#212529',
+  }),
+
+  valueContainer: (base) => ({
+    ...base,
+    padding: '0 8px',
+  }),
+
+  input: (base) => ({
+    ...base,
+    margin: 0,
+    padding: 0,
   }),
 })
 

@@ -27,7 +27,6 @@ import {
 import Select from 'react-select'
 import { useRef } from 'react'
 import { getSelectStyles } from '@/components/StyleManagementCollection'
-import { useSelector } from 'react-redux'
 
 const EditableField = ({
   label,
@@ -41,7 +40,7 @@ const EditableField = ({
 }) => {
   return (
     <>
-      <div className="d-flex flex-column gap-2">
+      <div className="d-flex flex-column gap-1">
         <CFormLabel className="d-flex gap-2 font-inter mb-0">
           {label}
           {is_required ? <span style={{ color: 'red', marginLeft: '-5px' }}>*</span> : ''}
@@ -78,18 +77,9 @@ const EditableField = ({
   )
 }
 
-const getAlphabetConsecutive = (index) => {
-  let consecutive = ''
-  while (index >= 0) {
-    consecutive = String.fromCharCode((index % 26) + 65) + consecutive
-    index = Math.floor(index / 26) - 1
-  }
-  return consecutive
-}
-
 const InformationProductionOrder = ({
-  technical_sheet,
   production_order = null,
+  technical_sheet,
   status_orders,
   fabrics,
   fetchFabrics,
@@ -98,19 +88,24 @@ const InformationProductionOrder = ({
   formData,
   setFormData,
   findFabric,
+  findColor,
+  setRollsAux,
+  trazosFile,
+  setTrazosFile,
+  strokesCutA,
 }) => {
-  const total = useSelector((state) => state.total_orders)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
 
   const [photoDPreview, setPhotoDPreview] = useState(null)
   const [photoTPreview, setPhotoTPreview] = useState(null)
-  const [trazosFile, setTrazosFile] = useState(null)
 
   const [showFullscreen, setShowFullscreen] = useState(false)
 
   const isInvalidFabric = !!errors?.fabric_id
   const isValidFabric = !errors?.fabric_id && formData?.fabric_id !== '' && validated
+  const isInvalidColor = !!errors?.color_id
+  const isValidColor = !errors?.color_id && formData?.color_id !== '' && validated
   const isInvalidStatus = !!errors?.status
   const isValidStatus = !errors?.status && formData?.status !== '' && validated
   const isInvalidPhotoD = !!errors?.['photo_d.file']
@@ -143,6 +138,11 @@ const InformationProductionOrder = ({
   }, [formData.fabric_id])
 
   useEffect(() => {
+    if (!formData.color_id) return
+    findColor(formData.color_id)
+  }, [formData.color_id])
+
+  useEffect(() => {
     if (Object.values(production_order || {}).length !== 0) {
       setFormData((prev) => ({
         ...prev,
@@ -150,15 +150,30 @@ const InformationProductionOrder = ({
         status: production_order.status || 'Pendiente',
         consecutive: production_order.consecutive,
         pocket_fabric: production_order.pocket_fabric,
-        fabric_id: production_order.fabric_id,
+        fabric_id: production_order.fabric?.model?.id,
+        color_id: production_order.color[0]?.id,
+        fabric: production_order.fabric?.model,
+        color: production_order.color[0],
         width: production_order.width,
         efficiency: production_order.efficiency,
+        cut: production_order.cut,
+        observation: production_order.observation,
+        trazos_file: null,
       }))
-      if (production_order.trazos) {
-        setTrazosFile({ name: production_order.trazos, isExisting: true })
+      if (production_order.strokes) {
+        setTrazosFile(production_order.strokes)
       }
     }
   }, [production_order])
+
+  useEffect(() => {
+    if (!strokesCutA) return
+    setTrazosFile(strokesCutA)
+    setFormData((prev) => ({
+      ...prev,
+      trazos_file: strokesCutA.id,
+    }))
+  }, [strokesCutA])
 
   const loadFabrics = async () => {
     if (fabrics) return
@@ -176,17 +191,25 @@ const InformationProductionOrder = ({
   }
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+    if (field === 'fabric_id') {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+        ['color_id']: null,
+        ['color']: null,
+      }))
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }))
+    }
   }
 
   const handleTrazosChange = (e) => {
     const file = e.target.files[0]
     if (file) {
       setTrazosFile(file)
-      // Si manejas el archivo dentro de tu formData global:
       handleChange('trazos_file', file)
     }
   }
@@ -195,8 +218,6 @@ const InformationProductionOrder = ({
     setTrazosFile(null)
     handleChange('trazos_file', null)
   }
-
-  console.log(formData.fabric_id)
 
   return (
     <div className="position-relative mt-4 p-4 border rounded-3" style={{ borderColor: '#e2e8f0' }}>
@@ -220,7 +241,7 @@ const InformationProductionOrder = ({
             paddingLeft: '6px',
           }}
         >
-          {getAlphabetConsecutive(total)}
+          {formData.cut || ''}
         </span>
       </div>
       <CRow className="g-3 mb-1">
@@ -261,7 +282,7 @@ const InformationProductionOrder = ({
                         className={`img-fluid rounded ${isValidPhotoD ? 'image-valid' : isInvalidPhotoD ? 'image-invalid' : 'border'}`}
                         style={{
                           width: '100%',
-                          height: '270px',
+                          height: validated ? '270px' : '255px',
                           objectFit: 'contain',
                           background: '#f8f9fa',
                         }}
@@ -326,7 +347,7 @@ const InformationProductionOrder = ({
                         className={`img-fluid rounded ${isValidPhotoT ? 'image-valid' : isInvalidPhotoT ? 'image-invalid' : 'border'}`}
                         style={{
                           width: '100%',
-                          height: '270px',
+                          height: validated ? '270px' : '255px',
                           objectFit: 'contain',
                           background: '#f8f9fa',
                         }}
@@ -359,9 +380,9 @@ const InformationProductionOrder = ({
           </CRow>
         </CCol>
         <CCol md={12} lg={9}>
-          <CRow className="g-3">
-            <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
+          <CRow className={validated ? 'g-2' : 'g-3'}>
+            <CCol md={3}>
+              <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Referencia</CFormLabel>
                 <span
                   className={`editable-field-disabled input-custom ${
@@ -372,8 +393,8 @@ const InformationProductionOrder = ({
                 </span>
               </div>
             </CCol>
-            <CCol md={4}>
-              <div className="d-flex flex-column gap-2">
+            <CCol md={3}>
+              <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Marca</CFormLabel>
                 <span
                   className={`editable-field-disabled input-custom ${!technical_sheet?.product?.trademark?.name ? 'placeholder' : ''}`}
@@ -382,8 +403,8 @@ const InformationProductionOrder = ({
                 </span>
               </div>
             </CCol>
-            <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
+            <CCol md={3}>
+              <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Grupo</CFormLabel>
                 <span
                   className={`editable-field-disabled input-custom ${
@@ -394,8 +415,18 @@ const InformationProductionOrder = ({
                 </span>
               </div>
             </CCol>
+            <CCol md={3}>
+              <div className="d-flex flex-column gap-1">
+                <CFormLabel className="font-inter mb-0">Tipo de Prenda</CFormLabel>
+                <span
+                  className={`editable-field-disabled input-custom ${!technical_sheet?.garment_type?.name ? 'placeholder' : ''}`}
+                >
+                  {technical_sheet?.garment_type?.name}
+                </span>
+              </div>
+            </CCol>
             <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
+              <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Categoría</CFormLabel>
                 <span
                   className={`editable-field-disabled input-custom ${
@@ -407,34 +438,12 @@ const InformationProductionOrder = ({
               </div>
             </CCol>
             <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
+              <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Subcategoría</CFormLabel>
                 <span
                   className={`editable-field-disabled input-custom ${!technical_sheet?.product?.subcategory?.name ? 'placeholder' : ''}`}
                 >
                   {technical_sheet?.product?.subcategory?.name}
-                </span>
-              </div>
-            </CCol>
-            <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
-                <CFormLabel className="font-inter mb-0">Tipo de Prenda</CFormLabel>
-                <span
-                  className={`editable-field-disabled input-custom ${!technical_sheet?.garment_type?.name ? 'placeholder' : ''}`}
-                >
-                  {technical_sheet?.garment_type?.name}
-                </span>
-              </div>
-            </CCol>
-            <CCol md={8}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
-                <CFormLabel className="font-inter mb-0">Colección</CFormLabel>
-                <span
-                  className={`editable-field-disabled input-custom ${
-                    !technical_sheet?.collection?.name ? 'placeholder' : ''
-                  }`}
-                >
-                  {`${technical_sheet?.collection?.name} - ${technical_sheet?.collection?.description}`}
                 </span>
               </div>
             </CCol>
@@ -466,12 +475,22 @@ const InformationProductionOrder = ({
                     } ${validated ? (errors?.date ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={() => setEditingField('date')}
                   >
-                    {!!formData?.date
-                      ? formData?.date
-                      : production_order?.date || 'Seleccione una fecha'}
+                    {formData?.date || 'Seleccione una fecha'}
                   </span>
                 }
               />
+            </CCol>
+            <CCol md={8}>
+              <div className="d-flex flex-column gap-2">
+                <CFormLabel className="font-inter mb-0">Colección</CFormLabel>
+                <span
+                  className={`editable-field-disabled input-custom ${
+                    !technical_sheet?.collection?.name ? 'placeholder' : ''
+                  }`}
+                >
+                  {`${technical_sheet?.collection?.name} - ${technical_sheet?.collection?.description}`}
+                </span>
+              </div>
             </CCol>
             <CCol md={4}>
               <EditableField
@@ -523,7 +542,7 @@ const InformationProductionOrder = ({
               />
             </CCol>
             <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
+              <div className="d-flex flex-column gap-2">
                 <CFormLabel className="font-inter mb-0">¿Tela Bolsillo?</CFormLabel>
                 <div
                   className={`editable-field input-custom ${validated && (errors?.pocket_fabric ? 'is-invalid' : 'is-valid')} ${!formData?.pocket_fabric && 'placeholder'}`}
@@ -598,53 +617,6 @@ const InformationProductionOrder = ({
                 }
               />
             </CCol>
-            <CCol md={8}>
-              <EditableField
-                label={'Tela'}
-                editing={editingField === 'fabric'}
-                error={errors?.fabric_id}
-                valid={formData?.fabric_id !== '' && validated}
-                validated={validated}
-                editor={
-                  <Select
-                    ref={(el) => (inputRefs.current.fabric = el)}
-                    name="fabric_id"
-                    value={fabrics?.[formData?.fabric_id] ?? null}
-                    onChange={(selected) => handleChange('fabric_id', selected?.value)}
-                    invalid={!!errors?.fabric_id}
-                    valid={!errors?.fabric_id && formData?.fabric_id !== '' && validated}
-                    options={fabrics ? Object.values(fabrics) : []}
-                    isDisabled={!fabrics}
-                    isSearchable
-                    filterOption={customFilterOption}
-                    className="w-100 font-montserrat"
-                    placeholder={'Seleccione una tela'}
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-                    styles={getSelectStyles({
-                      isInvalid: isInvalidFabric,
-                      isValid: isValidFabric,
-                    })}
-                    onBlur={() => setEditingField(null)}
-                  />
-                }
-                display={
-                  <span
-                    className={`editable-field input-custom ${
-                      !formData?.fabric_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.fabric_id ? 'is-invalid' : 'is-valid') : ''}`}
-                    onClick={async () => {
-                      await loadFabrics()
-                      setEditingField('fabric')
-                    }}
-                  >
-                    {!!fabrics && formData?.fabric_id
-                      ? fabrics?.[formData?.fabric_id]?.label
-                      : production_order?.fabric?.name || 'Seleccione una tela'}
-                  </span>
-                }
-              />
-            </CCol>
             <CCol md={4}>
               <EditableField
                 label={'Ancho'}
@@ -681,7 +653,126 @@ const InformationProductionOrder = ({
               />
             </CCol>
             <CCol md={8}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
+              <EditableField
+                label={'Tela'}
+                editing={editingField === 'fabric'}
+                error={errors?.fabric_id}
+                valid={formData?.fabric_id !== '' && validated}
+                validated={validated}
+                editor={
+                  <Select
+                    ref={(el) => (inputRefs.current.fabric = el)}
+                    name="fabric_id"
+                    value={fabrics?.[formData?.fabric_id] ?? null}
+                    onChange={(selected) => {
+                      handleChange('fabric_id', selected?.value)
+                      setRollsAux({})
+                    }}
+                    invalid={!!errors?.fabric_id}
+                    valid={!errors?.fabric_id && formData?.fabric_id !== '' && validated}
+                    options={fabrics ? Object.values(fabrics) : []}
+                    isDisabled={!fabrics}
+                    isSearchable
+                    filterOption={customFilterOption}
+                    className="w-100 font-montserrat"
+                    placeholder={'Seleccione una tela'}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={getSelectStyles({
+                      isInvalid: isInvalidFabric,
+                      isValid: isValidFabric,
+                    })}
+                    onBlur={() => setEditingField(null)}
+                  />
+                }
+                display={
+                  <span
+                    className={`editable-field input-custom ${
+                      !formData?.fabric_id ? 'placeholder' : ''
+                    } ${validated ? (errors?.fabric_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    onClick={async () => {
+                      await loadFabrics()
+                      setEditingField('fabric')
+                    }}
+                  >
+                    {!fabrics && formData?.fabric
+                      ? `${formData.fabric.name} - ${formData.fabric.description}`
+                      : fabrics?.[formData?.fabric_id]?.label || 'Seleccione una tela'}
+                  </span>
+                }
+              />
+            </CCol>
+            <CCol md={4}>
+              <EditableField
+                label={'Color'}
+                editing={editingField === 'color'}
+                error={errors?.color_id}
+                valid={formData?.color_id !== '' && validated}
+                validated={validated}
+                editor={
+                  <Select
+                    ref={(el) => (inputRefs.current.color = el)}
+                    name="color_id"
+                    value={
+                      fabrics && formData?.fabric_id
+                        ? (fabrics[formData.fabric_id].data.color
+                            ?.map((item) => ({
+                              label: `${item.settings?.code ?? ''} - ${item.name}`,
+                              value: item.id,
+                            }))
+                            .find((item) => item.value === formData.color_id) ?? null)
+                        : null
+                    }
+                    onChange={(selected) => handleChange('color_id', selected?.value)}
+                    invalid={!!errors?.color_id}
+                    valid={!errors?.color_id && formData?.color_id !== '' && validated}
+                    options={
+                      fabrics && formData?.fabric_id
+                        ? fabrics?.[formData?.fabric_id]?.data?.color?.map((item) => ({
+                            label: `${item.settings.code} - ${item.name}`,
+                            value: item.id,
+                          }))
+                        : []
+                    }
+                    isDisabled={!formData?.fabric_id}
+                    isSearchable
+                    filterOption={customFilterOption}
+                    className="w-100 font-montserrat"
+                    placeholder={'Seleccione una color'}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={getSelectStyles({
+                      isInvalid: isInvalidColor,
+                      isValid: isValidColor,
+                    })}
+                    onBlur={() => setEditingField(null)}
+                  />
+                }
+                display={
+                  <span
+                    className={`editable-field input-custom ${
+                      !formData?.color_id ? 'placeholder' : ''
+                    } ${validated ? (errors?.color_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    onClick={() => {
+                      setEditingField('color')
+                    }}
+                  >
+                    {formData?.color
+                      ? `${formData.color.settings?.code} - ${formData.color.name}`
+                      : !!fabrics && formData.fabric_id && formData.color_id
+                        ? `${fabrics?.[formData?.fabric_id]?.data?.color.find((item) => item.id === formData?.color_id)?.settings?.code}
+                       - ${
+                         fabrics?.[formData?.fabric_id]?.data?.color.find(
+                           (item) => item.id === formData?.color_id,
+                         )?.name
+                       }`
+                        : 'Seleccione un color'}
+                  </span>
+                }
+              />
+            </CCol>
+            <CCol md={8}>
+              <div className="d-flex flex-column gap-2">
                 <CFormLabel className="font-inter mb-0">Observación</CFormLabel>
                 <CFormTextarea
                   ref={(el) => (inputRefs.current.observation = el)}
@@ -730,6 +821,7 @@ const InformationProductionOrder = ({
                         backgroundColor: '#f8fafc',
                         borderColor: '#cbd5e1',
                         borderStyle: 'solid',
+                        minHeight: '130px',
                       }}
                     >
                       <div className="d-flex align-items-center gap-3">
@@ -743,33 +835,28 @@ const InformationProductionOrder = ({
                           >
                             {trazosFile.name}
                           </span>
-                          <small className="text-muted font-inter">
-                            {trazosFile.isExisting ? 'Documento guardado' : 'Listo para subir'}
-                          </small>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        className="btn p-1 rounded-circle hover-bg-gray d-flex align-items-center justify-content-center"
-                        style={{ width: '32px', height: '32px', transition: 'all 0.2s' }}
-                        onClick={removeTrazosFile}
-                      >
-                        <X size={18} className="text-secondary" />
-                      </button>
+                      {formData?.cut === 'A' && (
+                        <button
+                          type="button"
+                          className="btn p-1 rounded-circle hover-bg-gray d-flex align-items-center justify-content-center"
+                          style={{ width: '32px', height: '32px', transition: 'all 0.2s' }}
+                          onClick={removeTrazosFile}
+                        >
+                          <X size={18} className="text-secondary" />
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <label
                       htmlFor="trazos_pdf"
-                      className="d-flex flex-column align-items-center justify-content-center p-3 rounded-3 flex-grow-1 border-2 border-dashed text-center cursor-pointer"
+                      className="d-flex flex-column align-items-center justify-content-center p-3 rounded-3 flex-grow-1 text-center cursor-pointer editable-field-textarea"
                       style={{
-                        borderColor: '#cbd5e1',
-                        backgroundColor: '#f8fafc',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        minHeight: '140px',
+                        minHeight: '130px',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#0934a8')}
-                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
                     >
                       <input
                         type="file"
@@ -777,17 +864,15 @@ const InformationProductionOrder = ({
                         accept=".pdf"
                         hidden
                         onChange={handleTrazosChange}
+                        disabled={formData?.cut !== 'A'}
                       />
                       <UploadCloud size={28} className="text-muted mb-2" />
                       <span
                         className="fw-semibold font-inter text-secondary"
                         style={{ fontSize: '0.85rem' }}
                       >
-                        Haga clic para cargar el PDF de trazos
+                        Cargar archivo con los trazos
                       </span>
-                      <small className="text-muted font-inter mt-1" style={{ fontSize: '0.75rem' }}>
-                        Solo archivos en formato .pdf
-                      </small>
                     </label>
                   )}
                 </div>

@@ -1,5 +1,5 @@
-import { CFormInput, CButton, CTooltip } from '@coreui/react'
-import { Plus, Trash2, ClipboardPaste, ScissorsLineDashed } from 'lucide-react'
+import { CFormInput, CButton, CTooltip, CPopover } from '@coreui/react'
+import { Plus, Trash2, ClipboardPaste, ScissorsLineDashed, BadgeAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
@@ -12,16 +12,14 @@ const TablePieces = ({
   piecesAux,
   setPiecesAux,
   setModalPaste,
-  structure,
-  models,
   errors,
   validated,
+  formData,
 }) => {
   const [editing, setEditing] = useState({})
   const [rows, setRows] = useState([])
   const [openPopover, setOpenPopover] = useState({
-    row: null,
-    field: null,
+    id: null,
   })
 
   const totalQuantities = Object.values(piecesAux).reduce((sum, item) => {
@@ -33,30 +31,6 @@ const TablePieces = ({
     const words = rawInput.toLowerCase().split(' ')
     const label = option.label.toLowerCase()
     return words.every((word) => label.includes(word))
-  }
-
-  const clearChildren = (row, parentField) => {
-    structure.body.forEach((item) => {
-      let depends = false
-
-      if (item.param) {
-        const modelParam = Object.values(models).find((model) => model.model === item.param)?.field
-
-        if (modelParam === parentField) {
-          depends = true
-        }
-      }
-
-      if (item.depend === parentField) {
-        depends = true
-      }
-
-      if (depends) {
-        row[item.field] = null
-
-        clearChildren(row, item.field)
-      }
-    })
   }
 
   const handleChange = (index, field, value) => {
@@ -103,14 +77,6 @@ const TablePieces = ({
     })
   }
 
-  useEffect(() => {
-    const closePopover = () => setOpenPopover(null)
-    document.addEventListener('click', closePopover)
-    return () => {
-      document.removeEventListener('click', closePopover)
-    }
-  }, [])
-
   return (
     <>
       <div
@@ -118,7 +84,7 @@ const TablePieces = ({
         style={{ borderColor: '#E2E8F0' }}
       >
         <div
-          className="d-flex align-items-center justify-content-between px-3 py-2"
+          className={`d-flex align-items-center justify-content-between px-3 py-2 ${errors?.['pieces'] ? 'header-switch-container-error' : ''}`}
           style={{ borderBottom: '1px solid #E2E8F0' }}
         >
           <div className="d-flex align-items-center text-center gap-2">
@@ -134,6 +100,61 @@ const TablePieces = ({
             >
               PIEZAS DE LA REFERENCIA
             </span>
+            {errors?.['pieces'] && (
+              <CPopover
+                visible={openPopover?.table === 'pieces'}
+                placement="top"
+                onHide={() => setOpenPopover(null)}
+                title={
+                  <div
+                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                    style={{
+                      color: '#991B1B',
+                      fontSize: '0.85rem',
+                      padding: '2px 0',
+                    }}
+                  >
+                    <BadgeAlert size={15} className="text-danger" />
+                    <span>Errores de validación</span>
+                  </div>
+                }
+                content={
+                  <div
+                    className="font-inter custom-popover-error"
+                    style={{
+                      maxWidth: '260px',
+                      fontSize: '0.82rem',
+                    }}
+                  >
+                    {errors?.['pieces'].map((err, i) => (
+                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                      </div>
+                    ))}
+                  </div>
+                }
+              >
+                <span
+                  style={{
+                    cursor: 'pointer',
+                    color: '#ef4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setOpenPopover((prev) => {
+                      if (prev?.table === 'pieces') {
+                        return null
+                      }
+                      return { table: 'pieces' }
+                    })
+                  }}
+                >
+                  <BadgeAlert size={16} />
+                </span>
+              </CPopover>
+            )}
           </div>
           <div className="d-flex align-items-center gap-2">
             <CButton
@@ -141,6 +162,7 @@ const TablePieces = ({
               size="sm"
               className="d-flex align-items-center gap-2 px-3 shadow-sm font-inter text-white"
               onClick={() => setModalPaste(true)}
+              disabled={formData?.cut !== 'A'}
             >
               <ClipboardPaste size={16} /> Insertar filas
             </CButton>
@@ -160,6 +182,7 @@ const TablePieces = ({
                   },
                 }))
               }}
+              disabled={formData?.cut !== 'A'}
             >
               <Plus size={16} /> Agregar Fila
             </CButton>
@@ -190,71 +213,135 @@ const TablePieces = ({
             <tbody>
               {!!piecesAux && Object.values(piecesAux).length > 0 ? (
                 <>
-                  {Object.entries(piecesAux).map(([index, value]) => (
-                    <tr key={index}>
-                      <td
-                        key={`${index}-piece`}
-                        className={`py-2 px-4 text-muted border-end border-light align-top ${validated && errors?.[index]?.[field.field] ? 'table-cell-errors' : ''} ${validated === false ? (editing[index]?.includes(field.field) ? 'table-cell-modified' : rows.includes(index) ? 'table-cell-row-modified' : '') : ''}`}
-                        style={{ minWidth: '350px' }}
-                      >
-                        <div className="d-flex align-items-center gap-2">
-                          <Select
-                            value={pieces?.[value?.piece] ?? null}
-                            options={
-                              pieces
-                                ? Object.values(pieces).filter(
-                                    (piece) =>
-                                      !Object.values(piecesAux).some(
-                                        (aux) => aux.piece === piece.value,
-                                      ),
-                                  )
-                                : ''
-                            }
-                            onChange={(selected) => handleChange(index, 'piece', selected.value)}
-                            isSearchable
-                            filterOption={customFilterOption}
-                            className="font-inter w-100"
-                            style={{ fontSize: '11px', with: '100%' }}
-                            placeholder="Seleccione una pieza"
-                            menuPortalTarget={document.body}
-                            menuPosition="fixed"
-                            styles={getSelectStylesInsert()}
-                          />
-                        </div>
-                      </td>
-                      <td
-                        key={`${index}-quantity`}
-                        className={`py-2 px-4 text-muted border-end border-light align-top ${validated && errors?.[index]?.[field.field] ? 'table-cell-errors' : ''} ${validated === false ? (editing[index]?.includes(field.field) ? 'table-cell-modified' : rows.includes(index) ? 'table-cell-row-modified' : '') : ''}`}
-                        style={{ minWidth: '350px' }}
-                      >
-                        <div className="d-flex align-items-center gap-2">
-                          <CFormInput
-                            size="sm"
-                            type="text"
-                            value={value?.quantity}
-                            placeholder="Ingrese..."
-                            onChange={(e) => handleChange(index, 'quantity', e.target.value)}
-                            className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100 h-100 custom-input"
-                          />
-                        </div>
-                      </td>
-                      <td
-                        className={`py-2 px-4 border-light align-middle ${rows.includes(index) ? 'table-cell-row-modified' : ''}`}
-                        style={{ width: '100px' }}
-                      >
-                        <div className="d-flex justify-content-center align-items-center h-100">
-                          <CTooltip content="Eliminar" placement="top" className="font-inter">
-                            <button
-                              className="td-button-delete"
-                              onClick={() => handleDeleteRow(index)}
+                  {Object.entries(piecesAux).map(([index, value]) => {
+                    const hasError = !!errors?.[value.piece]
+
+                    return (
+                      <tr key={index} className={hasError ? 'table-row-error' : ''}>
+                        <td
+                          key={`${index}-piece`}
+                          className="d-flex justify-content-between py-2 px-4 text-muted border-end border-light align-middle"
+                          style={{ minWidth: '350px' }}
+                        >
+                          <div className="w-100 d-flex align-items-center gap-2">
+                            <Select
+                              value={pieces?.[value?.piece] ?? null}
+                              options={
+                                pieces
+                                  ? Object.values(pieces).filter(
+                                      (piece) =>
+                                        !Object.values(piecesAux).some(
+                                          (aux) => aux.piece === piece.value,
+                                        ),
+                                    )
+                                  : ''
+                              }
+                              onChange={(selected) => handleChange(index, 'piece', selected.value)}
+                              isSearchable
+                              filterOption={customFilterOption}
+                              className="font-inter w-100"
+                              style={{ fontSize: '11px', with: '100%' }}
+                              placeholder="Seleccione una pieza"
+                              menuPortalTarget={document.body}
+                              menuPosition="fixed"
+                              styles={getSelectStylesInsert()}
+                            />
+                          </div>
+                          {hasError && (
+                            <CPopover
+                              visible={openPopover?.id === value?.piece}
+                              placement="left"
+                              onHide={() => setOpenPopover(null)}
+                              title={
+                                <div
+                                  className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                                  style={{
+                                    color: '#991B1B',
+                                    fontSize: '0.85rem',
+                                    padding: '2px 0',
+                                  }}
+                                >
+                                  <BadgeAlert size={15} className="text-danger" />
+                                  <span>Errores de validación</span>
+                                </div>
+                              }
+                              content={
+                                <div
+                                  className="font-inter custom-popover-error"
+                                  style={{
+                                    maxWidth: '260px',
+                                    fontSize: '0.82rem',
+                                  }}
+                                >
+                                  {errors?.[value.piece].map((err, i) => (
+                                    <div
+                                      key={i}
+                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                    >
+                                      <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              }
                             >
-                              <Trash2 size={16} />
-                            </button>
-                          </CTooltip>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                              <span
+                                style={{
+                                  cursor: 'pointer',
+                                  color: '#ef4444',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  paddingLeft: '4px',
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setOpenPopover((prev) => {
+                                    if (prev?.id === value?.piece) {
+                                      return null
+                                    }
+                                    return { id: value?.piece }
+                                  })
+                                }}
+                              >
+                                <BadgeAlert size={16} />
+                              </span>
+                            </CPopover>
+                          )}
+                        </td>
+                        <td
+                          key={`${index}-quantity`}
+                          className={`py-2 px-4 text-muted border-end border-light align-top ${validated && errors?.[index]?.[field.field] ? 'table-cell-errors' : ''} ${validated === false ? (editing[index]?.includes(field.field) ? 'table-cell-modified' : rows.includes(index) ? 'table-cell-row-modified' : '') : ''}`}
+                          style={{ minWidth: '350px' }}
+                        >
+                          <div className="d-flex align-items-center gap-2">
+                            <CFormInput
+                              size="sm"
+                              type="text"
+                              value={value?.quantity}
+                              placeholder="Ingrese..."
+                              onChange={(e) => handleChange(index, 'quantity', e.target.value)}
+                              className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100 h-100 custom-input"
+                            />
+                          </div>
+                        </td>
+                        <td
+                          className={`py-2 px-4 border-light align-middle ${rows.includes(index) ? 'table-cell-row-modified' : ''}`}
+                          style={{ width: '100px' }}
+                        >
+                          <div className="d-flex justify-content-center align-items-center h-100">
+                            <CTooltip content="Eliminar" placement="top" className="font-inter">
+                              <button
+                                className="td-button-delete"
+                                onClick={() => handleDeleteRow(index)}
+                                disabled={formData?.cut !== 'A'}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </CTooltip>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                   <tr style={{ backgroundColor: '#F8FAFC', borderTop: '2px solid #E2E8F0' }}>
                     <td className="py-3 px-4 border-end border-light fw-bold font-montserrat text-dark">
                       <span style={{ fontSize: '13px' }}>

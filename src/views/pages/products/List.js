@@ -38,6 +38,7 @@ import { Toast } from '@/components/Toast'
 import { useSelector } from 'react-redux'
 import { tableSelectStyles } from '@/components/StyleManagementCollection'
 import Select from 'react-select'
+import ProductionOrders from '../ProductionOrders'
 
 export const List = ({ data, processes, loading, fetchProducts, onChangeView, errors, status }) => {
   const user_active = useSelector((state) => state.user)
@@ -214,7 +215,8 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
                 disabled={
                   !!product.deleted_at ||
                   !user_active?.permissions.some((p) => p.name === 'products.find') ||
-                  !user_active?.permissions.some((p) => p.name === 'products.update')
+                  !user_active?.permissions.some((p) => p.name === 'products.update') ||
+                  !product.original
                 }
                 onClick={() => setShowEditMenu(showEditMenu === product.id ? null : product.id)}
               >
@@ -285,7 +287,8 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
               disabled={
                 !!product.deleted_at ||
                 !user_active?.permissions.some((p) => p.name === 'products.find') ||
-                !user_active?.permissions.some((p) => p.name === 'products.update')
+                !user_active?.permissions.some((p) => p.name === 'products.update') ||
+                !product.original
               }
               onClick={() => {
                 setChangeStatus(true)
@@ -303,7 +306,8 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
               disabled={
                 !!product.deleted_at ||
                 !user_active?.permissions.some((p) => p.name === 'products.find') ||
-                !user_active?.permissions.some((p) => p.name === 'products.update')
+                !user_active?.permissions.some((p) => p.name === 'products.update') ||
+                !product.original
               }
               onClick={() => {
                 onChangeView({
