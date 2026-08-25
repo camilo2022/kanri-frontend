@@ -530,6 +530,7 @@ const Show = ({
                     style={{ borderRadius: '7px 7px 7px 7px' }}
                     onClick={() => {
                       setShowForm(true)
+                      setValidated(false)
                       setRule({
                         id: '',
                         regex: '',

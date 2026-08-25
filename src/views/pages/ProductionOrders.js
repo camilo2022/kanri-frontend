@@ -286,20 +286,17 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
     }
   }
 
-  const generatePDF = async (production_order_id) => {
-    try {
-      const response = await ProductionOrdersService.pdf(production_order_id)
-      var blob = new Blob([response.data], {
-        type: 'application/pdf',
-      })
-      var url = window.URL.createObjectURL(blob)
-      window.open(url)
-    } catch (error) {
-      throw error
-    }
+  const pdf_production_order = (production_order_uuid) => {
+    const url = ProductionOrdersService.pdf(production_order_uuid)
+
+    window.open(url, '_blank')
   }
 
-  console.log(productionOrder)
+  const pdf_technical_sheet = (technical_sheet_uuid, production_order_id) => {
+    const url = TechnicalSheetsService.pdf(technical_sheet_uuid, production_order_id)
+
+    window.open(url, '_blank')
+  }
 
   const renderView = () => {
     switch (view.name) {
@@ -379,7 +376,8 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
             onChangeView={changeView}
             errors={errors}
             status={status}
-            generatePDF={generatePDF}
+            pdf_production_order={pdf_production_order}
+            pdf_technical_sheet={pdf_technical_sheet}
           />
         )
 

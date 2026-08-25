@@ -110,25 +110,13 @@ export const TechnicalSheetDetail = ({
     }
   }, [editingField])
 
-  /*
-  useEffect(() => {
-    if (Object.keys(errors).length !== 0) {
-      Toast.fire({
-        icon: 'error',
-        title: errors.message,
-      })
-    }
-  }, [errors])*/
-
   const handleAddSubprocess = (subprocess) => {
     setDetails((prev) => ({
       ...prev,
       [subprocess.id]: {
         model_id: Number(subprocess.id),
         model_type: 'App\\Models\\Subprocess',
-        ...(technical_sheet && {
-          technical_sheet_id: technical_sheet.id,
-        }),
+        technical_sheet_id: technical_sheet.id ?? null,
         settings: {
           dinamic: {
             ...subprocess?.settings?.schema?.dinamic,
@@ -159,9 +147,7 @@ export const TechnicalSheetDetail = ({
       [operation.id]: {
         model_id: Number(operation.id),
         model_type: 'App\\Models\\Operations',
-        ...(technical_sheet && {
-          technical_sheet_id: technical_sheet.id,
-        }),
+        technical_sheet_id: technical_sheet.id ?? null,
         settings: {
           static: {
             ...operation?.settings?.schema?.static,
@@ -262,7 +248,14 @@ export const TechnicalSheetDetail = ({
     <>
       <div className="mb-4 p-4">
         <div className="d-flex align-items-center gap-3">
-          <h4 className="mb-0 fw-bold font-montserrat">Procesos</h4>
+          <div
+            style={{
+              flex: 0.02,
+              height: '2px',
+              backgroundColor: '#e9ecef',
+            }}
+          />
+          <h5 className="mb-0 fw-bold font-montserrat">Procesos</h5>
           <div
             style={{
               flex: 1,
@@ -272,7 +265,7 @@ export const TechnicalSheetDetail = ({
           />
         </div>
 
-        <p className="text-muted mt-2 mb-3 font-poppins">
+        <p className="text-muted mt-2 mb-3 font-poppins" style={{ fontSize: '13px' }}>
           Configure los procesos requeridos para la elaboración de esta ficha técnica.
         </p>
 

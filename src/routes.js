@@ -54,6 +54,7 @@ const SupplyTypes = React.lazy(() => import('./views/pages/SupplyTypes'))
 const Suppliers = React.lazy(() => import('./views/pages/Suppliers'))
 const ManagementCollection = React.lazy(() => import('./views/pages/ManagementCollection'))
 const Products = React.lazy(() => import('./views/pages/Products'))
+const ManagementProduction = React.lazy(() => import('./views/pages/ManagementProduction'))
 /**
  * Array of route configuration objects
  *
@@ -116,6 +117,11 @@ const routes = [
     element: ManagementCollection,
   },
   { path: '/products', name: 'Productos', element: Products },
+  {
+    path: '/management/production',
+    name: 'Gestión de Producción',
+    element: ManagementProduction,
+  },
 ]
 
 export default routes

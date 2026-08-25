@@ -1,15 +1,16 @@
 import api from '../../../API/api'
 import { getConfig } from '../../../axiosConfig'
 import { useState } from 'react'
-import { CCard, CButton, CFormSelect } from '@coreui/react'
+import { CCard, CButton, CPopover, CFormSelect } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
-import { ArrowLeftCircle, Save } from 'lucide-react'
+import { ArrowLeftCircle, CheckCircle2, Clock, AlertCircle, Save, BadgeAlert } from 'lucide-react'
 import LoadingForm from '@/components/LoadingForm'
 import { useRef } from 'react'
 import InformationTechnicalSheet from '@/components/InformationTechnicalSheet'
-import TechnicalSheetDetailAux from '@/components/TechnicalSheetDetailAux'
+import TechnicalSheetDetail from '@/components/TechnicalSheetDetail'
 import Swal from 'sweetalert2'
+import { Toast } from '@/components/Toast'
 
 export const Create = ({
   product,
@@ -43,29 +44,12 @@ export const Create = ({
   statusCollection,
   statusTechnical,
 }) => {
+  console.log(errors)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
-  const [formData, setFormData] = useState({
-    product_id: product?.id || '',
-    collection_id: '',
-    subgroup_id: '',
-    garment_type_id: '',
-    wash_tone_id: '',
-    color_id: '',
-    back_type_id: '',
-    boot_type_id: '',
-    yoke_type_id: '',
-    waistband_type_id: '',
-    date: '',
-    measure_of_waistband: '',
-    physical_sample: '',
-    number_of_buttons: '',
-    pattern_maker_id: '',
-    observation: '',
-    description: '',
-    photo_d: '',
-    photo_t: '',
-  })
+  const [formData, setFormData] = useState({ status: 'Pendiente' })
+  const [photoDPreview, setPhotoDPreview] = useState(null)
+  const [photoTPreview, setPhotoTPreview] = useState(null)
   const [details, setDetails] = useState({})
   const [validated, setValidated] = useState(false)
   const [editingVariants, setEditingVariants] = useState(null)
@@ -105,6 +89,15 @@ export const Create = ({
 
     setDetails({ ...aux_details })
   }, [processes])
+
+  useEffect(() => {
+    if (!product) return
+
+    setFormData((prev) => ({
+      ...prev,
+      product_id: product.id,
+    }))
+  }, [product])
 
   useEffect(() => {
     if (!details) return
@@ -151,7 +144,6 @@ export const Create = ({
       for (const model of modelsToLoad) {
         await loadCatalog(model)
       }
-
       setDependentFields(dependentFieldsAux)
     }
 
@@ -172,7 +164,6 @@ export const Create = ({
 
       return response.data
     } catch (error) {
-      console.log(error)
       throw error.response?.data || { message: 'Error desconocido' }
     }
   }
@@ -202,7 +193,7 @@ export const Create = ({
         [cacheKey]: aux,
       }))
     } catch (error) {
-      console.log(error)
+      throw error.response?.data || { message: 'Error desconocido' }
     }
   }
 
@@ -246,16 +237,6 @@ export const Create = ({
     }
   }, [editingField])
 
-  /*
-  useEffect(() => {
-    if (Object.keys(errors).length !== 0) {
-      Toast.fire({
-        icon: 'error',
-        title: errors.message,
-      })
-    }
-  }, [errors])*/
-
   const handleSubmit = async (data) => {
     Swal.fire({
       title: 'Crear Ficha Técnica',
@@ -272,7 +253,35 @@ export const Create = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await create(data)
+          const response = await create({
+            ...data,
+            photo_d: { ...photoDPreview },
+            photo_t: { ...photoTPreview },
+            technical_sheet_details: Object.values(details).map((detail) => {
+              const settings = {
+                ...detail.settings,
+                static: {
+                  ...detail.settings.static,
+                  values: staticValues[detail.model_id] ?? {},
+                },
+              }
+
+              if (detail.model_type !== 'App\\Models\\Operations') {
+                settings.dinamic = {
+                  ...detail.settings.dinamic,
+                  values: Object.values(dinamicValues[detail.model_id] ?? {}),
+                }
+              }
+
+              return {
+                ...detail,
+                settings,
+              }
+            }),
+            variants: Object.values(tecVariants)
+              .map((item) => item?.id)
+              .filter(Boolean),
+          })
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -341,38 +350,52 @@ export const Create = ({
           </CButton>
         </div>
       </div>
-      <InformationTechnicalSheet
-        product={product}
-        fetchCollections={fetchCollections}
-        collections={collections}
-        fetchSubgroups={fetchSubgroups}
-        subgroups={subgroups}
-        fetchGarmentTypes={fetchGarmentTypes}
-        garment_types={garment_types}
-        fetchWashTones={fetchWashTones}
-        wash_tones={wash_tones}
-        fetchColors={fetchColors}
-        colors={colors}
-        fetchBackTypes={fetchBackTypes}
-        back_types={back_types}
-        fetchBootTypes={fetchBootTypes}
-        boot_types={boot_types}
-        fetchYokeTypes={fetchYokeTypes}
-        yoke_types={yoke_types}
-        fetchWaistbandTypes={fetchWaistbandTypes}
-        waistband_types={waistband_types}
-        fetchEmployees={fetchEmployees}
-        employees={employees}
-        handleSubmit={handleSubmit}
-        errors={errors}
-        validated={validated}
-        formData={formData}
-        setFormData={setFormData}
-        statusTechnical={statusTechnical}
-      />
-      <div className="mt-3 mb-2 p-4">
+      <div className="p-3">
+        <InformationTechnicalSheet
+          product={product}
+          fetchCollections={fetchCollections}
+          collections={collections}
+          fetchSubgroups={fetchSubgroups}
+          subgroups={subgroups}
+          fetchGarmentTypes={fetchGarmentTypes}
+          garment_types={garment_types}
+          fetchWashTones={fetchWashTones}
+          wash_tones={wash_tones}
+          fetchColors={fetchColors}
+          colors={colors}
+          fetchBackTypes={fetchBackTypes}
+          back_types={back_types}
+          fetchBootTypes={fetchBootTypes}
+          boot_types={boot_types}
+          fetchYokeTypes={fetchYokeTypes}
+          yoke_types={yoke_types}
+          fetchWaistbandTypes={fetchWaistbandTypes}
+          waistband_types={waistband_types}
+          fetchEmployees={fetchEmployees}
+          employees={employees}
+          handleSubmit={handleSubmit}
+          errors={errors}
+          validated={validated}
+          formData={formData}
+          setFormData={setFormData}
+          photoDPreview={photoDPreview}
+          setPhotoDPreview={setPhotoDPreview}
+          photoTPreview={photoTPreview}
+          setPhotoTPreview={setPhotoTPreview}
+          statusTechnical={statusTechnical}
+        />
+      </div>
+
+      <div className="p-4">
         <div className="d-flex align-items-center gap-3">
-          <h4 className="mb-0 fw-bold font-montserrat">Tipos de Insumos</h4>
+          <div
+            style={{
+              flex: 0.02,
+              height: '2px',
+              backgroundColor: '#e9ecef',
+            }}
+          />
+          <h5 className="mb-0 fw-bold font-montserrat">Tipos de Insumos</h5>
           <div
             style={{
               flex: 1,
@@ -381,10 +404,12 @@ export const Create = ({
             }}
           />
         </div>
-        <p className="text-muted mt-2 mb-3 font-poppins">
+
+        <p className="text-muted mt-2 mb-3 font-poppins" style={{ fontSize: '13px' }}>
           Seleccione la variante correspondiente para cada tipo de insumo requerido por la ficha
           técnica.
         </p>
+
         <div className="custom-table-responsive font-inter">
           <table className="table align-middle custom-corporate-table mb-0">
             <thead>
@@ -392,21 +417,21 @@ export const Create = ({
                 <th
                   scope="col"
                   className="text-dark fw-bold font-montserrat"
-                  style={{ fontSize: '14px', whiteSpace: 'nowrap' }}
+                  style={{ fontSize: '14px', whiteSpace: 'nowrap', width: '30%' }}
                 >
                   Tipo de Insumo
                 </th>
                 <th
                   scope="col"
                   className="text-dark fw-bold font-montserrat"
-                  style={{ fontSize: '14px' }}
+                  style={{ fontSize: '14px', width: '30%' }}
                 >
                   Descripción
                 </th>
                 <th
                   scope="col"
                   className="text-dark fw-bold font-montserrat"
-                  style={{ minWidth: 220, fontSize: '14px' }}
+                  style={{ fontSize: '14px' }}
                 >
                   Variante
                 </th>
@@ -419,10 +444,7 @@ export const Create = ({
                   <tr key={supply_type.id} className={hasError ? 'table-row-error' : ''}>
                     <td className="text-slate font-inter">{supply_type.name}</td>
                     <td className="text-slate font-inter">{supply_type.description}</td>
-                    <td
-                      className="d-flex gap-2 align-items-center justify-content-between position-relative"
-                      style={{ minHeight: '53px' }}
-                    >
+                    <td className="d-flex gap-2 align-items-center justify-content-between position-relative">
                       {editingVariants === supply_type.id ? (
                         <CFormSelect
                           autoFocus
@@ -452,7 +474,9 @@ export const Create = ({
                           className="text-slate editable-span-trigger font-inter"
                           onClick={() => setEditingVariants(supply_type.id)}
                         >
-                          {tecVariants?.[supply_type.id]?.name || 'Seleccione...'}
+                          {tecVariants[supply_type.id]
+                            ? `${tecVariants?.[supply_type.id]?.name} - ${tecVariants?.[supply_type.id]?.description}`
+                            : 'Seleccione...'}
                         </span>
                       )}
                       {hasError && (
@@ -522,7 +546,7 @@ export const Create = ({
           </table>
         </div>
       </div>
-      <TechnicalSheetDetailAux
+      <TechnicalSheetDetail
         product={product}
         processes={processes}
         errors={errors}

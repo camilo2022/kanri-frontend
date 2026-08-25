@@ -360,65 +360,6 @@ export const List = ({
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
-        <div className="d-flex flex-wrap justify-content-end gap-2">
-          <CButton
-            className="d-flex align-items-center justify-content-center btn-primary-revolve"
-            onClick={() => generateExcel()}
-          >
-            <RiFileExcel2Line />
-          </CButton>
-          <CButton
-            className="d-flex align-items-center justify-content-center btn-primary-download"
-            onClick={() => generatePDF()}
-          >
-            <FaRegFilePdf />
-          </CButton>
-          {!showInput ? (
-            <CButton
-              className="d-flex align-items-center gap-2 btn-primary-upload"
-              onClick={() => setShowInput(true)}
-            >
-              <ArrowUpToLine size={16} />
-              <span className="d-none d-md-inline font-poppins">Cargar Datos</span>
-            </CButton>
-          ) : (
-            <div className="d-flex align-items-center gap-2 flex-wrap" style={{ width: '510px' }}>
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                className="form-control"
-                style={{ maxWidth: '400px' }}
-                onChange={(e) => setFile(e.target.files[0])}
-              />
-              <CButton
-                className="d-flex py-2 align-items-center justify-content-center btn-primary-upload"
-                onClick={() => importExcel(file)}
-              >
-                <Upload size={18} />
-              </CButton>
-              <CButton
-                className="d-flex py-2 align-items-center justify-content-center btn-primary-close"
-                onClick={() => setShowInput(false)}
-              >
-                <X size={18} />
-              </CButton>
-            </div>
-          )}
-          <CButton
-            variant="outline"
-            className="font-poppins btn-primary-dark d-flex align-items-center gap-2"
-            disabled={!user_active?.permissions.some((p) => p.name === 'people.store')}
-            style={{
-              cursor: !user_active?.permissions.some((p) => p.name === 'people.store')
-                ? 'not-allowed'
-                : 'pointer',
-            }}
-            onClick={() => onChangeView({ name: 'create', title: 'Crear Persona' })}
-          >
-            <CirclePlus />
-            <span className="d-none d-md-inline">Agregar Persona</span>
-          </CButton>
-        </div>
       </div>
       <CTable hover responsive align="middle" className="text-center font-inter">
         <thead>

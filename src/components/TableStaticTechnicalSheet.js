@@ -88,7 +88,6 @@ const TableStaticTechnicalSheet = ({
                   color: '#C21111',
                   textTransform: 'uppercase',
                 }}
-                onClick={() => edit && onEditHeader()}
               >
                 {structure?.header.label || ''}
               </th>
@@ -112,7 +111,7 @@ const TableStaticTechnicalSheet = ({
                             value: opt.trim(),
                             label: opt.trim(),
                           }))
-                        : catalogsData[cell.model]?.map((opt) => {
+                        : Object.values(catalogsData[cell.model] || {})?.map((opt) => {
                             const optionPath = Object.entries(models).find(
                               ([_, value]) => value?.model === cell?.model,
                             )?.[1]?.option
@@ -122,6 +121,20 @@ const TableStaticTechnicalSheet = ({
                               label: dataGet(optionPath, opt, ''),
                             }
                           }) || []
+
+                    const nextCell = row[j + 1]
+                    const isRequired =
+                      cell.cell === 'th' &&
+                      nextCell?.cell === 'td' &&
+                      nextCell?.rules?.includes('required')
+
+                    const error_data_cell =
+                      cell.cell === 'td'
+                        ? errors?.[
+                            `technical_sheet_details.${process_id}.settings.static.values.${cell.field}`
+                          ]
+                        : null
+
                     return (
                       <td
                         key={j}
@@ -130,11 +143,7 @@ const TableStaticTechnicalSheet = ({
                         style={{
                           ...cellBaseStyle,
                           backgroundColor:
-                            cell.cell === 'th'
-                              ? '#f8f9fa'
-                              : errors?.[cell.field]
-                                ? '#fee2e2'
-                                : '#fff',
+                            cell.cell === 'th' ? '#f8f9fa' : error_data_cell ? '#fee2e2' : '#fff',
                         }}
                         className="preview-cell"
                       >
@@ -146,7 +155,12 @@ const TableStaticTechnicalSheet = ({
                                   className="fw-bold text-secondary font-poppins"
                                   style={{ fontSize: '13px' }}
                                 >
-                                  {cell.label}
+                                  {cell.label}{' '}
+                                  {isRequired && (
+                                    <span className="text-danger fw-bold" title="Requerido">
+                                      *
+                                    </span>
+                                  )}
                                 </span>
                               ) : (
                                 <div
@@ -205,11 +219,12 @@ const TableStaticTechnicalSheet = ({
                               )}
                             </div>
                           </div>
-                          {errors?.[cell?.field] && (
+                          {error_data_cell && (
                             <CPopover
                               visible={openPopover?.field === cell?.field}
                               placement="top"
                               onHide={() => setOpenPopover(null)}
+                              trigger="focus"
                               title={
                                 <div
                                   className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -231,7 +246,7 @@ const TableStaticTechnicalSheet = ({
                                     fontSize: '0.82rem',
                                   }}
                                 >
-                                  {errors?.[cell?.field].map((err, i) => (
+                                  {error_data_cell.map((err, i) => (
                                     <div
                                       key={i}
                                       className="d-flex align-items-start gap-2 p-1 rounded-2"
@@ -251,12 +266,10 @@ const TableStaticTechnicalSheet = ({
                                 }}
                                 onClick={(e) => {
                                   e.stopPropagation()
-
                                   setOpenPopover((prev) => {
                                     if (prev?.field === cell?.field) {
                                       return null
                                     }
-
                                     return { field: cell?.field }
                                   })
                                 }}

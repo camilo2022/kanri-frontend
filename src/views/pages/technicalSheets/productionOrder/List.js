@@ -24,6 +24,8 @@ import {
   ChevronUp,
   ArrowLeftCircle,
   FileDown,
+  FileBox,
+  SquareBottomDashedScissors,
 } from 'lucide-react'
 import no_data from '../../../../assets/images/no-data.png'
 import { Toast } from '@/components/Toast'
@@ -37,7 +39,8 @@ export const List = ({
   onChangeView,
   errors,
   technical_sheet,
-  generatePDF,
+  pdf_production_order,
+  pdf_technical_sheet,
 }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
@@ -145,7 +148,7 @@ export const List = ({
             </CTooltip>
           </div>
           <div className="position-relative">
-            <CTooltip content="Descargar PDF" placement="top">
+            <CTooltip content="Descargar PDF Orden de Producción" placement="top">
               <button
                 className="action-btn download-btn"
                 disabled={
@@ -153,9 +156,26 @@ export const List = ({
                   !user_active?.permissions.some((p) => p.name === 'products.find') ||
                   !user_active?.permissions.some((p) => p.name === 'products.update')
                 }
-                onClick={() => generatePDF(production_order.id)}
+                onClick={() => pdf_production_order(production_order.uuid)}
               >
-                <FileDown size={18} strokeWidth={1.5} />
+                <SquareBottomDashedScissors size={18} strokeWidth={1.5} />
+              </button>
+            </CTooltip>
+          </div>
+          <div className="position-relative">
+            <CTooltip content="Descargar PDF Ficha Técnica" placement="top">
+              <button
+                className="action-btn download-btn"
+                disabled={
+                  !!production_order.deleted_at ||
+                  !user_active?.permissions.some((p) => p.name === 'products.find') ||
+                  !user_active?.permissions.some((p) => p.name === 'products.update')
+                }
+                onClick={() =>
+                  pdf_technical_sheet(production_order.technical_sheet.uuid, production_order.id)
+                }
+              >
+                <FileBox size={18} strokeWidth={1.5} />
               </button>
             </CTooltip>
           </div>

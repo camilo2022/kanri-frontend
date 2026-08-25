@@ -134,8 +134,8 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
             name="employee_id"
             placeholder={
               `${user?.employee?.person.names ?? ''} ${user?.employee?.person.last_names ?? ''}`.trim() +
-              ` | ${user?.employee?.person.document ?? ''}` +
-              ` | ${user?.employee?.position?.name ?? ''}`
+              ` | ${user?.employee?.person.document ?? 'N/A'}` +
+              ` | ${user?.employee?.position?.name ?? 'N/A'}`
             }
             disabled
             invalid={!!errors?.employee_id}
@@ -278,7 +278,7 @@ const Edit = ({ user, onChangeView, onSubmit, errors, employees }) => {
             </CFormFeedback>
           </CInputGroup>
         </CCol>
-        <CCol md={8} className="mb-4 pt-md-4 -mt-2">
+        <CCol md={12} className="mb-4 pt-md-4 -mt-2">
           <div
             className="p-2 rounded-3 shadow-sm font-inter"
             style={{

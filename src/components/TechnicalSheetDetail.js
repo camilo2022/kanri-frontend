@@ -40,7 +40,7 @@ import { tableSelectStyles } from '@/components/StyleManagementCollection'
 
 export const TechnicalSheetDetail = ({
   product,
-  technical_sheet,
+  technical_sheet = null,
   processes,
   errors,
   models,
@@ -56,6 +56,7 @@ export const TechnicalSheetDetail = ({
   dataGet,
   loadCatalog,
 }) => {
+  console.log(errors)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
   const [openPopover, setOpenPopover] = useState({ process: null, type: null })
@@ -109,16 +110,6 @@ export const TechnicalSheetDetail = ({
       }
     }
   }, [editingField])
-
-  /*
-  useEffect(() => {
-    if (Object.keys(errors).length !== 0) {
-      Toast.fire({
-        icon: 'error',
-        title: errors.message,
-      })
-    }
-  }, [errors])*/
 
   const handleAddSubprocess = (subprocess) => {
     setDetails((prev) => ({
@@ -231,6 +222,115 @@ export const TechnicalSheetDetail = ({
     })
   }
 
+  const handleChangeStructureSubprocess = async (process_id, subprocess_id, type) => {
+    Swal.fire({
+      title: 'Actualizar tabla',
+      html: `<div style="font-size:14px">
+        La estructura de la ficha técnica será actualizada según la configuración actual.<br/><br/>
+        <strong>Advertencia:</strong> Esta acción es irreversible y puede modificar o eliminar información asociada a la estructura actual. Una vez guardados los cambios, no será posible volver a la versión anterior.<br/><br/>
+        <strong>¿Deseas continuar?</strong>
+      </div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, continuar',
+      cancelButtonText: 'Cancelar',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setDetails((prev) => {
+            const aux = prev[subprocess_id].settings?.[type]
+            const original =
+              processes[process_id].subprocesses[subprocess_id]?.settings?.schema?.[type]
+
+            return {
+              ...prev,
+              [subprocess_id]: {
+                ...prev[subprocess_id],
+                settings: {
+                  ...prev[subprocess_id]?.settings,
+                  [type]: {
+                    body: original?.body,
+                    header: original?.header,
+                    values: aux?.values,
+                    insert_values: aux?.insert_values,
+                  },
+                },
+              },
+            }
+          })
+          Toast.fire({
+            icon: 'success',
+            title: 'Estructura actualizada',
+          })
+        } catch (error) {
+          setValidated(true)
+        }
+      } else {
+        Toast.fire({
+          icon: 'error',
+          title: 'Acción cancelada',
+        })
+      }
+    })
+  }
+
+  const handleChangeStructureOperation = async (process_id, subprocess_id, operation_id, type) => {
+    Swal.fire({
+      title: 'Actualizar tabla',
+      html: `<div style="font-size:14px">
+        La estructura de la ficha técnica será actualizada según la configuración actual.<br/><br/>
+        <strong>Advertencia:</strong> Esta acción es irreversible y puede modificar o eliminar información asociada a la estructura actual. Una vez guardados los cambios, no será posible volver a la versión anterior.<br/><br/>
+        <strong>¿Deseas continuar?</strong>
+      </div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, continuar',
+      cancelButtonText: 'Cancelar',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setDetails((prev) => {
+            const aux = prev[operation_id].settings?.[type]
+            const original =
+              processes[process_id].subprocesses[subprocess_id]?.operations[operation_id]?.settings
+                ?.schema?.[type]
+
+            return {
+              ...prev,
+              [operation_id]: {
+                ...prev[operation_id],
+                settings: {
+                  ...prev[operation_id]?.settings,
+                  [type]: {
+                    body: original?.body,
+                    header: original?.header,
+                    values: aux?.values,
+                    insert_values: aux?.insert_values,
+                  },
+                },
+              },
+            }
+          })
+          Toast.fire({
+            icon: 'success',
+            title: 'Estructura actualizada',
+          })
+        } catch (error) {
+          setValidated(true)
+        }
+      } else {
+        Toast.fire({
+          icon: 'error',
+          title: 'Acción cancelada',
+        })
+      }
+    })
+  }
+
   const handleChangeStatus = async (id, status) => {
     try {
       setDetails((prev) => ({
@@ -254,11 +354,52 @@ export const TechnicalSheetDetail = ({
     }
   }
 
+  const hasProcessErrors = (process) => {
+    const errorKeys = Object.keys(errors || {})
+
+    if (errorKeys.length === 0) return false
+
+    if (errorKeys.some((key) => key.startsWith(`technical_sheet_details.${process.id}`))) {
+      return true
+    }
+    return (Object.values(process.subprocesses) || []).some((subprocess) => {
+      if (errorKeys.some((key) => key.startsWith(`technical_sheet_details.${subprocess.id}`))) {
+        return true
+      }
+      return (Object.values(subprocess.operations) || []).some((operation) =>
+        errorKeys.some((key) => key.startsWith(`technical_sheet_details.${operation.id}`)),
+      )
+    })
+  }
+
+  const hasSubprocessErrors = (subprocess) => {
+    const errorKeys = Object.keys(errors || {})
+
+    if (errorKeys.length === 0) return false
+
+    if (errorKeys.some((key) => key.startsWith(`technical_sheet_details.${subprocess.id}`))) {
+      return true
+    }
+
+    return (Object.values(subprocess.operations) || []).some((operation) => {
+      if (errorKeys.some((key) => key.startsWith(`technical_sheet_details.${operation.id}`))) {
+        return true
+      }
+    })
+  }
+
   return (
     <>
       <div className="mb-4 p-4">
         <div className="d-flex align-items-center gap-3">
-          <h4 className="mb-0 fw-bold font-montserrat">Procesos</h4>
+          <div
+            style={{
+              flex: 0.02,
+              height: '2px',
+              backgroundColor: '#e9ecef',
+            }}
+          />
+          <h5 className="mb-0 fw-bold font-montserrat">Procesos</h5>
           <div
             style={{
               flex: 1,
@@ -268,7 +409,7 @@ export const TechnicalSheetDetail = ({
           />
         </div>
 
-        <p className="text-muted mt-2 mb-3 font-poppins">
+        <p className="text-muted mt-2 mb-3 font-poppins" style={{ fontSize: '13px' }}>
           Configure los procesos requeridos para la elaboración de esta ficha técnica.
         </p>
 
@@ -300,6 +441,22 @@ export const TechnicalSheetDetail = ({
                 },
               )
 
+              const dynamicErrorPrefixProcess = `technical_sheet_details.${process.id}.settings.dinamic.values`
+              const dynamicGeneralErrorProcess = errors?.[dynamicErrorPrefixProcess]
+              const hasDynamicRecordErrorsProcess = Object.keys(errors || {}).some((key) =>
+                key.startsWith(`${dynamicErrorPrefixProcess}.`),
+              )
+              const hasDynamicErrorsProcess =
+                !!dynamicGeneralErrorProcess || hasDynamicRecordErrorsProcess
+
+              const staticErrorPrefixProcess = `technical_sheet_details.${process.id}.settings.static.values`
+              const staticGeneralErrorProcess = errors?.[staticErrorPrefixProcess]
+              const hasStaticRecordErrorsProcess = Object.keys(errors || {}).some((key) =>
+                key.startsWith(`${staticErrorPrefixProcess}.`),
+              )
+              const hasStaticErrorsProcess =
+                !!staticGeneralErrorProcess || hasStaticRecordErrorsProcess
+
               return (
                 <CAccordionItem
                   key={process.id}
@@ -312,9 +469,7 @@ export const TechnicalSheetDetail = ({
                         <strong>{process.name}</strong>
                       </span>
                       <div className="d-flex align-items-center gap-2">
-                        {Object.keys(errors).some((error) =>
-                          error.startsWith(`technical_sheet_details.${process.id}`),
-                        ) && (
+                        {hasProcessErrors(process) && (
                           <span className="process-tag tag-error animate-pulse-subtle">
                             <AlertTriangle size={14} className="me-1" /> Errores
                           </span>
@@ -337,29 +492,27 @@ export const TechnicalSheetDetail = ({
                   <CAccordionBody className="font-inter ps-4 pe-3 pb-3">
                     <div
                       className={`mb-5 shadow-sm border-start border-4 rounded-end ${
-                        errors?.[`technical_sheet_details.${process.id}.settings.dinamic.values`]
-                          ? 'header-switch-container-error-border'
-                          : ''
+                        hasDynamicErrorsProcess ? 'header-switch-container-error-border' : ''
                       }`}
                       style={{ borderLeftColor: '#C21111', backgroundColor: '#fcfcfc' }}
                     >
                       <div
                         className={`p-3 d-flex align-items-center justify-content-between border-bottom bg-white rounded-top header-switch-container ${
-                          errors?.[`technical_sheet_details.${process.id}.settings.dinamic.values`]
-                            ? 'header-switch-container-error'
-                            : ''
+                          hasDynamicErrorsProcess ? 'header-switch-container-error' : ''
                         }`}
                       >
                         <div className="d-flex align-items-center gap-2">
                           <Layers size={18} className="text-muted" />
                           <span className="fw-semibold font-poppins text-dark">Tabla Dinámica</span>
-                          {errors?.[
-                            `technical_sheet_details.${process.id}.settings.dinamic.values`
-                          ] && (
+                          {hasDynamicErrorsProcess && (
                             <CPopover
-                              visible={openPopover?.process === process.id}
+                              visible={
+                                openPopover?.process === process.id &&
+                                openPopover?.type === 'dynamic'
+                              }
                               placement="top"
                               onHide={() => setOpenPopover(null)}
+                              trigger="focus"
                               title={
                                 <div
                                   className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -377,20 +530,24 @@ export const TechnicalSheetDetail = ({
                                 <div
                                   className="font-inter custom-popover-error"
                                   style={{
-                                    maxWidth: '260px',
+                                    maxWidth: '280px',
                                     fontSize: '0.82rem',
                                   }}
                                 >
-                                  {errors?.[
-                                    `technical_sheet_details.${process.id}.settings.dinamic.values`
-                                  ].map((err, i) => (
-                                    <div
-                                      key={i}
-                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
-                                    >
-                                      <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                  {dynamicGeneralErrorProcess ? (
+                                    dynamicGeneralErrorProcess.map((err, i) => (
+                                      <div
+                                        key={i}
+                                        className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                      >
+                                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                      </div>
+                                    ))
+                                  ) : hasDynamicRecordErrorsProcess ? (
+                                    <div className="p-1">
+                                      Hay errores de validación en los registros de la tabla.
                                     </div>
-                                  ))}
+                                  ) : null}
                                 </div>
                               }
                             >
@@ -404,10 +561,14 @@ export const TechnicalSheetDetail = ({
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setOpenPopover((prev) => {
-                                    if (prev?.process === process.id) {
+                                    if (prev?.process === process.id && prev?.type === 'dynamic') {
                                       return null
                                     }
-                                    return { process: process.id }
+
+                                    return {
+                                      process: process.id,
+                                      type: 'dynamic',
+                                    }
                                   })
                                 }}
                               >
@@ -448,42 +609,48 @@ export const TechnicalSheetDetail = ({
                               }
                             />
                           </div>
-                          <div
-                            className="border-start"
-                            style={{ height: '20px', borderColor: '#e2e8f0' }}
-                          ></div>
-                          {!equalDinamic ? (
-                            <CTooltip
-                              className="tooltip-technical_sheet font-inter"
-                              content="Existe una versión más reciente de la estructura."
-                              placement="top"
-                            >
-                              <span>
-                                <CButton
-                                  type="button"
-                                  className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                  onClick={() => handleChangeStructure(process.id, 'dinamic')}
-                                  disabled={equalDinamic}
+                          {technical_sheet && (
+                            <>
+                              <div
+                                className="border-start"
+                                style={{ height: '20px', borderColor: '#e2e8f0' }}
+                              ></div>
+                              {!equalDinamic ? (
+                                <CTooltip
+                                  className="tooltip-technical_sheet font-inter"
+                                  content="Existe una versión más reciente de la estructura."
+                                  placement="top"
                                 >
-                                  <RefreshCcw size={15} className="icon-load" />
-                                  <span className="small fw-semibold">Actualizar estructura</span>
-                                </CButton>
-                              </span>
-                            </CTooltip>
-                          ) : (
-                            <span>
-                              <CButton
-                                type="button"
-                                className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                onClick={() =>
-                                  console.log('Actualizando estructura de:', process.id)
-                                }
-                                disabled={equalDinamic}
-                              >
-                                <RefreshCcw size={15} className="icon-load" />
-                                <span className="small fw-semibold">Actualizar estructura</span>
-                              </CButton>
-                            </span>
+                                  <span>
+                                    <CButton
+                                      type="button"
+                                      className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                      onClick={() => handleChangeStructure(process.id, 'dinamic')}
+                                      disabled={equalDinamic}
+                                    >
+                                      <RefreshCcw size={15} className="icon-load" />
+                                      <span className="small fw-semibold">
+                                        Actualizar estructura
+                                      </span>
+                                    </CButton>
+                                  </span>
+                                </CTooltip>
+                              ) : (
+                                <span>
+                                  <CButton
+                                    type="button"
+                                    className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                    onClick={() =>
+                                      console.log('Actualizando estructura de:', process.id)
+                                    }
+                                    disabled={equalDinamic}
+                                  >
+                                    <RefreshCcw size={15} className="icon-load" />
+                                    <span className="small fw-semibold">Actualizar estructura</span>
+                                  </CButton>
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -500,7 +667,13 @@ export const TechnicalSheetDetail = ({
                           dataGet={dataGet}
                           status={details?.[process?.id]?.settings?.dinamic?.insert_values}
                           setDinamicValues={setDinamicValues}
-                          errors={errors?.technical_sheet_details?.[process?.id]?.dinamic}
+                          errors={Object.fromEntries(
+                            Object.entries(errors || {}).filter(([key]) =>
+                              key.startsWith(
+                                `technical_sheet_details.${process?.id}.settings.dinamic`,
+                              ),
+                            ),
+                          )}
                           validated={validated}
                           setDetails={setDetails}
                           loadCatalog={loadCatalog}
@@ -509,29 +682,27 @@ export const TechnicalSheetDetail = ({
                     </div>
                     <div
                       className={`mb-2 shadow-sm border-start border-4 rounded-end ${
-                        errors?.[`technical_sheet_details.${process.id}.settings.static.values`]
-                          ? 'header-switch-container-error-border'
-                          : ''
+                        hasStaticErrorsProcess ? 'header-switch-container-error-border' : ''
                       }`}
                       style={{ borderLeftColor: '#C21111', backgroundColor: '#fcfcfc' }}
                     >
                       <div
                         className={`p-3 d-flex align-items-center justify-content-between border-bottom bg-white rounded-top header-switch-container ${
-                          errors?.[`technical_sheet_details.${process.id}.settings.static.values`]
-                            ? 'header-switch-container-error'
-                            : ''
+                          hasStaticErrorsProcess ? 'header-switch-container-error' : ''
                         }`}
                       >
                         <div className="d-flex align-items-center gap-2">
                           <Layers size={18} className="text-muted" />
                           <span className="fw-semibold font-poppins text-dark">Tabla Estatica</span>
-                          {errors?.[
-                            `technical_sheet_details.${process.id}.settings.static.values`
-                          ] && (
+                          {hasStaticErrorsProcess && (
                             <CPopover
-                              visible={openPopover?.process === process.id}
+                              visible={
+                                openPopover?.process === process.id &&
+                                openPopover?.type === 'static'
+                              }
                               placement="top"
                               onHide={() => setOpenPopover(null)}
+                              trigger="focus"
                               title={
                                 <div
                                   className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -548,21 +719,22 @@ export const TechnicalSheetDetail = ({
                               content={
                                 <div
                                   className="font-inter custom-popover-error"
-                                  style={{
-                                    maxWidth: '260px',
-                                    fontSize: '0.82rem',
-                                  }}
+                                  style={{ maxWidth: '260px', fontSize: '0.82rem' }}
                                 >
-                                  {errors?.[
-                                    `technical_sheet_details.${process.id}.settings.static.values`
-                                  ].map((err, i) => (
-                                    <div
-                                      key={i}
-                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
-                                    >
-                                      <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                  {staticGeneralErrorProcess ? (
+                                    staticGeneralErrorProcess.map((err, i) => (
+                                      <div
+                                        key={i}
+                                        className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                      >
+                                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                      </div>
+                                    ))
+                                  ) : hasStaticRecordErrorsProcess ? (
+                                    <div className="p-1">
+                                      Hay errores de validación en los registros de la tabla.
                                     </div>
-                                  ))}
+                                  ) : null}
                                 </div>
                               }
                             >
@@ -576,10 +748,10 @@ export const TechnicalSheetDetail = ({
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setOpenPopover((prev) => {
-                                    if (prev?.process === process.id) {
+                                    if (prev?.process === process.id && prev?.type === 'static') {
                                       return null
                                     }
-                                    return { process: process.id }
+                                    return { process: process.id, type: 'static' }
                                   })
                                 }}
                               >
@@ -620,42 +792,48 @@ export const TechnicalSheetDetail = ({
                               }
                             />
                           </div>
-                          <div
-                            className="border-start"
-                            style={{ height: '20px', borderColor: '#e2e8f0' }}
-                          ></div>
-                          {!equalStatic ? (
-                            <CTooltip
-                              className="tooltip-technical_sheet font-inter"
-                              content="Existe una versión más reciente de la estructura."
-                              placement="top"
-                            >
-                              <span>
-                                <CButton
-                                  type="button"
-                                  className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                  onClick={() => handleChangeStructure(process.id, 'static')}
-                                  disabled={equalStatic}
+                          {technical_sheet && (
+                            <>
+                              <div
+                                className="border-start"
+                                style={{ height: '20px', borderColor: '#e2e8f0' }}
+                              ></div>
+                              {!equalStatic ? (
+                                <CTooltip
+                                  className="tooltip-technical_sheet font-inter"
+                                  content="Existe una versión más reciente de la estructura."
+                                  placement="top"
                                 >
-                                  <RefreshCcw size={15} className="icon-load" />
-                                  <span className="small fw-semibold">Actualizar estructura</span>
-                                </CButton>
-                              </span>
-                            </CTooltip>
-                          ) : (
-                            <span>
-                              <CButton
-                                type="button"
-                                className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                onClick={() =>
-                                  console.log('Actualizando estructura de:', process.id)
-                                }
-                                disabled={equalStatic}
-                              >
-                                <RefreshCcw size={15} className="icon-load" />
-                                <span className="small fw-semibold">Actualizar estructura</span>
-                              </CButton>
-                            </span>
+                                  <span>
+                                    <CButton
+                                      type="button"
+                                      className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                      onClick={() => handleChangeStructure(process.id, 'static')}
+                                      disabled={equalStatic}
+                                    >
+                                      <RefreshCcw size={15} className="icon-load" />
+                                      <span className="small fw-semibold">
+                                        Actualizar estructura
+                                      </span>
+                                    </CButton>
+                                  </span>
+                                </CTooltip>
+                              ) : (
+                                <span>
+                                  <CButton
+                                    type="button"
+                                    className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                    onClick={() =>
+                                      console.log('Actualizando estructura de:', process.id)
+                                    }
+                                    disabled={equalStatic}
+                                  >
+                                    <RefreshCcw size={15} className="icon-load" />
+                                    <span className="small fw-semibold">Actualizar estructura</span>
+                                  </CButton>
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -672,11 +850,18 @@ export const TechnicalSheetDetail = ({
                           dataGet={dataGet}
                           status={details?.[process?.id]?.settings?.static?.insert_values}
                           setStaticValues={setStaticValues}
-                          errors={errors?.technical_sheet_details?.[process?.id]?.static}
+                          errors={Object.fromEntries(
+                            Object.entries(errors || {}).filter(([key]) =>
+                              key.startsWith(
+                                `technical_sheet_details.${process?.id}.settings.static`,
+                              ),
+                            ),
+                          )}
                           validated={validated}
                         />
                       </div>
                     </div>
+
                     <div className="d-flex align-items-center gap-3 p-3">
                       <h5 className="mb-0 fw-bold font-montserrat">Subprocesos</h5>
                       <div
@@ -710,9 +895,49 @@ export const TechnicalSheetDetail = ({
                               Object.keys(details).includes(String(subprocess.id)),
                             )
                             .map((subprocess) => {
+                              const equalDinamicSubprocess = isEqual(
+                                {
+                                  header: subprocess?.settings?.schema?.dinamic?.header,
+                                  body: subprocess?.settings?.schema?.dinamic?.body,
+                                },
+                                {
+                                  header: details?.[subprocess.id]?.settings?.dinamic?.header,
+                                  body: details?.[subprocess.id]?.settings?.dinamic?.body,
+                                },
+                              )
+
+                              const equalStaticSubprocess = isEqual(
+                                {
+                                  header: subprocess?.settings?.schema?.static?.header,
+                                  body: subprocess?.settings?.schema?.static?.body,
+                                },
+                                {
+                                  header: details?.[subprocess.id]?.settings?.static?.header,
+                                  body: details?.[subprocess.id]?.settings?.static?.body,
+                                },
+                              )
+
                               const subStatus =
                                 STATUS_CONFIG[details?.[subprocess.id]?.status] ||
                                 STATUS_CONFIG['Pendiente']
+
+                              const dynamicErrorPrefixSubprocess = `technical_sheet_details.${subprocess.id}.settings.dinamic.values`
+                              const dynamicGeneralErrorSubprocess =
+                                errors?.[dynamicErrorPrefixSubprocess]
+                              const hasDynamicRecordErrorsSubprocess = Object.keys(
+                                errors || {},
+                              ).some((key) => key.startsWith(`${dynamicErrorPrefixSubprocess}.`))
+                              const hasDynamicErrorsSubprocess =
+                                !!dynamicGeneralErrorSubprocess || hasDynamicRecordErrorsSubprocess
+
+                              const staticErrorPrefixSubprocess = `technical_sheet_details.${subprocess.id}.settings.static.values`
+                              const staticGeneralErrorSubprocess =
+                                errors?.[staticErrorPrefixSubprocess]
+                              const hasStaticRecordErrorsSubprocess = Object.keys(
+                                errors || {},
+                              ).some((key) => key.startsWith(`${staticErrorPrefixSubprocess}.`))
+                              const hasStaticErrorsSubprocess =
+                                !!staticGeneralErrorSubprocess || hasStaticRecordErrorsSubprocess
 
                               return (
                                 <CAccordionItem
@@ -723,26 +948,31 @@ export const TechnicalSheetDetail = ({
                                   <CAccordionHeader className="font-inter">
                                     <div className="d-flex align-items-center justify-content-between w-100 pe-3">
                                       <span className="subprocess-title">{subprocess.name}</span>
-                                      <span
-                                        className={`process-tag tag-sm ${subStatus.className}`}
-                                        onClick={(e) => {
-                                          e.stopPropagation()
+                                      <div className="d-flex align-items-center gap-2">
+                                        {hasSubprocessErrors(subprocess) && (
+                                          <span className="process-tag tag-error animate-pulse-subtle">
+                                            <AlertTriangle size={14} className="me-1" /> Errores
+                                          </span>
+                                        )}
+                                        <span
+                                          className={`process-tag tag-sm ${subStatus.className}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation()
 
-                                          setChangeStatus(true)
-                                          setSelectedStatus(status.label)
-                                          setSelectedDetail(subprocess.id)
-                                        }}
-                                      >
-                                        {subStatus.icon} {subStatus.label}
-                                      </span>
+                                            setChangeStatus(true)
+                                            setSelectedStatus(status.label)
+                                            setSelectedDetail(subprocess.id)
+                                          }}
+                                        >
+                                          {subStatus.icon} {subStatus.label}
+                                        </span>
+                                      </div>
                                     </div>
                                   </CAccordionHeader>
                                   <CAccordionBody className="font-inter ps-4 pe-3 pb-3">
                                     <div
                                       className={`mb-5 shadow-sm border-start border-4 rounded-end ${
-                                        errors?.[
-                                          `technical_sheet_details.${process.id}.settings.dinamic.values`
-                                        ]
+                                        hasDynamicErrorsSubprocess
                                           ? 'header-switch-container-error-border'
                                           : ''
                                       }`}
@@ -753,9 +983,7 @@ export const TechnicalSheetDetail = ({
                                     >
                                       <div
                                         className={`p-3 d-flex align-items-center justify-content-between border-bottom bg-white rounded-top header-switch-container ${
-                                          errors?.[
-                                            `technical_sheet_details.${subprocess.id}.settings.dinamic.values`
-                                          ]
+                                          hasDynamicErrorsSubprocess
                                             ? 'header-switch-container-error'
                                             : ''
                                         }`}
@@ -765,13 +993,15 @@ export const TechnicalSheetDetail = ({
                                           <span className="fw-semibold font-poppins text-dark">
                                             Tabla Dinámica
                                           </span>
-                                          {errors?.[
-                                            `technical_sheet_details.${subprocess.id}.settings.dinamic.values`
-                                          ] && (
+                                          {hasDynamicErrorsSubprocess && (
                                             <CPopover
-                                              visible={openPopover?.process === subprocess.id}
+                                              visible={
+                                                openPopover?.process === subprocess.id &&
+                                                openPopover?.type === 'dynamic'
+                                              }
                                               placement="top"
                                               onHide={() => setOpenPopover(null)}
+                                              trigger="focus"
                                               title={
                                                 <div
                                                   className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -793,18 +1023,23 @@ export const TechnicalSheetDetail = ({
                                                     fontSize: '0.82rem',
                                                   }}
                                                 >
-                                                  {errors?.[
-                                                    `technical_sheet_details.${subprocess.id}.settings.dinamic.values`
-                                                  ].map((err, i) => (
-                                                    <div
-                                                      key={i}
-                                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
-                                                    >
-                                                      <span style={{ whiteSpace: 'pre-line' }}>
-                                                        {err}
-                                                      </span>
+                                                  {dynamicGeneralErrorSubprocess ? (
+                                                    dynamicGeneralErrorSubprocess.map((err, i) => (
+                                                      <div
+                                                        key={i}
+                                                        className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                                      >
+                                                        <span style={{ whiteSpace: 'pre-line' }}>
+                                                          {err}
+                                                        </span>
+                                                      </div>
+                                                    ))
+                                                  ) : hasDynamicRecordErrorsSubprocess ? (
+                                                    <div className="p-1">
+                                                      Hay errores de validación en los registros de
+                                                      la tabla.
                                                     </div>
-                                                  ))}
+                                                  ) : null}
                                                 </div>
                                               }
                                             >
@@ -818,10 +1053,16 @@ export const TechnicalSheetDetail = ({
                                                 onClick={(e) => {
                                                   e.stopPropagation()
                                                   setOpenPopover((prev) => {
-                                                    if (prev?.process === subprocess.id) {
+                                                    if (
+                                                      prev?.process === subprocess.id &&
+                                                      prev?.type === 'dynamic'
+                                                    ) {
                                                       return null
                                                     }
-                                                    return { process: subprocess.id }
+                                                    return {
+                                                      process: subprocess.id,
+                                                      type: 'dynamic',
+                                                    }
                                                   })
                                                 }}
                                               >
@@ -865,46 +1106,53 @@ export const TechnicalSheetDetail = ({
                                               }
                                             />
                                           </div>
-                                          <div
-                                            className="border-start"
-                                            style={{ height: '20px', borderColor: '#e2e8f0' }}
-                                          ></div>
-                                          {!equalDinamic ? (
-                                            <CTooltip
-                                              className="tooltip-technical_sheet font-inter"
-                                              content="Existe una versión más reciente de la estructura."
-                                              placement="top"
-                                            >
-                                              <span>
-                                                <CButton
-                                                  type="button"
-                                                  className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                                  onClick={() =>
-                                                    handleChangeStructure(subprocess.id, 'dinamic')
-                                                  }
-                                                  disabled={equalDinamic}
+                                          {technical_sheet && (
+                                            <>
+                                              <div
+                                                className="border-start"
+                                                style={{ height: '20px', borderColor: '#e2e8f0' }}
+                                              ></div>
+                                              {!equalDinamic ? (
+                                                <CTooltip
+                                                  className="tooltip-technical_sheet font-inter"
+                                                  content="Existe una versión más reciente de la estructura."
+                                                  placement="top"
                                                 >
-                                                  <RefreshCcw size={15} className="icon-load" />
-                                                  <span className="small fw-semibold">
-                                                    Actualizar estructura
+                                                  <span>
+                                                    <CButton
+                                                      type="button"
+                                                      className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                                      onClick={() =>
+                                                        handleChangeStructure(
+                                                          subprocess.id,
+                                                          'dinamic',
+                                                        )
+                                                      }
+                                                      disabled={equalDinamic}
+                                                    >
+                                                      <RefreshCcw size={15} className="icon-load" />
+                                                      <span className="small fw-semibold">
+                                                        Actualizar estructura
+                                                      </span>
+                                                    </CButton>
                                                   </span>
-                                                </CButton>
-                                              </span>
-                                            </CTooltip>
-                                          ) : (
-                                            <span>
-                                              <CButton
-                                                type="button"
-                                                className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                                onClick={() => {}}
-                                                disabled={equalDinamic}
-                                              >
-                                                <RefreshCcw size={15} className="icon-load" />
-                                                <span className="small fw-semibold">
-                                                  Actualizar estructura
+                                                </CTooltip>
+                                              ) : (
+                                                <span>
+                                                  <CButton
+                                                    type="button"
+                                                    className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                                    onClick={() => {}}
+                                                    disabled={equalDinamic}
+                                                  >
+                                                    <RefreshCcw size={15} className="icon-load" />
+                                                    <span className="small fw-semibold">
+                                                      Actualizar estructura
+                                                    </span>
+                                                  </CButton>
                                                 </span>
-                                              </CButton>
-                                            </span>
+                                              )}
+                                            </>
                                           )}
                                         </div>
                                       </div>
@@ -925,20 +1173,22 @@ export const TechnicalSheetDetail = ({
                                               ?.insert_values
                                           }
                                           setDinamicValues={setDinamicValues}
-                                          errors={
-                                            errors?.technical_sheet_details?.[subprocess?.id]
-                                              ?.dinamic
-                                          }
+                                          errors={Object.fromEntries(
+                                            Object.entries(errors || {}).filter(([key]) =>
+                                              key.startsWith(
+                                                `technical_sheet_details.${subprocess?.id}.settings.dinamic`,
+                                              ),
+                                            ),
+                                          )}
                                           validated={validated}
                                           setDetails={setDetails}
+                                          loadCatalog={loadCatalog}
                                         />
                                       </div>
                                     </div>
                                     <div
                                       className={`mb-2 shadow-sm border-start border-4 rounded-end ${
-                                        errors?.[
-                                          `technical_sheet_details.${subprocess.id}.settings.static.values`
-                                        ]
+                                        hasStaticErrorsSubprocess
                                           ? 'header-switch-container-error-border'
                                           : ''
                                       }`}
@@ -949,9 +1199,7 @@ export const TechnicalSheetDetail = ({
                                     >
                                       <div
                                         className={`p-3 d-flex align-items-center justify-content-between border-bottom bg-white rounded-top header-switch-container ${
-                                          errors?.[
-                                            `technical_sheet_details.${subprocess.id}.settings.static.values`
-                                          ]
+                                          hasStaticErrorsSubprocess
                                             ? 'header-switch-container-error'
                                             : ''
                                         }`}
@@ -961,13 +1209,15 @@ export const TechnicalSheetDetail = ({
                                           <span className="fw-semibold font-poppins text-dark">
                                             Tabla Estatica
                                           </span>
-                                          {errors?.[
-                                            `technical_sheet_details.${subprocess.id}.settings.static.values`
-                                          ] && (
+                                          {hasStaticErrorsSubprocess && (
                                             <CPopover
-                                              visible={openPopover?.process === subprocess.id}
+                                              visible={
+                                                openPopover?.process === subprocess.id &&
+                                                openPopover?.type === 'static'
+                                              }
                                               placement="top"
                                               onHide={() => setOpenPopover(null)}
+                                              trigger="focus"
                                               title={
                                                 <div
                                                   className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -1001,6 +1251,23 @@ export const TechnicalSheetDetail = ({
                                                       </span>
                                                     </div>
                                                   ))}
+                                                  {staticGeneralErrorSubprocess ? (
+                                                    staticGeneralErrorSubprocess.map((err, i) => (
+                                                      <div
+                                                        key={i}
+                                                        className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                                      >
+                                                        <span style={{ whiteSpace: 'pre-line' }}>
+                                                          {err}
+                                                        </span>
+                                                      </div>
+                                                    ))
+                                                  ) : hasStaticRecordErrorsSubprocess ? (
+                                                    <div className="p-1">
+                                                      Hay errores de validación en los registros de
+                                                      la tabla.
+                                                    </div>
+                                                  ) : null}
                                                 </div>
                                               }
                                             >
@@ -1014,10 +1281,16 @@ export const TechnicalSheetDetail = ({
                                                 onClick={(e) => {
                                                   e.stopPropagation()
                                                   setOpenPopover((prev) => {
-                                                    if (prev?.process === subprocess.id) {
+                                                    if (
+                                                      prev?.process === subprocess.id &&
+                                                      prev?.type === 'static'
+                                                    ) {
                                                       return null
                                                     }
-                                                    return { process: subprocess.id }
+                                                    return {
+                                                      process: subprocess.id,
+                                                      type: 'static',
+                                                    }
                                                   })
                                                 }}
                                               >
@@ -1061,51 +1334,59 @@ export const TechnicalSheetDetail = ({
                                               }
                                             />
                                           </div>
-                                          <div
-                                            className="border-start"
-                                            style={{ height: '20px', borderColor: '#e2e8f0' }}
-                                          ></div>
-                                          {!equalStatic ? (
-                                            <CTooltip
-                                              className="tooltip-technical_sheet font-inter"
-                                              content="Existe una versión más reciente de la estructura."
-                                              placement="top"
-                                            >
-                                              <span>
-                                                <CButton
-                                                  type="button"
-                                                  className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                                  onClick={() =>
-                                                    handleChangeStructure(subprocess.id, 'static')
-                                                  }
-                                                  disabled={equalStatic}
+                                          {technical_sheet && (
+                                            <>
+                                              <div
+                                                className="border-start"
+                                                style={{ height: '20px', borderColor: '#e2e8f0' }}
+                                              ></div>
+                                              {!equalStaticSubprocess ? (
+                                                <CTooltip
+                                                  className="tooltip-technical_sheet font-inter"
+                                                  content="Existe una versión más reciente de la estructura."
+                                                  placement="top"
                                                 >
-                                                  <RefreshCcw size={15} className="icon-load" />
-                                                  <span className="small fw-semibold">
-                                                    Actualizar estructura
+                                                  <span>
+                                                    <CButton
+                                                      type="button"
+                                                      className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                                      onClick={() =>
+                                                        handleChangeStructureSubprocess(
+                                                          process.id,
+                                                          subprocess.id,
+                                                          'static',
+                                                        )
+                                                      }
+                                                      disabled={equalStaticSubprocess}
+                                                    >
+                                                      <RefreshCcw size={15} className="icon-load" />
+                                                      <span className="small fw-semibold">
+                                                        Actualizar estructura
+                                                      </span>
+                                                    </CButton>
                                                   </span>
-                                                </CButton>
-                                              </span>
-                                            </CTooltip>
-                                          ) : (
-                                            <span>
-                                              <CButton
-                                                type="button"
-                                                className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                                onClick={() =>
-                                                  console.log(
-                                                    'Actualizando estructura de:',
-                                                    process.id,
-                                                  )
-                                                }
-                                                disabled={equalStatic}
-                                              >
-                                                <RefreshCcw size={15} className="icon-load" />
-                                                <span className="small fw-semibold">
-                                                  Actualizar estructura
+                                                </CTooltip>
+                                              ) : (
+                                                <span>
+                                                  <CButton
+                                                    type="button"
+                                                    className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                                    onClick={() =>
+                                                      console.log(
+                                                        'Actualizando estructura de:',
+                                                        subprocess.id,
+                                                      )
+                                                    }
+                                                    disabled={equalStaticSubprocess}
+                                                  >
+                                                    <RefreshCcw size={15} className="icon-load" />
+                                                    <span className="small fw-semibold">
+                                                      Actualizar estructura
+                                                    </span>
+                                                  </CButton>
                                                 </span>
-                                              </CButton>
-                                            </span>
+                                              )}
+                                            </>
                                           )}
                                         </div>
                                       </div>
@@ -1126,10 +1407,13 @@ export const TechnicalSheetDetail = ({
                                               ?.insert_values
                                           }
                                           setStaticValues={setStaticValues}
-                                          errors={
-                                            errors?.technical_sheet_details?.[subprocess?.id]
-                                              ?.static
-                                          }
+                                          errors={Object.fromEntries(
+                                            Object.entries(errors || {}).filter(([key]) =>
+                                              key.startsWith(
+                                                `technical_sheet_details.${subprocess?.id}.settings.static`,
+                                              ),
+                                            ),
+                                          )}
                                           validated={validated}
                                         />
                                       </div>
@@ -1168,9 +1452,59 @@ export const TechnicalSheetDetail = ({
                                               Object.keys(details).includes(String(operation.id)),
                                             )
                                             .map((operation) => {
+                                              const equalDinamicOperation = isEqual(
+                                                {
+                                                  header:
+                                                    operation?.settings?.schema?.dinamic?.header,
+                                                  body: operation?.settings?.schema?.dinamic?.body,
+                                                },
+                                                {
+                                                  header:
+                                                    details?.[operation.id]?.settings?.dinamic
+                                                      ?.header,
+                                                  body: details?.[operation.id]?.settings?.dinamic
+                                                    ?.body,
+                                                },
+                                              )
+
+                                              const equalStaticOperation = isEqual(
+                                                {
+                                                  header:
+                                                    operation?.settings?.schema?.static?.header,
+                                                  body: operation?.settings?.schema?.static?.body,
+                                                },
+                                                {
+                                                  header:
+                                                    details?.[operation.id]?.settings?.static
+                                                      ?.header,
+                                                  body: details?.[operation.id]?.settings?.static
+                                                    ?.body,
+                                                },
+                                              )
+
                                               const subStatus =
                                                 STATUS_CONFIG[details?.[operation.id]?.status] ||
                                                 STATUS_CONFIG['Pendiente']
+
+                                              const has_errors_operations = Object.keys(
+                                                errors || {},
+                                              ).some((key) =>
+                                                key.startsWith(
+                                                  `technical_sheet_details.${operation.id}`,
+                                                ),
+                                              )
+
+                                              const staticErrorPrefixOperation = `technical_sheet_details.${operation.id}.settings.static.values`
+                                              const staticGeneralErrorOperation =
+                                                errors?.[staticErrorPrefixOperation]
+                                              const hasStaticRecordErrorsOperation = Object.keys(
+                                                errors || {},
+                                              ).some((key) =>
+                                                key.startsWith(`${staticErrorPrefixOperation}.`),
+                                              )
+                                              const hasStaticErrorsOperation =
+                                                !!staticGeneralErrorOperation ||
+                                                hasStaticRecordErrorsOperation
 
                                               return (
                                                 <CAccordionItem
@@ -1183,29 +1517,37 @@ export const TechnicalSheetDetail = ({
                                                       <span className="subprocess-title">
                                                         {operation.name}
                                                       </span>
+                                                      <div className="d-flex align-items-center gap-2">
+                                                        {has_errors_operations && (
+                                                          <span className="process-tag tag-error animate-pulse-subtle">
+                                                            <AlertTriangle
+                                                              size={14}
+                                                              className="me-1"
+                                                            />
+                                                            Errores
+                                                          </span>
+                                                        )}
+                                                        <span
+                                                          className={`process-tag tag-sm ${subStatus.className}`}
+                                                          onClick={(e) => {
+                                                            e.stopPropagation()
 
-                                                      <span
-                                                        className={`process-tag tag-sm ${subStatus.className}`}
-                                                        onClick={(e) => {
-                                                          e.stopPropagation()
-
-                                                          setChangeStatus(true)
-                                                          setSelectedStatus(status.label)
-                                                          setSelectedDetail(operation.id)
-                                                        }}
-                                                      >
-                                                        {subStatus.icon}
-                                                        {subStatus.label}
-                                                      </span>
+                                                            setChangeStatus(true)
+                                                            setSelectedStatus(status.label)
+                                                            setSelectedDetail(operation.id)
+                                                          }}
+                                                        >
+                                                          {subStatus.icon}
+                                                          {subStatus.label}
+                                                        </span>
+                                                      </div>
                                                     </div>
                                                   </CAccordionHeader>
 
                                                   <CAccordionBody className="font-inter ps-3 py-2">
                                                     <div
                                                       className={`mb-2 shadow-sm border-start border-4 rounded-end ${
-                                                        errors?.[
-                                                          `technical_sheet_details.${operation.id}.settings.static.values`
-                                                        ]
+                                                        hasStaticErrorsOperation
                                                           ? 'header-switch-container-error-border'
                                                           : ''
                                                       }`}
@@ -1216,9 +1558,7 @@ export const TechnicalSheetDetail = ({
                                                     >
                                                       <div
                                                         className={`p-3 d-flex align-items-center justify-content-between border-bottom bg-white rounded-top header-switch-container ${
-                                                          errors?.[
-                                                            `technical_sheet_details.${operation.id}.settings.static.values`
-                                                          ]
+                                                          hasStaticErrorsOperation
                                                             ? 'header-switch-container-error'
                                                             : ''
                                                         }`}
@@ -1231,16 +1571,16 @@ export const TechnicalSheetDetail = ({
                                                           <span className="fw-semibold font-poppins text-dark">
                                                             Tabla Estatica
                                                           </span>
-                                                          {errors?.[
-                                                            `technical_sheet_details.${operation.id}.settings.static.values`
-                                                          ] && (
+                                                          {hasStaticErrorsOperation && (
                                                             <CPopover
                                                               visible={
                                                                 openPopover?.process ===
-                                                                operation.id
+                                                                  operation.id &&
+                                                                openPopover?.type === 'static'
                                                               }
                                                               placement="top"
                                                               onHide={() => setOpenPopover(null)}
+                                                              trigger="focus"
                                                               title={
                                                                 <div
                                                                   className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -1265,22 +1605,30 @@ export const TechnicalSheetDetail = ({
                                                                     fontSize: '0.82rem',
                                                                   }}
                                                                 >
-                                                                  {errors?.[
-                                                                    `technical_sheet_details.${operation.id}.settings.static.values`
-                                                                  ].map((err, i) => (
-                                                                    <div
-                                                                      key={i}
-                                                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
-                                                                    >
-                                                                      <span
-                                                                        style={{
-                                                                          whiteSpace: 'pre-line',
-                                                                        }}
-                                                                      >
-                                                                        {err}
-                                                                      </span>
+                                                                  {staticGeneralErrorOperation ? (
+                                                                    staticGeneralErrorOperation.map(
+                                                                      (err, i) => (
+                                                                        <div
+                                                                          key={i}
+                                                                          className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                                                        >
+                                                                          <span
+                                                                            style={{
+                                                                              whiteSpace:
+                                                                                'pre-line',
+                                                                            }}
+                                                                          >
+                                                                            {err}
+                                                                          </span>
+                                                                        </div>
+                                                                      ),
+                                                                    )
+                                                                  ) : hasStaticRecordErrorsOperation ? (
+                                                                    <div className="p-1">
+                                                                      Hay errores de validación en
+                                                                      los registros de la tabla.
                                                                     </div>
-                                                                  ))}
+                                                                  ) : null}
                                                                 </div>
                                                               }
                                                             >
@@ -1295,11 +1643,16 @@ export const TechnicalSheetDetail = ({
                                                                   e.stopPropagation()
                                                                   setOpenPopover((prev) => {
                                                                     if (
-                                                                      prev?.process === operation.id
+                                                                      prev?.process ===
+                                                                        operation.id &&
+                                                                      prev?.type === 'static'
                                                                     ) {
                                                                       return null
                                                                     }
-                                                                    return { process: operation.id }
+                                                                    return {
+                                                                      process: operation.id,
+                                                                      type: 'static',
+                                                                    }
                                                                   })
                                                                 }}
                                                               >
@@ -1346,63 +1699,71 @@ export const TechnicalSheetDetail = ({
                                                               }
                                                             />
                                                           </div>
-                                                          <div
-                                                            className="border-start"
-                                                            style={{
-                                                              height: '20px',
-                                                              borderColor: '#e2e8f0',
-                                                            }}
-                                                          ></div>
-                                                          {!equalStatic ? (
-                                                            <CTooltip
-                                                              className="tooltip-technical_sheet font-inter"
-                                                              content="Existe una versión más reciente de la estructura."
-                                                              placement="top"
-                                                            >
-                                                              <span>
-                                                                <CButton
-                                                                  type="button"
-                                                                  className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                                                  onClick={() =>
-                                                                    handleChangeStructure(
-                                                                      process.id,
-                                                                      'static',
-                                                                    )
-                                                                  }
-                                                                  disabled={equalStatic}
+                                                          {technical_sheet && (
+                                                            <>
+                                                              <div
+                                                                className="border-start"
+                                                                style={{
+                                                                  height: '20px',
+                                                                  borderColor: '#e2e8f0',
+                                                                }}
+                                                              ></div>
+                                                              {!equalStatic ? (
+                                                                <CTooltip
+                                                                  className="tooltip-technical_sheet font-inter"
+                                                                  content="Existe una versión más reciente de la estructura."
+                                                                  placement="top"
                                                                 >
-                                                                  <RefreshCcw
-                                                                    size={15}
-                                                                    className="icon-load"
-                                                                  />
-                                                                  <span className="small fw-semibold">
-                                                                    Actualizar estructura
+                                                                  <span>
+                                                                    <CButton
+                                                                      type="button"
+                                                                      className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                                                      onClick={() =>
+                                                                        handleChangeStructureOperation(
+                                                                          process.id,
+                                                                          subprocess.id,
+                                                                          operation.id,
+                                                                          'static',
+                                                                        )
+                                                                      }
+                                                                      disabled={
+                                                                        equalStaticOperation
+                                                                      }
+                                                                    >
+                                                                      <RefreshCcw
+                                                                        size={15}
+                                                                        className="icon-load"
+                                                                      />
+                                                                      <span className="small fw-semibold">
+                                                                        Actualizar estructura
+                                                                      </span>
+                                                                    </CButton>
                                                                   </span>
-                                                                </CButton>
-                                                              </span>
-                                                            </CTooltip>
-                                                          ) : (
-                                                            <span>
-                                                              <CButton
-                                                                type="button"
-                                                                className="btn-update-structure font-inter d-flex align-items-center gap-2"
-                                                                onClick={() =>
-                                                                  console.log(
-                                                                    'Actualizando estructura de:',
-                                                                    process.id,
-                                                                  )
-                                                                }
-                                                                disabled={equalStatic}
-                                                              >
-                                                                <RefreshCcw
-                                                                  size={15}
-                                                                  className="icon-load"
-                                                                />
-                                                                <span className="small fw-semibold">
-                                                                  Actualizar estructura
+                                                                </CTooltip>
+                                                              ) : (
+                                                                <span>
+                                                                  <CButton
+                                                                    type="button"
+                                                                    className="btn-update-structure font-inter d-flex align-items-center gap-2"
+                                                                    onClick={() =>
+                                                                      console.log(
+                                                                        'Actualizando estructura de:',
+                                                                        process.id,
+                                                                      )
+                                                                    }
+                                                                    disabled={equalStaticOperation}
+                                                                  >
+                                                                    <RefreshCcw
+                                                                      size={15}
+                                                                      className="icon-load"
+                                                                    />
+                                                                    <span className="small fw-semibold">
+                                                                      Actualizar estructura
+                                                                    </span>
+                                                                  </CButton>
                                                                 </span>
-                                                              </CButton>
-                                                            </span>
+                                                              )}
+                                                            </>
                                                           )}
                                                         </div>
                                                       </div>
@@ -1426,11 +1787,14 @@ export const TechnicalSheetDetail = ({
                                                               ?.static?.insert_values
                                                           }
                                                           setStaticValues={setStaticValues}
-                                                          errors={
-                                                            errors?.technical_sheet_details?.[
-                                                              operation?.id
-                                                            ]?.static
-                                                          }
+                                                          errors={Object.fromEntries(
+                                                            Object.entries(errors || {}).filter(
+                                                              ([key]) =>
+                                                                key.startsWith(
+                                                                  `technical_sheet_details.${operation?.id}.settings.static`,
+                                                                ),
+                                                            ),
+                                                          )}
                                                           validated={validated}
                                                         />
                                                       </div>

@@ -19,15 +19,30 @@ import WaistbandTypesService from '../../services/waistband_types.service'
 import SupplyTypesService from '../../services/supply_types.service'
 import EmployeesService from '../../services/employees.service'
 import TechnicalSheetDetailService from '../../services/technical_sheet_detail.service'
-import Create from './technicalSheets/Create'
+import ProductionOrdersService from '../../services/production_orders.service'
 import Edit from './technicalSheets/Edit'
 import Products from './Products'
-import CreateTransformation from './technicalSheets/productionOrder/transformations/Create'
+import Create from './technicalSheets/productionOrder/transformations/Create'
+import TransformationsService from '../../services/transformations.service'
 
-const TechnicalSheet = ({ product_id, action }) => {
+const Transformation = ({ product_id, action, production_order_id }) => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: action })
+
   const [product, setProduct] = useState(null)
+  const [technicalSheet, setTechnicalSheet] = useState(null)
+  const [productionOrder, setProductionOrder] = useState(null)
+
+  const [models, setModels] = useState(null)
+  const [statusCollection, setStatusCollection] = useState(null)
+  const [statusTechnical, setStatusTechnical] = useState(null)
+  const [processes, setProcesses] = useState(null)
+  const [sizes, setSizes] = useState(null)
+  const [productStara, setProductStara] = useState(null)
+  const [trademarks, setTrademarks] = useState(null)
+  const [errorsCreate, setErrorsCreate] = useState({})
+  const [categories, setCategories] = useState(null)
+  const [subcategories, setSubcategories] = useState(null)
   const [collections, setCollections] = useState(null)
   const [subgroups, setSubgroups] = useState(null)
   const [garmentTypes, setGarmentTypes] = useState(null)
@@ -38,29 +53,24 @@ const TechnicalSheet = ({ product_id, action }) => {
   const [yokeTypes, setYokeTypes] = useState(null)
   const [waistbandTypes, setWaistbandTypes] = useState(null)
   const [employees, setEmployees] = useState(null)
-  const [processes, setProcesses] = useState(null)
   const [supplyTypes, setSupplyTypes] = useState(null)
   const [variants, setVariants] = useState(null)
-  const [models, setModels] = useState(null)
-  const [statusCollection, setStatusCollection] = useState(null)
-  const [statusTechnical, setStatusTechnical] = useState(null)
-
-  const [technicalSheet, setTechnicalSheet] = useState(null)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
-
-  const [productionOrder, setProductionOrder] = useState(null)
 
   useEffect(() => {
     if (!product_id) return
     setLoading(true)
     findProduct(product_id)
     fetchProcesses({ in_technical_sheet: true })
-    if (view.name === 'edit_technical_sheet') {
+    if (view.name === 'create') {
       findTechnicalSheet({ product_id })
+      findProductionOrder(production_order_id)
+      fetchTrademarks()
       fetchSupplyTypes()
     }
-    if (view.name === 'create_technical_sheet') {
+    if (view.name === 'edit_technical_sheet') {
+      findTechnicalSheet({ product_id })
       fetchSupplyTypes()
     }
     if (view.name === 'list_production_orders') {
@@ -77,21 +87,21 @@ const TechnicalSheet = ({ product_id, action }) => {
     setView(newView)
   }
 
+  const create = async (data) => {
+    try {
+      const response = await TransformationsService.store(data)
+      setErrors({})
+      return response
+    } catch (error) {
+      setErrors(error.errors)
+      throw error
+    }
+  }
+
   const findProduct = async (id) => {
     try {
       const response = await ProductsService.find(id)
-      console.log(response)
       setProduct(response.data.product)
-      setModels(response.data.model_types)
-      setStatusCollection(response.data.status_technical_sheet_detail)
-      setStatusTechnical(
-        Array.isArray(response.data.status_technical_sheet)
-          ? response.data.status_technical_sheet.map((item) => ({
-              value: item,
-              label: item,
-            }))
-          : [],
-      )
       return response
     } catch (error) {
       throw error
@@ -122,6 +132,7 @@ const TechnicalSheet = ({ product_id, action }) => {
             }, {})
           : {},
       })
+      setSizes(response.data.technical_sheet.product.trademark.sizes)
       setModels(response.data.model_types)
       setStatusCollection(response.data.status_technical_sheet_detail)
       setStatusTechnical(
@@ -132,6 +143,18 @@ const TechnicalSheet = ({ product_id, action }) => {
             }))
           : [],
       )
+      setProductStara(response.data.technical_sheet.products || null)
+      return response
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
+  }
+
+  const findProductionOrder = async (id) => {
+    try {
+      const response = await ProductionOrdersService.find(id)
+      setProductionOrder(response.data.production_order)
       return response
     } catch (error) {
       throw error
@@ -189,7 +212,7 @@ const TechnicalSheet = ({ product_id, action }) => {
         Array.isArray(response.data.garment_types)
           ? response.data.garment_types.reduce((acc, garment_type) => {
               acc[garment_type.id] = {
-                label: `${garment_type.settings.code ?? 'N/A'} - ${garment_type.name ?? 'N/A'}`,
+                label: garment_type.name,
                 value: garment_type.id,
               }
               return acc
@@ -211,7 +234,7 @@ const TechnicalSheet = ({ product_id, action }) => {
         Array.isArray(response.data.wash_tones)
           ? response.data.wash_tones.reduce((acc, wash_tone) => {
               acc[wash_tone.id] = {
-                label: `${wash_tone.settings.code ?? 'N/A'} - ${wash_tone.name ?? 'N/A'}`,
+                label: wash_tone.name,
                 value: wash_tone.id,
               }
               return acc
@@ -233,7 +256,7 @@ const TechnicalSheet = ({ product_id, action }) => {
         Array.isArray(response.data.colors)
           ? response.data.colors.reduce((acc, color) => {
               acc[color.id] = {
-                label: `${color.settings.code ?? 'N/A'} - ${color.name ?? 'N/A'}`,
+                label: color.name,
                 value: color.id,
               }
               return acc
@@ -255,7 +278,7 @@ const TechnicalSheet = ({ product_id, action }) => {
         Array.isArray(response.data.back_types)
           ? response.data.back_types.reduce((acc, back_type) => {
               acc[back_type.id] = {
-                label: `${back_type.settings.code ?? 'N/A'} - ${back_type.name ?? 'N/A'}`,
+                label: back_type.name,
                 value: back_type.id,
               }
               return acc
@@ -277,7 +300,7 @@ const TechnicalSheet = ({ product_id, action }) => {
         Array.isArray(response.data.boot_types)
           ? response.data.boot_types.reduce((acc, boot_type) => {
               acc[boot_type.id] = {
-                label: `${boot_type.settings.code ?? 'N/A'} - ${boot_type.name ?? 'N/A'}`,
+                label: boot_type.name,
                 value: boot_type.id,
               }
               return acc
@@ -299,7 +322,7 @@ const TechnicalSheet = ({ product_id, action }) => {
         Array.isArray(response.data.yoke_types)
           ? response.data.yoke_types.reduce((acc, yoke_type) => {
               acc[yoke_type.id] = {
-                label: `${yoke_type.settings.code ?? 'N/A'} - ${yoke_type.name ?? 'N/A'}`,
+                label: yoke_type.name,
                 value: yoke_type.id,
               }
               return acc
@@ -321,7 +344,7 @@ const TechnicalSheet = ({ product_id, action }) => {
         Array.isArray(response.data.waistband_types)
           ? response.data.waistband_types.reduce((acc, waistband_type) => {
               acc[waistband_type.id] = {
-                label: `${waistband_type.settings.code ?? 'N/A'} - ${waistband_type.name ?? 'N/A'}`,
+                label: waistband_type.name,
                 value: waistband_type.id,
               }
               return acc
@@ -404,7 +427,7 @@ const TechnicalSheet = ({ product_id, action }) => {
           ? response.data.supply_types.reduce((acc, supply_type) => {
               acc[supply_type.id] = (supply_type.variants || []).reduce((variantAcc, variant) => {
                 variantAcc[variant.id] = {
-                  label: `${variant.name} - ${variant.description}`,
+                  label: variant.name,
                   value: variant.id,
                   data: variant,
                 }
@@ -416,7 +439,7 @@ const TechnicalSheet = ({ product_id, action }) => {
       )
     } catch (error) {
       setErrors(error.errors)
-      throw error
+      console.error('Error obteniendo tipos de insumo:', error)
     }
   }
 
@@ -492,12 +515,95 @@ const TechnicalSheet = ({ product_id, action }) => {
     }
   }
 
+  const fetchTrademarks = async (params) => {
+    try {
+      const response = await TrademarksService.all(params)
+      setTrademarks(response.data.trademarks)
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const createProduct = async (data) => {
+    try {
+      const response = await ProductsService.store(data)
+      setProductStara(response.data.product)
+      setErrorsCreate({})
+      return response
+    } catch (error) {
+      console.log(error)
+      setErrorsCreate(error.errors)
+      throw error
+    }
+  }
+
+  const fetchCategories = async (params) => {
+    try {
+      const response = await CategoriesService.all(params)
+      setCategories(
+        Array.isArray(response.data.categories)
+          ? response.data.categories.reduce((acc, category) => {
+              acc[category.id] = {
+                label: `${category.name} - ${category.description}`,
+                value: category.id,
+              }
+              return acc
+            }, {})
+          : {},
+      )
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSubcategories = async (category_id, params) => {
+    try {
+      const response = await SubcategoriesService.all(category_id, params)
+      setSubcategories(
+        Array.isArray(response.data.subcategories)
+          ? response.data.subcategories.reduce((acc, subcategory) => {
+              acc[subcategory.id] = {
+                label: `${subcategory.name} - ${subcategory.description}`,
+                value: subcategory.id,
+              }
+              return acc
+            }, {})
+          : {},
+      )
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const edit = async (id, data) => {
+    try {
+      const response = await ProductionOrdersService.update(id, data)
+      setErrors({})
+      return response
+    } catch (error) {
+      setErrors(error.errors)
+      throw error
+    }
+  }
+
   const renderView = () => {
     switch (view.name) {
-      case 'create_technical_sheet':
+      case 'create':
         return (
           <Create
             product={product}
+            technical_sheet={technicalSheet}
+            production_order={productionOrder}
+            create={create}
             fetchCollections={fetchCollections}
             collections={collections}
             fetchSubgroups={fetchSubgroups}
@@ -522,11 +628,21 @@ const TechnicalSheet = ({ product_id, action }) => {
             supply_types={supplyTypes}
             variants={variants}
             onChangeView={changeView}
-            create={createTechnicalSheet}
             errors={errors}
             models={models}
+            save={saveTechnicalSheetDetails}
             statusCollection={statusCollection}
             statusTechnical={statusTechnical}
+            sizes={sizes}
+            product_stara={productStara}
+            trademarks={trademarks}
+            createProduct={createProduct}
+            errors_create={errorsCreate}
+            categories={categories}
+            fetchCategories={fetchCategories}
+            subcategories={subcategories}
+            fetchSubcategories={fetchSubcategories}
+            edit={edit}
           />
         )
 
@@ -582,4 +698,4 @@ const TechnicalSheet = ({ product_id, action }) => {
   return <div>{renderView()}</div>
 }
 
-export default TechnicalSheet
+export default Transformation

@@ -76,7 +76,7 @@ const EditableField = ({
   )
 }
 
-const InformationTechnicalSheet = ({
+const InformationTransformation = ({
   product,
   technical_sheet,
   fetchCollections,
@@ -104,42 +104,59 @@ const InformationTechnicalSheet = ({
   validated,
   formData,
   setFormData,
-  photoDPreview,
-  setPhotoDPreview,
-  photoTPreview,
-  setPhotoTPreview,
   statusTechnical,
+  trademarks,
+  categories,
+  fetchCategories,
+  subcategories,
+  fetchSubcategories,
+  findTrademarkByCode,
 }) => {
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
 
+  const [photoDPreview, setPhotoDPreview] = useState(null)
+  const [photoTPreview, setPhotoTPreview] = useState(null)
+
   const [showFullscreen, setShowFullscreen] = useState(false)
 
-  const isInvalidCollection = !!errors?.collection_id
-  const isValidCollection = !errors?.collection_id && formData?.collection_id !== '' && validated
-  const isInvalidStatus = !!errors?.status
-  const isValidStatus = !errors?.status && formData?.status !== '' && validated
-  const isInvalidSubgroup = !!errors?.subgroup_id
-  const isValidSubgroup = !errors?.subgroup_id && formData?.subgroup_id !== '' && validated
-  const isInvalidGarmentType = !!errors?.garment_type_id
+  const isInvalidSubcategory = !!errors?.['product.subcategory_id']
+  const isValidSubcategory =
+    !errors?.['product.subcategory_id'] && formData?.subcategory_id !== '' && validated
+  const isInvalidCollection = !!errors?.['technical_sheet.collection_id']
+  const isValidCollection =
+    !errors?.['technical_sheet.collection_id'] && formData?.collection_id !== '' && validated
+  const isInvalidStatus = !!errors?.['technical_sheet.status']
+  const isValidStatus = !errors?.['technical_sheet.status'] && formData?.status !== '' && validated
+  const isInvalidSubgroup = !!errors?.['technical_sheet.subgroup_id']
+  const isValidSubgroup =
+    !errors?.['technical_sheet.subgroup_id'] && formData?.subgroup_id !== '' && validated
+  const isInvalidGarmentType = !!errors?.['technical_sheet.garment_type_id']
   const isValidGarmentType =
-    !errors?.garment_type_id && formData?.garment_type_id !== '' && validated
-  const isInvalidWashTone = !!errors?.wash_tone_id
-  const isValidWashTone = !errors?.wash_tone_id && formData?.wash_tone_id !== '' && validated
-  const isInvalidColor = !!errors?.color_id
-  const isValidColor = !errors?.color_id && formData?.color_id !== '' && validated
-  const isInvalidBackType = !!errors?.back_type_id
-  const isValidBackType = !errors?.back_type_id && formData?.back_type_id !== '' && validated
-  const isInvalidBootType = !!errors?.boot_type_id
-  const isValidBootType = !errors?.boot_type_id && formData?.boot_type_id !== '' && validated
-  const isInvalidYokeType = !!errors?.yoke_type_id
-  const isValidYokeType = !errors?.yoke_type_id && formData?.yoke_type_id !== '' && validated
-  const isInvalidWaistbandType = !!errors?.waistband_type_id
+    !errors?.garment_type_id && formData?.['technical_sheet.garment_type_id'] !== '' && validated
+  const isInvalidWashTone = !!errors?.['technical_sheet.wash_tone_id']
+  const isValidWashTone =
+    !errors?.['technical_sheet.wash_tone_id'] && formData?.wash_tone_id !== '' && validated
+  const isInvalidColor = !!errors?.['technical_sheet.color_id']
+  const isValidColor =
+    !errors?.['technical_sheet.color_id'] && formData?.color_id !== '' && validated
+  const isInvalidBackType = !!errors?.['technical_sheet.back_type_id']
+  const isValidBackType =
+    !errors?.['technical_sheet.back_type_id'] && formData?.back_type_id !== '' && validated
+  const isInvalidBootType = !!errors?.['technical_sheet.boot_type_id']
+  const isValidBootType =
+    !errors?.['technical_sheet.boot_type_id'] && formData?.boot_type_id !== '' && validated
+  const isInvalidYokeType = !!errors?.['technical_sheet.yoke_type_id']
+  const isValidYokeType =
+    !errors?.['technical_sheet.yoke_type_id'] && formData?.yoke_type_id !== '' && validated
+  const isInvalidWaistbandType = !!errors?.['technical_sheet.waistband_type_id']
   const isValidWaistbandType =
-    !errors?.waistband_type_id && formData?.waistband_type_id !== '' && validated
-  const isInvalidEmployee = !!errors?.pattern_maker_id
+    !errors?.['technical_sheet.waistband_type_id'] &&
+    formData?.waistband_type_id !== '' &&
+    validated
+  const isInvalidEmployee = !!errors?.['technical_sheet.pattern_maker_id']
   const isValidEmployee =
-    !errors?.pattern_maker_id && formData?.pattern_maker_id !== '' && validated
+    !errors?.['technical_sheet.pattern_maker_id'] && formData?.pattern_maker_id !== '' && validated
   const isInvalidPhotoD = !!errors?.['photo_d.file']
   const isValidPhotoD = !errors?.['photo_d.file'] && photoDPreview !== '' && validated
   const isInvalidPhotoT = !!errors?.['photo_t.file']
@@ -181,7 +198,6 @@ const InformationTechnicalSheet = ({
     if (Object.values(technical_sheet || {}).length !== 0) {
       setFormData((prev) => ({
         ...prev,
-        product_id: technical_sheet.product_id,
         collection_id: technical_sheet.collection_id,
         subgroup_id: technical_sheet.subgroup_id,
         garment_type_id: technical_sheet.garment_type_id,
@@ -200,13 +216,43 @@ const InformationTechnicalSheet = ({
         description: technical_sheet.description,
         photo_d: technical_sheet.photo_d,
         photo_t: technical_sheet.photo_t,
-        code: technical_sheet.code,
         status: technical_sheet.status,
       }))
       setPhotoDPreview(technical_sheet.photo_d)
       setPhotoTPreview(technical_sheet.photo_t)
     }
   }, [technical_sheet])
+
+  useEffect(() => {
+    if (!formData.reference && technical_sheet) {
+      setFormData((prev) => {
+        return { ...prev, trademark_id: null }
+      })
+      return
+    }
+
+    const trademark = findTrademarkByCode(formData.reference)
+
+    if (trademark) {
+      setFormData((prev) => ({
+        ...prev,
+        trademark_id: trademark.id,
+        group_id: trademark.group[0].id,
+        trademark: trademark.name,
+        sizes: trademark.sizes,
+        group: trademark.group[0].name,
+      }))
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        trademark_id: null,
+        group_id: null,
+        trademark: null,
+        sizes: null,
+        group: null,
+      }))
+    }
+  }, [formData.reference, trademarks])
 
   const loadCollections = async () => {
     if (collections) return
@@ -298,6 +344,24 @@ const InformationTechnicalSheet = ({
     }
   }
 
+  const loadCategories = async () => {
+    if (categories) return
+    try {
+      await fetchCategories()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const loadSubcategories = async () => {
+    if (subcategories) return
+    try {
+      await fetchSubcategories(formData.category_id)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const customFilterOption = (option, rawInput) => {
     const words = rawInput.toLowerCase().split(' ')
     const label = option.label.toLowerCase()
@@ -353,7 +417,7 @@ const InformationTechnicalSheet = ({
                         >
                           <ZoomIn size={16} />
                         </div>
-                        {!!photoDPreview.preview && !!technical_sheet && (
+                        {!!photoDPreview.preview && (
                           <div
                             onClick={(e) => {
                               e.preventDefault()
@@ -463,15 +527,13 @@ const InformationTechnicalSheet = ({
                           onClick={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
-                            setShowFullscreen(
-                              photoTPreview.preview || technical_sheet?.photo_t?.path,
-                            )
+                            setShowFullscreen(photoTPreview.preview)
                           }}
                           className="style-btn-action-image"
                         >
                           <ZoomIn size={16} />
                         </div>
-                        {!!photoTPreview.preview && !!technical_sheet && (
+                        {!!photoTPreview.preview && (
                           <div
                             onClick={(e) => {
                               e.preventDefault()
@@ -592,62 +654,193 @@ const InformationTechnicalSheet = ({
               />
             </CCol>
             <CCol md={3} xxl={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
-                <CFormLabel className="font-inter mb-0">Referencia</CFormLabel>
-                <span
-                  className={`editable-field-disabled input-custom ${
-                    !product?.code ? 'placeholder' : ''
-                  }`}
-                >
-                  {product?.code}
-                </span>
-              </div>
+              <EditableField
+                label={'Referencia'}
+                editing={editingField === 'reference'}
+                error={errors?.['product.code']}
+                valid={formData?.reference !== '' && validated}
+                validated={validated}
+                editor={
+                  <CFormInput
+                    ref={(el) => (inputRefs.current.reference = el)}
+                    type="text"
+                    name="reference"
+                    value={formData?.reference}
+                    onChange={(e) => handleChange('reference', e.target.value)}
+                    invalid={!!errors?.['product.code']}
+                    valid={!errors?.['product.code'] && formData?.reference !== '' && validated}
+                    className="font-montserrat input-custom"
+                    placeholder="Ingrese la referencia"
+                    onBlur={() => setEditingField(null)}
+                  />
+                }
+                display={
+                  <span
+                    className={`editable-field input-custom ${
+                      !formData?.reference ? 'placeholder' : ''
+                    } ${validated ? (errors?.['product.code'] ? 'is-invalid' : 'is-valid') : ''}`}
+                    onClick={() => setEditingField('reference')}
+                  >
+                    {formData?.reference || 'Ingrese la referencia'}
+                  </span>
+                }
+              />
             </CCol>
             <CCol md={5} xxl={4}>
               <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
                 <CFormLabel className="font-inter mb-0">Marca</CFormLabel>
-                <span
-                  className={`editable-field-disabled input-custom ${!product?.trademark?.name ? 'placeholder' : ''}`}
-                >
-                  {product?.trademark?.name}
-                </span>
+                <CFormInput
+                  type="text"
+                  name="trademark_id"
+                  value={formData.trademark ?? ''}
+                  invalid={!!errors?.['product.trademark_id']}
+                  valid={
+                    !errors?.['product.trademark_id'] && formData?.trademark_id !== '' && validated
+                  }
+                  className="font-montserrat input-custom"
+                  placeholder="Ingrese la marca"
+                />
+                {errors?.['product.trademark_id'] && (
+                  <div className="invalid-feedback d-block" style={{ marginTop: '0.1rem' }}>
+                    {errors?.['product.trademark_id'].map((message, index) => (
+                      <div key={index} className="d-flex align-items-center gap-1">
+                        <BadgeAlert size={13} />
+                        <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                          {message}
+                        </small>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!errors?.['product.trademark_id'] && validated && (
+                  <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
+                    <div className="d-flex align-items-center gap-1">
+                      <BadgeCheck size={13} />
+                      <small className="font-inter">Dato válido</small>
+                    </div>
+                  </div>
+                )}
               </div>
             </CCol>
             <CCol md={4}>
               <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
                 <CFormLabel className="font-inter mb-0">Grupo</CFormLabel>
-                <span
-                  className={`editable-field-disabled input-custom ${!product?.trademark?.group?.[0]?.name ? 'placeholder' : ''}`}
-                >
-                  {product?.trademark?.group?.[0]?.name}
-                </span>
+                <CFormInput
+                  type="text"
+                  name="trademark_id"
+                  value={formData.group ?? ''}
+                  valid={formData?.group_id !== '' && validated}
+                  className="font-montserrat input-custom"
+                  placeholder="Ingrese la marca"
+                />
+                {formData?.group_id !== '' && validated && (
+                  <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
+                    <div className="d-flex align-items-center gap-1">
+                      <BadgeCheck size={13} />
+                      <small className="font-inter">Dato válido</small>
+                    </div>
+                  </div>
+                )}
               </div>
             </CCol>
             <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
-                <CFormLabel className="font-inter mb-0">Categoría</CFormLabel>
-                <span
-                  className={`editable-field-disabled input-custom ${!product?.subcategory_id ? 'placeholder' : ''}`}
-                >
-                  {product?.subcategory?.category[0]?.name}
-                </span>
-              </div>
+              <EditableField
+                label={'Categoría'}
+                editing={editingField === 'category'}
+                error={errors?.['product.category_id']}
+                valid={formData?.category_id !== '' && validated}
+                validated={validated}
+                editor={
+                  <Select
+                    ref={(el) => (inputRefs.current.category = el)}
+                    name="category_id"
+                    value={categories?.[formData?.category_id] ?? null}
+                    onChange={(selected) => {
+                      handleChange('category_id', selected?.value)
+                      handleChange('category', selected?.label)
+                    }}
+                    options={categories ? Object.values(categories) : []}
+                    isDisabled={!categories}
+                    isSearchable
+                    filterOption={customFilterOption}
+                    className="w-100 font-montserrat"
+                    placeholder={'Seleccione una categoría'}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={getSelectStyles({})}
+                    onBlur={() => setEditingField(null)}
+                  />
+                }
+                display={
+                  <span
+                    className={`editable-field input-custom ${
+                      !formData?.category_id ? 'placeholder' : ''
+                    } ${validated ? (errors?.category_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    onClick={async () => {
+                      await loadCategories()
+                      setEditingField('category')
+                    }}
+                  >
+                    {!!categories && formData?.category_id
+                      ? categories?.[formData?.category_id]?.label
+                      : product?.subcategory.category[0]?.name || 'Seleccione una categoría'}
+                  </span>
+                }
+              />
             </CCol>
             <CCol md={4}>
-              <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
-                <CFormLabel className="font-inter mb-0">Subcategoría</CFormLabel>
-                <span
-                  className={`editable-field-disabled input-custom ${!product?.subcategory_id ? 'placeholder' : ''}`}
-                >
-                  {product?.subcategory?.name}
-                </span>
-              </div>
+              <EditableField
+                label={'Subcategoría'}
+                editing={editingField === 'subcategory'}
+                error={errors?.['product.subcategory_id']}
+                valid={formData?.subcategory_id !== '' && validated}
+                validated={validated}
+                editor={
+                  <Select
+                    ref={(el) => (inputRefs.current.subcategory = el)}
+                    name="subcategory_id"
+                    value={subcategories?.[formData?.subcategory_id] ?? null}
+                    onChange={(selected) => {
+                      handleChange('subcategory_id', selected?.value)
+                      handleChange('subcategory', selected?.label)
+                    }}
+                    options={subcategories ? Object.values(subcategories) : []}
+                    isDisabled={!subcategories || !formData.category_id}
+                    isSearchable
+                    filterOption={customFilterOption}
+                    className="w-100 font-montserrat"
+                    placeholder={'Seleccione una subcategoría'}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={getSelectStyles({
+                      isInvalid: isInvalidSubcategory,
+                      isValid: isValidSubcategory,
+                    })}
+                    onBlur={() => setEditingField(null)}
+                  />
+                }
+                display={
+                  <span
+                    className={`editable-field input-custom ${
+                      !formData?.subcategory_id ? 'placeholder' : ''
+                    } ${validated ? (errors?.['product.subcategory_id'] ? 'is-invalid' : 'is-valid') : ''}`}
+                    onClick={async () => {
+                      await loadSubcategories()
+                      setEditingField('subcategory')
+                    }}
+                  >
+                    {!!subcategories && formData?.subcategory_id
+                      ? subcategories?.[formData?.subcategory_id]?.label
+                      : product?.subcategory?.name || 'Seleccione una subcategoría'}
+                  </span>
+                }
+              />
             </CCol>
             <CCol md={4}>
               <EditableField
                 label={'Subgrupo'}
                 editing={editingField === 'subgroup'}
-                error={errors?.subgroup_id}
+                error={errors?.['technical_sheet.subgroup_id']}
                 valid={formData?.subgroup_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -656,8 +849,6 @@ const InformationTechnicalSheet = ({
                     name="subgroup_id"
                     value={subgroups?.[formData?.subgroup_id] ?? null}
                     onChange={(selected) => handleChange('subgroup_id', selected?.value)}
-                    invalid={!!errors?.subgroup_id}
-                    valid={!errors?.subgroup_id && formData?.subgroup_id !== '' && validated}
                     options={subgroups ? Object.values(subgroups) : []}
                     isDisabled={!subgroups}
                     isSearchable
@@ -677,7 +868,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.subgroup_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.subgroup_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.subgroup_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadSubgroups()
                       setEditingField('subgroup')
@@ -694,7 +885,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Fecha'}
                 editing={editingField === 'date'}
-                error={errors?.date}
+                error={errors?.['technical_sheet.date']}
                 valid={formData?.date !== '' && validated}
                 validated={validated}
                 editor={
@@ -704,8 +895,8 @@ const InformationTechnicalSheet = ({
                     name="date"
                     value={formData?.date}
                     onChange={(e) => handleChange('date', e.target.value)}
-                    invalid={!!errors?.date}
-                    valid={!errors?.date && formData?.date !== '' && validated}
+                    invalid={!!errors?.['technical_sheet.date']}
+                    valid={!errors?.['technical_sheet.date'] && formData?.date !== '' && validated}
                     className="font-montserrat input-custom"
                     placeholder="Seleccione una fecha"
                     onBlur={() => setEditingField(null)}
@@ -715,7 +906,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.date ? 'placeholder' : ''
-                    } ${validated ? (errors?.date ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.date'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={() => setEditingField('date')}
                   >
                     {!!formData?.date
@@ -725,12 +916,11 @@ const InformationTechnicalSheet = ({
                 }
               />
             </CCol>
-
             <CCol md={4}>
               <EditableField
                 label={'Estado'}
                 editing={editingField === 'status'}
-                error={errors?.status}
+                error={errors?.['technical_sheet.status']}
                 valid={formData?.status !== '' && validated}
                 validated={validated}
                 editor={
@@ -739,8 +929,6 @@ const InformationTechnicalSheet = ({
                     name="status"
                     value={statusTechnical?.find((option) => option.value === formData?.status)}
                     onChange={(selected) => handleChange('status', selected?.value)}
-                    invalid={!!errors?.status}
-                    valid={!errors?.status && formData?.status !== '' && validated}
                     options={statusTechnical}
                     isDisabled={!statusTechnical}
                     isSearchable
@@ -764,7 +952,7 @@ const InformationTechnicalSheet = ({
                     <span
                       className={`editable-field input-custom ${badgeClass} ${
                         !currentStatus ? 'placeholder' : ''
-                      } ${validated ? (errors?.status ? 'is-invalid' : 'is-valid') : ''}`}
+                      } ${validated ? (errors?.['technical_sheet.status'] ? 'is-invalid' : 'is-valid') : ''}`}
                       onClick={async () => {
                         await loadSubgroups()
                         setEditingField('status')
@@ -782,7 +970,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Colección'}
                 editing={editingField === 'collection'}
-                error={errors?.collection_id}
+                error={errors?.['technical_sheet.collection_id']}
                 valid={formData?.collection_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -791,8 +979,6 @@ const InformationTechnicalSheet = ({
                     name="collection_id"
                     value={collections?.[formData?.collection_id] ?? null}
                     onChange={(selected) => handleChange('collection_id', selected?.value)}
-                    invalid={!!errors?.collection_id}
-                    valid={!errors?.collection_id && formData?.collection_id !== '' && validated}
                     options={collections ? Object.values(collections) : []}
                     isDisabled={!collections}
                     isSearchable
@@ -812,7 +998,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.collection_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.collection_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.collection_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadCollections()
                       setEditingField('collection')
@@ -831,7 +1017,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Medida de Pretina'}
                 editing={editingField === 'measure_of_waistband'}
-                error={errors?.measure_of_waistband}
+                error={errors?.['technical_sheet.measure_of_waistband']}
                 valid={formData?.measure_of_waistband !== '' && validated}
                 validated={validated}
                 editor={
@@ -842,9 +1028,9 @@ const InformationTechnicalSheet = ({
                     name="measure_of_waistband"
                     value={formData?.measure_of_waistband}
                     onChange={(e) => handleChange('measure_of_waistband', e.target.value)}
-                    invalid={!!errors?.measure_of_waistband}
+                    invalid={!!errors?.['technical_sheet.measure_of_waistband']}
                     valid={
-                      !errors?.measure_of_waistband &&
+                      !errors?.['technical_sheet.measure_of_waistband'] &&
                       formData?.measure_of_waistband !== '' &&
                       validated
                     }
@@ -854,7 +1040,7 @@ const InformationTechnicalSheet = ({
                 }
                 display={
                   <span
-                    className={`editable-field input-custom ${!formData?.measure_of_waistband && 'placeholder'} ${validated ? (errors?.measure_of_waistband ? 'is-invalid' : 'is-valid') : ''}`}
+                    className={`editable-field input-custom ${!formData?.measure_of_waistband && 'placeholder'} ${validated ? (errors?.['technical_sheet.measure_of_waistband'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={() => setEditingField('measure_of_waistband')}
                   >
                     {!!formData?.measure_of_waistband
@@ -868,7 +1054,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'N° de Botones'}
                 editing={editingField === 'number_of_buttons'}
-                error={errors?.number_of_buttons}
+                error={errors?.['technical_sheet.number_of_buttons']}
                 valid={formData?.number_of_buttons !== '' && validated}
                 validated={validated}
                 editor={
@@ -879,9 +1065,11 @@ const InformationTechnicalSheet = ({
                     name="number_of_buttons"
                     value={formData?.number_of_buttons}
                     onChange={(e) => handleChange('number_of_buttons', e.target.value)}
-                    invalid={!!errors?.number_of_buttons}
+                    invalid={!!errors?.['technical_sheet.number_of_buttons']}
                     valid={
-                      !errors?.number_of_buttons && formData?.number_of_buttons !== '' && validated
+                      !errors?.['technical_sheet.number_of_buttons'] &&
+                      formData?.number_of_buttons !== '' &&
+                      validated
                     }
                     className="font-montserrat input-custom"
                     onBlur={() => setEditingField(null)}
@@ -891,7 +1079,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.number_of_buttons ? 'placeholder' : ''
-                    } ${validated ? (errors?.number_of_buttons ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.number_of_buttons'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={() => setEditingField('number_of_buttons')}
                   >
                     {!!formData?.number_of_buttons
@@ -905,7 +1093,7 @@ const InformationTechnicalSheet = ({
               <div className={`d-flex flex-column ${validated ? 'gap-1' : 'gap-2'}`}>
                 <CFormLabel className="font-inter mb-0">Muestra Física</CFormLabel>
                 <div
-                  className={`editable-field input-custom ${validated && (errors?.physical_sample ? 'is-invalid' : 'is-valid')} ${!formData?.physical_sample && 'placeholder'}`}
+                  className={`editable-field input-custom ${validated && (errors?.['technical_sheet.physical_sample'] ? 'is-invalid' : 'is-valid')} ${!formData?.physical_sample && 'placeholder'}`}
                 >
                   <div className="d-flex align-items-center justify-content-between w-100">
                     <CFormCheck
@@ -915,14 +1103,14 @@ const InformationTechnicalSheet = ({
                       onChange={(e) => handleChange('physical_sample', e.target.checked)}
                     />
 
-                    {!errors?.physical_sample && validated && (
+                    {!errors?.['technical_sheet.physical_sample'] && validated && (
                       <Check size={16} strokeWidth={5} color="#198754" />
                     )}
                   </div>
                 </div>
-                {errors?.physical_sample && (
+                {errors?.['technical_sheet.physical_sample'] && (
                   <div className="invalid-feedback d-block" style={{ marginTop: '0.1rem' }}>
-                    {errors?.physical_sample.map((message, index) => (
+                    {errors?.['technical_sheet.physical_sample'].map((message, index) => (
                       <div key={index} className="d-flex align-items-center gap-1">
                         <BadgeAlert size={13} />
                         <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
@@ -932,7 +1120,7 @@ const InformationTechnicalSheet = ({
                     ))}
                   </div>
                 )}
-                {!errors?.physical_sample && validated && (
+                {!errors?.['technical_sheet.physical_sample'] && validated && (
                   <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
                     <div className="d-flex align-items-center gap-1">
                       <BadgeCheck size={13} />
@@ -946,7 +1134,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Color'}
                 editing={editingField === 'color'}
-                error={errors?.color_id}
+                error={errors?.['technical_sheet.color_id']}
                 valid={formData?.color_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -955,8 +1143,6 @@ const InformationTechnicalSheet = ({
                     name="color_id"
                     value={colors?.[formData?.color_id] ?? null}
                     onChange={(selected) => handleChange('color_id', selected?.value)}
-                    invalid={!!errors?.color_id}
-                    valid={!errors?.color_id && formData?.color_id !== '' && validated}
                     options={colors ? Object.values(colors) : []}
                     isDisabled={!colors}
                     isSearchable
@@ -976,7 +1162,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.color_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.color_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.color_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadColors()
                       setEditingField('color')
@@ -984,9 +1170,7 @@ const InformationTechnicalSheet = ({
                   >
                     {!!colors && formData?.color_id
                       ? colors?.[formData?.color_id]?.label
-                      : technical_sheet?.color
-                        ? `${technical_sheet.color?.settings?.code ?? 'N/A'} - ${technical_sheet.color?.name ?? 'N/A'}`
-                        : 'Seleccione un color'}
+                      : technical_sheet?.color?.name || 'Seleccione un color'}
                   </span>
                 }
               />
@@ -995,7 +1179,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Tipo de Prenda'}
                 editing={editingField === 'garment_type'}
-                error={errors?.garment_type_id}
+                error={errors?.['technical_sheet.garment_type_id']}
                 valid={formData?.garment_type_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -1004,10 +1188,6 @@ const InformationTechnicalSheet = ({
                     name="garment_type_id"
                     value={garment_types?.[formData?.garment_type_id] ?? null}
                     onChange={(selected) => handleChange('garment_type_id', selected?.value)}
-                    invalid={!!errors?.garment_type_id}
-                    valid={
-                      !errors?.garment_type_id && formData?.garment_type_id !== '' && validated
-                    }
                     options={garment_types ? Object.values(garment_types) : []}
                     isDisabled={!garment_types}
                     isSearchable
@@ -1027,7 +1207,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.garment_type_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.garment_type_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.garment_type_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadGarmentTypes()
                       setEditingField('garment_type')
@@ -1035,9 +1215,7 @@ const InformationTechnicalSheet = ({
                   >
                     {!!garment_types && formData?.garment_type_id
                       ? garment_types?.[formData?.garment_type_id]?.label
-                      : technical_sheet?.garment_type
-                        ? `${technical_sheet.garment_type?.settings?.code ?? 'N/A'} - ${technical_sheet.garment_type?.name ?? 'N/A'}`
-                        : 'Seleccione un tipo de prenda'}
+                      : technical_sheet?.garment_type?.name || 'Seleccione un tipo de prenda'}
                   </span>
                 }
               />
@@ -1046,7 +1224,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Tono de Lavado'}
                 editing={editingField === 'wash_tone'}
-                error={errors?.wash_tone_id}
+                error={errors?.['technical_sheet.wash_tone_id']}
                 valid={formData?.wash_tone_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -1055,8 +1233,6 @@ const InformationTechnicalSheet = ({
                     name="wash_tone_id"
                     value={wash_tones?.[formData?.wash_tone_id] ?? null}
                     onChange={(selected) => handleChange('wash_tone_id', selected?.value)}
-                    invalid={!!errors?.wash_tone_id}
-                    valid={!errors?.wash_tone_id && formData?.wash_tone_id !== '' && validated}
                     options={wash_tones ? Object.values(wash_tones) : []}
                     isDisabled={!wash_tones}
                     isSearchable
@@ -1076,7 +1252,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.wash_tone_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.wash_tone_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.wash_tone_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadWashTones()
                       setEditingField('wash_tone')
@@ -1084,9 +1260,7 @@ const InformationTechnicalSheet = ({
                   >
                     {!!wash_tones && formData?.wash_tone_id
                       ? wash_tones?.[formData?.wash_tone_id]?.label
-                      : technical_sheet?.wash_tone
-                        ? `${technical_sheet.wash_tone?.settings?.code ?? 'N/A'} - ${technical_sheet.wash_tone?.name ?? 'N/A'}`
-                        : 'Seleccione un tono de lavado'}
+                      : technical_sheet?.wash_tone?.name || 'Seleccione un tono de lavado'}
                   </span>
                 }
               />
@@ -1095,7 +1269,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Tipo de Trasero'}
                 editing={editingField === 'back_type'}
-                error={errors?.back_type_id}
+                error={errors?.['technical_sheet.back_type_id']}
                 valid={formData?.back_type_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -1104,8 +1278,6 @@ const InformationTechnicalSheet = ({
                     name="back_type_id"
                     value={back_types?.[formData?.back_type_id] ?? null}
                     onChange={(selected) => handleChange('back_type_id', selected?.value)}
-                    invalid={!!errors?.back_type_id}
-                    valid={!errors?.back_type_id && formData?.back_type_id !== '' && validated}
                     options={back_types ? Object.values(back_types) : []}
                     isDisabled={!back_types}
                     isSearchable
@@ -1125,7 +1297,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.back_type_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.back_type_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.back_type_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadBackTypes()
                       setEditingField('back_type')
@@ -1133,9 +1305,7 @@ const InformationTechnicalSheet = ({
                   >
                     {!!back_types && formData?.back_type_id
                       ? back_types?.[formData?.back_type_id]?.label
-                      : technical_sheet?.back_type
-                        ? `${technical_sheet.back_type?.settings?.code ?? 'N/A'} - ${technical_sheet.back_type?.name ?? 'N/A'}`
-                        : 'Seleccione un tipo de trasero'}
+                      : technical_sheet?.back_type?.name || 'Seleccione un tipo de trasero'}
                   </span>
                 }
               />
@@ -1144,7 +1314,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Tipo de Bota'}
                 editing={editingField === 'boot_type'}
-                error={errors?.boot_type_id}
+                error={errors?.['technical_sheet.boot_type_id']}
                 valid={formData?.boot_type_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -1153,8 +1323,6 @@ const InformationTechnicalSheet = ({
                     name="boot_type_id"
                     value={boot_types?.[formData?.boot_type_id] ?? null}
                     onChange={(selected) => handleChange('boot_type_id', selected?.value)}
-                    invalid={!!errors?.boot_type_id}
-                    valid={!errors?.boot_type_id && formData?.boot_type_id !== '' && validated}
                     options={boot_types ? Object.values(boot_types) : ''}
                     isDisabled={!boot_types}
                     isSearchable
@@ -1174,7 +1342,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.boot_type_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.boot_type_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.boot_type_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadBootTypes()
                       setEditingField('boot_type')
@@ -1182,9 +1350,7 @@ const InformationTechnicalSheet = ({
                   >
                     {!!boot_types && formData?.boot_type_id
                       ? boot_types?.[formData?.boot_type_id]?.label
-                      : technical_sheet?.boot_type
-                        ? `${technical_sheet.boot_type?.settings?.code ?? 'N/A'} - ${technical_sheet.boot_type?.name ?? 'N/A'}`
-                        : 'Seleccione un tipo de bota'}
+                      : technical_sheet?.boot_type?.name || 'Seleccione un tipo de bota'}
                   </span>
                 }
               />
@@ -1193,7 +1359,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Tipo de Cotilla'}
                 editing={editingField === 'yoke_type'}
-                error={errors?.yoke_type_id}
+                error={errors?.['technical_sheet.yoke_type_id']}
                 valid={formData?.yoke_type_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -1202,8 +1368,6 @@ const InformationTechnicalSheet = ({
                     name="yoke_type_id"
                     value={yoke_types?.[formData?.yoke_type_id] ?? null}
                     onChange={(selected) => handleChange('yoke_type_id', selected?.value)}
-                    invalid={!!errors?.yoke_type_id}
-                    valid={!errors?.yoke_type_id && formData?.yoke_type_id !== '' && validated}
                     options={yoke_types ? Object.values(yoke_types) : []}
                     isDisabled={!yoke_types}
                     isSearchable
@@ -1223,7 +1387,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.yoke_type_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.yoke_type_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.yoke_type_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadYokeTypes()
                       setEditingField('yoke_type')
@@ -1231,9 +1395,7 @@ const InformationTechnicalSheet = ({
                   >
                     {!!yoke_types && formData?.yoke_type_id
                       ? yoke_types?.[formData?.yoke_type_id]?.label
-                      : technical_sheet?.yoke_type
-                        ? `${technical_sheet.yoke_type?.settings?.code ?? 'N/A'} - ${technical_sheet.yoke_type?.name ?? 'N/A'}`
-                        : 'Seleccione un tipo de cotilla'}
+                      : technical_sheet?.yoke_type?.name || 'Seleccione un tipo de cotilla'}
                   </span>
                 }
               />
@@ -1242,7 +1404,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Tipo de Pretina'}
                 editing={editingField === 'waistband_type'}
-                error={errors?.waistband_type_id}
+                error={errors?.['technical_sheet.waistband_type_id']}
                 valid={formData?.waistband_type_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -1251,10 +1413,6 @@ const InformationTechnicalSheet = ({
                     name="waistband_type_id"
                     value={waistband_types?.[formData?.waistband_type_id] ?? null}
                     onChange={(selected) => handleChange('waistband_type_id', selected?.value)}
-                    invalid={!!errors?.waistband_type_id}
-                    valid={
-                      !errors?.waistband_type_id && formData?.waistband_type_id !== '' && validated
-                    }
                     options={waistband_types ? Object.values(waistband_types) : []}
                     isDisabled={!waistband_types}
                     isSearchable
@@ -1274,7 +1432,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.waistband_type_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.waistband_type_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.waistband_type_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadWaistbandTypes()
                       setEditingField('waistband_type')
@@ -1282,9 +1440,7 @@ const InformationTechnicalSheet = ({
                   >
                     {!!waistband_types && formData?.waistband_type_id
                       ? waistband_types?.[formData?.waistband_type_id]?.label
-                      : technical_sheet?.waistband_type
-                        ? `${technical_sheet.waistband_type?.settings?.code ?? 'N/A'} - ${technical_sheet.waistband_type?.name ?? 'N/A'}`
-                        : 'Seleccione un tipo de pretina'}
+                      : technical_sheet?.waistband_type?.name || 'Seleccione un tipo de pretina'}
                   </span>
                 }
               />
@@ -1293,7 +1449,7 @@ const InformationTechnicalSheet = ({
               <EditableField
                 label={'Patronista'}
                 editing={editingField === 'pattern_maker'}
-                error={errors?.pattern_maker_id}
+                error={errors?.['technical_sheet.pattern_maker_id']}
                 valid={formData?.pattern_maker_id !== '' && validated}
                 validated={validated}
                 editor={
@@ -1302,10 +1458,6 @@ const InformationTechnicalSheet = ({
                     name="pattern_maker_id"
                     value={employees?.[formData?.pattern_maker_id] ?? null}
                     onChange={(selected) => handleChange('pattern_maker_id', selected?.value)}
-                    invalid={!!errors?.pattern_maker_id}
-                    valid={
-                      !errors?.pattern_maker_id && formData?.pattern_maker_id !== '' && validated
-                    }
                     options={employees ? Object.values(employees) : []}
                     isDisabled={!employees}
                     isSearchable
@@ -1325,7 +1477,7 @@ const InformationTechnicalSheet = ({
                   <span
                     className={`editable-field input-custom ${
                       !formData?.pattern_maker_id ? 'placeholder' : ''
-                    } ${validated ? (errors?.pattern_maker_id ? 'is-invalid' : 'is-valid') : ''}`}
+                    } ${validated ? (errors?.['technical_sheet.pattern_maker_id'] ? 'is-invalid' : 'is-valid') : ''}`}
                     onClick={async () => {
                       await loadEmployees()
                       setEditingField('pattern_maker')
@@ -1347,19 +1499,25 @@ const InformationTechnicalSheet = ({
                   ref={(el) => (inputRefs.current.observation = el)}
                   name="observation"
                   value={
-                    !!formData?.observation ? formData?.observation : technical_sheet?.observation
+                    !!formData?.observation
+                      ? formData?.observation
+                      : (technical_sheet?.observation ?? '')
                   }
                   onChange={(e) => handleChange('observation', e.target.value)}
-                  invalid={!!errors?.observation}
-                  valid={!errors?.observation && formData?.observation !== '' && validated}
-                  className={`font-montserrat input-custom editable-field-textarea ${validated && (errors?.observation ? 'is-invalid' : 'is-valid')} ${!formData?.observation && 'placeholder'}`}
+                  invalid={!!errors?.['technical_sheet.observation']}
+                  valid={
+                    !errors?.['technical_sheet.observation'] &&
+                    formData?.observation !== '' &&
+                    validated
+                  }
+                  className={`font-montserrat input-custom editable-field-textarea ${validated && (errors?.['technical_sheet.observation'] ? 'is-invalid' : 'is-valid')} ${!formData?.observation && 'placeholder'}`}
                   onBlur={() => setEditingField(null)}
                   rows={validated ? 2 : 3}
                   placeholder="Ingrese una observación"
                 />
-                {errors?.observation && (
+                {errors?.['technical_sheet.observation'] && (
                   <div className="invalid-feedback d-block" style={{ marginTop: '0.1rem' }}>
-                    {errors?.observation.map((message, index) => (
+                    {errors?.['technical_sheet.observation'].map((message, index) => (
                       <div key={index} className="d-flex align-items-center gap-1">
                         <BadgeAlert size={13} />
                         <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
@@ -1369,7 +1527,7 @@ const InformationTechnicalSheet = ({
                     ))}
                   </div>
                 )}
-                {!errors?.observation && validated && (
+                {!errors?.['technical_sheet.observation'] && validated && (
                   <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
                     <div className="d-flex align-items-center gap-1">
                       <BadgeCheck size={13} />
@@ -1391,16 +1549,20 @@ const InformationTechnicalSheet = ({
                       : (technical_sheet?.description ?? '')
                   }
                   onChange={(e) => handleChange('description', e.target.value)}
-                  invalid={!!errors?.description}
-                  valid={!errors?.description && formData?.description !== '' && validated}
-                  className={`font-montserrat input-custom editable-field-textarea ${validated ? (errors?.observation ? 'is-invalid' : 'is-valid') : ''} ${!formData?.description && 'placeholder'}`}
+                  invalid={!!errors?.['technical_sheet.description']}
+                  valid={
+                    !errors?.['technical_sheet.description'] &&
+                    formData?.description !== '' &&
+                    validated
+                  }
+                  className={`font-montserrat input-custom editable-field-textarea ${validated ? (errors?.['technical_sheet.description'] ? 'is-invalid' : 'is-valid') : ''} ${!formData?.description && 'placeholder'}`}
                   onBlur={() => setEditingField(null)}
                   placeholder="Ingrese una descripción"
                   rows={validated ? 2 : 3}
                 />
-                {errors?.description && (
+                {errors?.['technical_sheet.description'] && (
                   <div className="invalid-feedback d-block" style={{ marginTop: '0.1rem' }}>
-                    {errors?.description.map((message, index) => (
+                    {errors?.['technical_sheet.description'].map((message, index) => (
                       <div key={index} className="d-flex align-items-center gap-1">
                         <BadgeAlert size={13} />
                         <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
@@ -1410,7 +1572,7 @@ const InformationTechnicalSheet = ({
                     ))}
                   </div>
                 )}
-                {!errors?.description && validated && (
+                {!errors?.['technical_sheet.description'] && validated && (
                   <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
                     <div className="d-flex align-items-center gap-1">
                       <BadgeCheck size={13} />
@@ -1473,4 +1635,4 @@ const InformationTechnicalSheet = ({
   )
 }
 
-export default InformationTechnicalSheet
+export default InformationTransformation

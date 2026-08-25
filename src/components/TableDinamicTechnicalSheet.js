@@ -210,7 +210,7 @@ const TableDinamicTechnicalSheet = ({
               <CTableRow>
                 {structure?.body?.map((field, index) => (
                   <CTableHeaderCell
-                    key={field.index}
+                    key={field.id}
                     className="py-3 px-4 border-end border-light position-relative group-hover"
                     style={{ minWidth: '350px' }}
                   >
@@ -313,10 +313,15 @@ const TableDinamicTechnicalSheet = ({
                         ]?.[value?.[field?.depend]]?.[field.column.replace(/_id$/, '')]
                       const isArray = Array.isArray(derivedValue)
 
+                      const error_data_cell =
+                        errors?.[
+                          `technical_sheet_details.${process_id}.settings.dinamic.values.${index}.${field.field}`
+                        ]
+
                       return (
                         <CTableDataCell
                           key={aux}
-                          className={`py-2 px-4 text-muted border-end border-light align-top ${validated && errors?.[index]?.[field.field] ? 'table-cell-errors' : ''} ${validated === false ? (editing[index]?.includes(field.field) ? 'table-cell-modified' : rows.includes(index) ? 'table-cell-row-modified' : '') : ''}`}
+                          className={`py-2 px-4 text-muted border-end border-light align-middle ${validated && error_data_cell ? 'table-cell-errors' : ''} ${validated === false ? (editing[index]?.includes(field.field) ? 'table-cell-modified' : rows.includes(index) ? 'table-cell-row-modified' : '') : ''}`}
                           style={{ minWidth: '350px' }}
                         >
                           <div className="d-flex align-items-center gap-2">
@@ -333,8 +338,12 @@ const TableDinamicTechnicalSheet = ({
                                 />
                               ) : field.type === 'boolean' ? (
                                 <CFormCheck
-                                  checked={value?.[field.field]}
-                                  onChange={(e) => setValue(e.target.checked)}
+                                  checked={
+                                    value?.[field.field] === true || value?.[field.field] === 'true'
+                                  }
+                                  onChange={(e) =>
+                                    handleChange(index, field.field, e.target.checked)
+                                  }
                                   disabled={!status}
                                   className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100 h-100 custom-input"
                                 />
@@ -415,13 +424,14 @@ const TableDinamicTechnicalSheet = ({
                                 isDisabled={!status || !isParamReady}
                               />
                             )}
-                            {errors?.[index]?.[field?.field] && (
+                            {error_data_cell && (
                               <CPopover
                                 visible={
                                   openPopover?.row === index && openPopover?.field === field.field
                                 }
                                 placement="top"
                                 onHide={() => setOpenPopover(null)}
+                                trigger="focus"
                                 title={
                                   <div
                                     className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -443,7 +453,7 @@ const TableDinamicTechnicalSheet = ({
                                       fontSize: '0.82rem',
                                     }}
                                   >
-                                    {errors[index][field.field].map((err, i) => (
+                                    {error_data_cell.map((err, i) => (
                                       <div
                                         key={i}
                                         className="d-flex align-items-start gap-2 p-1 rounded-2"
@@ -463,12 +473,10 @@ const TableDinamicTechnicalSheet = ({
                                   }}
                                   onClick={(e) => {
                                     e.stopPropagation()
-
                                     setOpenPopover((prev) => {
                                       if (prev?.row === index && prev?.field === field.field) {
                                         return null
                                       }
-
                                       return {
                                         row: index,
                                         field: field.field,

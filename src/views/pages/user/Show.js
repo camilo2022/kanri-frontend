@@ -77,12 +77,12 @@ const Show = ({ user, onChangeView, onSubmit, errors, roles = [], assign, remove
             <CForm className="row g-3 needs-validation p-4">
               <CCol md={8}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-                  <UserRound size={15} /> Nombre Completo
+                  <UserRound size={15} /> Información
                 </CFormLabel>
                 <CFormInput
                   type="text"
                   name="name"
-                  value={`${user?.employee?.person?.names || ''} ${user?.employee?.person?.last_names || ''} | ${user?.employee?.person?.document || ''} | ${user?.employee?.position?.name || ''}`}
+                  value={`${user?.employee?.person?.names || ''} ${user?.employee?.person?.last_names || ''} | ${user?.employee?.person?.document || 'N/A'} | ${user?.employee?.position?.name || 'N/A'}`}
                   disabled
                   className="font-montserrat"
                 />

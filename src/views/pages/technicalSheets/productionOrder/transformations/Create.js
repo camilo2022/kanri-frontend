@@ -1,5 +1,5 @@
-import api from '../../../API/api'
-import { getConfig } from '../../../axiosConfig'
+import api from '../../../../../API/api'
+import { getConfig } from '../../../../../axiosConfig'
 import { useState } from 'react'
 import { CCard, CButton, CPopover, CFormSelect } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
@@ -7,14 +7,18 @@ import { useEffect } from 'react'
 import { ArrowLeftCircle, CheckCircle2, Clock, AlertCircle, Save, BadgeAlert } from 'lucide-react'
 import LoadingForm from '@/components/LoadingForm'
 import { useRef } from 'react'
-import InformationTechnicalSheet from '@/components/InformationTechnicalSheet'
+import InformationTransformation from '@/components/InformationTransformation'
 import TechnicalSheetDetail from '@/components/TechnicalSheetDetail'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
+import TransformationReassignmentCurve from '../../../../../components/TransformationReassignmentCurve'
 
-export const Edit = ({
+export const Create = ({
   product,
   technical_sheet,
+  production_order,
+  create,
+
   fetchCollections,
   collections,
   fetchSubgroups,
@@ -35,7 +39,9 @@ export const Edit = ({
   waistband_types,
   fetchEmployees,
   employees,
+
   processes,
+
   supply_types,
   variants,
   onChangeView,
@@ -44,34 +50,19 @@ export const Edit = ({
   models,
   statusCollection,
   statusTechnical,
+
+  sizes,
+  trademarks,
+  createProduct,
+  errors_create,
+  categories,
+  fetchCategories,
+  subcategories,
+  fetchSubcategories,
 }) => {
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
-  const [formData, setFormData] = useState({
-    product_id: product?.id || '',
-    collection_id: '',
-    subgroup_id: '',
-    garment_type_id: '',
-    wash_tone_id: '',
-    color_id: '',
-    back_type_id: '',
-    boot_type_id: '',
-    yoke_type_id: '',
-    waistband_type_id: '',
-    date: '',
-    measure_of_waistband: 1,
-    physical_sample: false,
-    number_of_buttons: 1,
-    pattern_maker_id: '',
-    observation: '',
-    description: '',
-    photo_d: '',
-    photo_t: '',
-    code: '',
-    status: '',
-  })
-  const [photoDPreview, setPhotoDPreview] = useState(null)
-  const [photoTPreview, setPhotoTPreview] = useState(null)
+  const [formData, setFormData] = useState({})
   const [details, setDetails] = useState({})
   const [tecVariants, setTecVariants] = useState({})
   const [validated, setValidated] = useState(false)
@@ -83,6 +74,12 @@ export const Edit = ({
     id: null,
   })
   const [editingVariants, setEditingVariants] = useState(null)
+  const [dataOrigin, setDataOrigin] = useState(null)
+  const [dataNew, setDataNew] = useState(null)
+  const [data, setData] = useState([])
+  const [reasigned, setReasigned] = useState(false)
+  const [productStara, setProductStara] = useState(null)
+  const [formDataStara, setFormDataStara] = useState({})
 
   useEffect(() => {
     if (!processes || !technical_sheet?.technical_sheet_details) return
@@ -270,6 +267,87 @@ export const Edit = ({
     loadAllCatalogs()
   }, [details])
 
+  useEffect(() => {
+    if (!production_order || !sizes) return
+
+    const data = production_order.production_order_details
+      .filter((item) => item.model_type === 'App\\Models\\Product')
+      .map((item) => ({
+        location: item.destination,
+        reference: item.model.code,
+        product_id: item.model_id,
+        sizes: sizes.reduce((acc, size) => {
+          const quantity = item.production_order_detail_quantities.find(
+            (aux) => aux.size_id === size.id,
+          )
+
+          acc[size.id] = {
+            id: quantity?.id ?? null,
+            size_id: size.id,
+            name: size.name,
+            quantity: quantity?.quantity ?? 0,
+          }
+
+          return acc
+        }, {}),
+      }))
+
+    ;['NACIONAL', 'MEDELLIN', 'STARA'].forEach((location) => {
+      if (!data.some((item) => item.location === location)) {
+        data.push({
+          location,
+          reference: null,
+          product_id: null,
+          sizes: sizes.reduce((acc, size) => {
+            acc[size.id] = {
+              id: null,
+              size_id: size.id,
+              name: size.name,
+              quantity: 0,
+            }
+
+            return acc
+          }, {}),
+        })
+      }
+    })
+
+    setDataOrigin(data)
+  }, [production_order, sizes])
+
+  useEffect(() => {
+    if (!formData.sizes) return
+
+    setData(
+      [
+        {
+          location: 'NACIONAL',
+          product_id: null,
+        },
+        {
+          location: 'MEDELLIN',
+          product_id: null,
+        },
+        {
+          location: 'STARA',
+          product_id: null,
+        },
+      ].map((item) => ({
+        ...item,
+        sizes: formData.sizes.reduce((acc, size) => {
+          acc[size.id] = {
+            id: null,
+            size_id: size.id,
+            name: size.name,
+            quantity: 0,
+          }
+
+          return acc
+        }, {}),
+      })),
+    )
+  }, [formData.sizes])
+
   const getCatalog = async (key, modelParam = null, dependencyValue = null) => {
     try {
       let url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url
@@ -345,6 +423,28 @@ export const Edit = ({
     return getSingleValue(path) ?? defaultValue
   }
 
+  const findTrademarkByCode = (reference) => {
+    if (!reference || !trademarks) return null
+
+    reference = reference.toUpperCase()
+
+    const matches = trademarks.filter((trademark) => {
+      const validations = trademark.settings?.validations ?? []
+
+      return validations.some((validation) => {
+        const match = validation.regex.match(/\/\^([A-Z0-9]+)\[0-9/)
+
+        if (!match) return false
+
+        const prefix = match[1]
+
+        return prefix.startsWith(reference) || reference.startsWith(prefix)
+      })
+    })
+
+    return matches.length === 1 ? matches[0] : null
+  }
+
   useEffect(() => {
     if (!editingField) return
 
@@ -368,59 +468,261 @@ export const Edit = ({
     }
   }, [errors])*/
 
+  const calculateCascadeStockForSize = (sizeId, dataAux, dataModal) => {
+    const locationOrder = ['NACIONAL', 'MEDELLIN', 'STARA']
+
+    let pendingDemand = dataModal.reduce((total, row) => {
+      return total + Number(row.sizes?.[sizeId]?.quantity || 0)
+    }, 0)
+
+    const finalBalances = {}
+
+    locationOrder.forEach((loc) => {
+      const auxRow = dataAux.find((r) => r.location === loc)
+      const availableStock = Number(auxRow?.sizes?.[sizeId]?.quantity || 0)
+
+      if (pendingDemand > 0) {
+        if (availableStock >= pendingDemand) {
+          finalBalances[loc] = availableStock - pendingDemand
+          pendingDemand = 0
+        } else {
+          finalBalances[loc] = 0
+          pendingDemand -= availableStock
+        }
+      } else {
+        finalBalances[loc] = availableStock
+      }
+    })
+
+    return finalBalances
+  }
+
   const handleSubmit = async () => {
     Swal.fire({
-      title: 'Editar Ficha Técnica',
+      title: 'Crear Transformación',
       html: `<div style="font-size:14px">
-                Se guardará la información actualizada de la ficha técnica del producto en el sistema.<br/>
+                Se guardará la información de la trasnformación de la referencia en el sistema.<br/>
                 <strong>¿Deseas continuar?</strong>
               </div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, actualizar',
+      confirmButtonText: 'Si, crear',
       cancelButtonText: 'Cancelar',
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await edit(technical_sheet.id, {
-            ...formData,
-            photo_d: { ...photoDPreview },
-            photo_t: { ...photoTPreview },
-            technical_sheet_details: Object.values(details).map((detail) => {
-              const settings = {
-                ...detail.settings,
-                static: {
-                  ...detail.settings.static,
-                  values: staticValues[detail.model_id] ?? {},
-                },
-              }
-
-              if (detail.model_type !== 'App\\Models\\Operations') {
-                settings.dinamic = {
-                  ...detail.settings.dinamic,
-                  values: Object.values(dinamicValues[detail.model_id] ?? {}),
+          const data_send = {
+            technical_sheet_id: technical_sheet.id,
+            product: {
+              code: formData.reference,
+              trademark_id: formData.trademark_id,
+              subcategory_id: formData.subcategory_id,
+            },
+            technical_sheet: {
+              ...formData,
+              variants: Object.values(tecVariants)
+                .map((item) => item?.id)
+                .filter(Boolean),
+              technical_sheet_details: Object.values(details).map((detail) => {
+                const settings = {
+                  ...detail.settings,
+                  static: {
+                    ...detail.settings.static,
+                    values: staticValues[detail.model_id] ?? {},
+                  },
                 }
-              }
+
+                if (detail.model_type !== 'App\\Models\\Operations') {
+                  settings.dinamic = {
+                    ...detail.settings.dinamic,
+                    values: Object.values(dinamicValues[detail.model_id] ?? {}),
+                  }
+                }
+
+                return {
+                  ...detail,
+                  settings,
+                }
+              }),
+            },
+            production_order: {
+              cut: 'A',
+              status: 'Pendiente',
+              reasigned_curve: reasigned,
+              production_order_id: production_order.id,
+              production_order_details: [
+                ...data
+                  .filter((item) => item.product_id !== null)
+                  .map((item) => ({
+                    destination: item.location,
+                    model_type: 'App\\Models\\Product',
+                    sizes: Object.values(item.sizes)
+                      .filter((size) => size.quantity !== 0)
+                      .map((size) => ({
+                        id: size.id,
+                        size_id: size.size_id,
+                        quantity: size.quantity,
+                      })),
+                  }))
+                  .filter((item) => item.sizes.length > 0),
+              ],
+            },
+            ...(productStara
+              ? {
+                  product_stara: {
+                    code: productStara.code,
+                    trademark_id: productStara.trademark_id,
+                    subcategory_id: formData.subcategory_id,
+                  },
+                }
+              : {}),
+            ...(reasigned
+              ? {
+                  reasigned_curve: true,
+                  production_order_id: production_order.id,
+                }
+              : {}),
+          }
+
+          if (reasigned) {
+            const updatedDataAux = dataOrigin.map((row) => {
+              const updatedSizes = {}
+
+              sizes?.forEach((size) => {
+                const sizeBalances = calculateCascadeStockForSize(size.id, dataOrigin, data)
+                const remainingQty =
+                  sizeBalances[row.location] ?? (row.sizes[size.id]?.quantity || 0)
+
+                updatedSizes[size.id] = {
+                  ...row.sizes[size.id],
+                  quantity: remainingQty,
+                }
+              })
 
               return {
-                ...detail,
-                settings,
+                ...row,
+                sizes: updatedSizes,
               }
-            }),
-            variants: Object.values(tecVariants)
-              .map((item) => item?.id)
-              .filter(Boolean),
+            })
+
+            const response = await edit(production_order.id, {
+              ...production_order,
+              fabric_id: production_order.fabric.model_id,
+              color_id: production_order.color[0].id,
+              reasigned_curve: false,
+              production_order_id: null,
+              production_order_details: [
+                {
+                  model_id: production_order.production_order_details.find(
+                    (item) => item.model_type === 'App\\Models\\Variant',
+                  ).model_id,
+                  model_type: 'App\\Models\\Variant',
+                  destination: null,
+                  rows: [
+                    {
+                      sizes: production_order.production_order_details
+                        .find((item) => item.model_type === 'App\\Models\\Variant')
+                        .production_order_detail_quantities.map((size) => ({
+                          id: size.id,
+                          size_id: size.size_id,
+                          quantity: size.quantity,
+                        })),
+                    },
+                  ],
+                },
+                ...updatedDataAux
+                  .filter((item) => item.product_id !== null)
+                  .map((item) => ({
+                    destination: item.location,
+                    model_id: item.product_id,
+                    model_type: 'App\\Models\\Product',
+                    sizes: Object.values(item.sizes)
+                      .filter((size) => size.id !== null)
+                      .map((size) => ({
+                        id: size.id,
+                        size_id: size.size_id,
+                        quantity: size.quantity,
+                      })),
+                  })),
+              ],
+            })
+          }
+
+          console.log({
+            technical_sheet_id: technical_sheet.id,
+            product: {
+              code: formData.reference,
+              trademark_id: formData.trademark_id,
+              subcategory_id: formData.subcategory_id,
+            },
+            technical_sheet: {
+              ...formData,
+              variants: Object.values(tecVariants)
+                .map((item) => item?.id)
+                .filter(Boolean),
+              technical_sheet_details: Object.values(details).map((detail) => {
+                const settings = {
+                  ...detail.settings,
+                  static: {
+                    ...detail.settings.static,
+                    values: staticValues[detail.model_id] ?? {},
+                  },
+                }
+
+                if (detail.model_type !== 'App\\Models\\Operations') {
+                  settings.dinamic = {
+                    ...detail.settings.dinamic,
+                    values: Object.values(dinamicValues[detail.model_id] ?? {}),
+                  }
+                }
+
+                return {
+                  ...detail,
+                  settings,
+                }
+              }),
+            },
+            production_order: {
+              cut: 'A',
+              reasigned_curve: reasigned,
+              production_order_id: production_order.id,
+              production_order_details: [
+                ...data
+                  .filter((item) => item.product_id !== null)
+                  .map((item) => ({
+                    destination: item.location,
+                    sizes: Object.values(item.sizes)
+                      .filter((size) => size.quantity !== 0)
+                      .map((size) => ({
+                        id: size.id,
+                        size_id: size.size_id,
+                        quantity: size.quantity,
+                      })),
+                  })),
+              ],
+            },
+            ...(productStara
+              ? {
+                  product_stara: {
+                    code: productStara.code,
+                    trademark_id: productStara.trademark_id,
+                    subcategory_id: formData.subcategory_id,
+                  },
+                }
+              : {}),
           })
+
+          const response = await create(data_send)
           setValidated(true)
           Toast.fire({
             icon: 'success',
             title: response.message,
           })
-          setTimeout(() => {
+          /*setTimeout(() => {
             onChangeView({ name: 'back', title: 'Listar Productos' })
-          }, 2510)
+          }, 2510)*/
         } catch (error) {
           console.log(error)
           setValidated(true)
@@ -453,7 +755,7 @@ export const Edit = ({
     }
   }
 
-  if (!product || !technical_sheet || !processes) {
+  if (!technical_sheet || !production_order) {
     return (
       <LoadingForm
         title="Cargando Información"
@@ -463,14 +765,12 @@ export const Edit = ({
     )
   }
 
-  console.log(catalogsData)
-
   return (
     <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center justify-content-between">
         <div className="d-flex align-items-center">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <span className="fw-bold fs-5 font-montserrat">Editar Ficha Tecnica</span>
+          <span className="fw-bold fs-5 font-montserrat">Crear Transformación</span>
         </div>
         <div className="d-flex justify-content-end align-items-center mt-3 gap-2">
           <CButton
@@ -491,8 +791,7 @@ export const Edit = ({
         </div>
       </div>
       <div className="p-3">
-        <InformationTechnicalSheet
-          product={product}
+        <InformationTransformation
           technical_sheet={technical_sheet}
           fetchCollections={fetchCollections}
           collections={collections}
@@ -519,11 +818,13 @@ export const Edit = ({
           validated={validated}
           formData={formData}
           setFormData={setFormData}
-          photoDPreview={photoDPreview}
-          setPhotoDPreview={setPhotoDPreview}
-          photoTPreview={photoTPreview}
-          setPhotoTPreview={setPhotoTPreview}
           statusTechnical={statusTechnical}
+          trademarks={trademarks}
+          categories={categories}
+          fetchCategories={fetchCategories}
+          subcategories={subcategories}
+          fetchSubcategories={fetchSubcategories}
+          findTrademarkByCode={findTrademarkByCode}
         />
       </div>
 
@@ -558,21 +859,21 @@ export const Edit = ({
                 <th
                   scope="col"
                   className="text-dark fw-bold font-montserrat"
-                  style={{ fontSize: '14px', whiteSpace: 'nowrap', width: '30%' }}
+                  style={{ fontSize: '14px', whiteSpace: 'nowrap' }}
                 >
                   Tipo de Insumo
                 </th>
                 <th
                   scope="col"
                   className="text-dark fw-bold font-montserrat"
-                  style={{ fontSize: '14px', width: '30%' }}
+                  style={{ fontSize: '14px' }}
                 >
                   Descripción
                 </th>
                 <th
                   scope="col"
                   className="text-dark fw-bold font-montserrat"
-                  style={{ fontSize: '14px' }}
+                  style={{ minWidth: 220, fontSize: '14px' }}
                 >
                   Variante
                 </th>
@@ -586,7 +887,10 @@ export const Edit = ({
                   <tr key={supply_type.id} className={hasError ? 'table-row-error' : ''}>
                     <td className="text-slate font-inter">{supply_type.name}</td>
                     <td className="text-slate font-inter">{supply_type.description}</td>
-                    <td className="d-flex gap-2 align-items-center justify-content-between position-relative">
+                    <td
+                      className="d-flex gap-2 align-items-center justify-content-between position-relative"
+                      style={{ minHeight: '53px' }}
+                    >
                       {editingVariants === supply_type.id ? (
                         <CFormSelect
                           autoFocus
@@ -616,9 +920,7 @@ export const Edit = ({
                           className="text-slate editable-span-trigger font-inter"
                           onClick={() => setEditingVariants(supply_type.id)}
                         >
-                          {tecVariants[supply_type.id]
-                            ? `${tecVariants?.[supply_type.id]?.name} - ${tecVariants?.[supply_type.id]?.description}`
-                            : 'Seleccione...'}
+                          {tecVariants?.[supply_type.id]?.name || 'Seleccione...'}
                         </span>
                       )}
                       {hasError && (
@@ -688,8 +990,70 @@ export const Edit = ({
           </table>
         </div>
       </div>
+
+      <div className="p-4">
+        <div className="d-flex align-items-center gap-3">
+          <div
+            style={{
+              flex: 0.02,
+              height: '2px',
+              backgroundColor: '#e9ecef',
+            }}
+          />
+          <h5 className="mb-0 fw-bold font-montserrat">Especificación de Curva</h5>
+          <div
+            style={{
+              flex: 1,
+              height: '2px',
+              backgroundColor: '#e9ecef',
+            }}
+          />
+        </div>
+
+        <p className="text-muted mt-2 mb-3 font-poppins" style={{ fontSize: '13px' }}>
+          Especifique las unidades de cada talla de la curva original que se utilizarán en esta
+          transformación.
+        </p>
+
+        <TransformationReassignmentCurve
+          production_order={production_order}
+          technical_sheet={technical_sheet}
+          sizes={sizes}
+          sizes_now={formData?.sizes}
+          dataOrigin={dataOrigin}
+          setDataOrigin={setDataOrigin}
+          trademarks={trademarks}
+          createProduct={createProduct}
+          errors={
+            !!errors
+              ? Object.entries(errors)
+                  .filter(([key]) =>
+                    key.startsWith('production_order_details.App\\Models\\Product'),
+                  )
+                  .reduce((acc, [key, value]) => {
+                    acc[key.split('.')[2]] = value
+                    return acc
+                  }, {})
+              : null
+          }
+          errors_create={errors_create}
+          dataNew={dataNew}
+          setDataNew={setDataNew}
+          data={data}
+          setData={setData}
+          formData={formData}
+          reasigned={reasigned}
+          setReasigned={setReasigned}
+          productStara={productStara}
+          setProductStara={setProductStara}
+          formDataStara={formDataStara}
+          setFormDataStara={setFormDataStara}
+          validated={validated}
+          findTrademarkByCode={findTrademarkByCode}
+        />
+      </div>
+
       <TechnicalSheetDetail
-        product={product}
         technical_sheet={technical_sheet}
         processes={processes}
         errors={errors}
@@ -710,4 +1074,4 @@ export const Edit = ({
   )
 }
 
-export default Edit
+export default Create

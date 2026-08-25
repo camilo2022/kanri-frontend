@@ -29,6 +29,7 @@ import Swal from 'sweetalert2'
 import LoadingForm from '@/components/LoadingForm'
 
 const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loading }) => {
+  console.log(person)
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     document: '',
@@ -50,9 +51,9 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
         document: person.document || '',
         names: person.names || '',
         last_names: person.last_names || '',
-        gender_id: person.gender_id || '',
+        gender_id: person.gender.id || '',
         birth_date: person.birth_date || '',
-        blood_type_id: person.blood_type_id || '',
+        blood_type_id: person.blood_type.id || '',
         address: person.address || '',
         phone: person.phone || '',
         photo: person.photo || '',

@@ -39,7 +39,7 @@ const TableLengthCurveGroup = ({ sizes, rows, aux, setAux, errors, larges }) => 
         item.quantity === quantity
           ? {
               ...item,
-              large: value === '' ? '' : Number(value),
+              large: value,
             }
           : item,
       ),
@@ -149,11 +149,9 @@ const TableLengthCurveGroup = ({ sizes, rows, aux, setAux, errors, larges }) => 
                     >
                       <CFormInput
                         type="number"
-                        step={0.01}
+                        step="0.01"
                         value={
-                          focusedInput?.row === index && item.large === 0
-                            ? ''
-                            : aux.find((i) => i.quantity === item.quantity).large
+                          focusedInput?.row === index && item.large === 0 ? '' : (item.large ?? '')
                         }
                         className="table-input border-0 shadow-none py-1 font-inter w-100 text-center"
                         onFocus={() =>
@@ -165,16 +163,18 @@ const TableLengthCurveGroup = ({ sizes, rows, aux, setAux, errors, larges }) => 
                           if (item.large === '') {
                             handleChange(item.quantity, 0)
                           }
+
                           setFocusedInput(null)
                         }}
                         onKeyDown={(e) => {
-                          if (['e', 'E', '+', '-', ','].includes(e.key)) {
+                          if (['e', 'E', '+', '-'].includes(e.key)) {
                             e.preventDefault()
                           }
                         }}
                         onChange={(e) => {
                           const value = e.target.value
-                          if (/^\d+(\.\d*)?$/.test(value)) {
+
+                          if (/^\d*(\.\d*)?$/.test(value)) {
                             handleChange(item.quantity, value)
                           }
                         }}

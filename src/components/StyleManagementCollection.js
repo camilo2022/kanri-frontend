@@ -139,6 +139,85 @@ export const tableSelectStyles = {
   }),
 }
 
+export const tableSelectStylesCorrect = {
+  control: (provided, state) => ({
+    ...provided,
+    minHeight: '32px',
+    height: '32px',
+    with: '80px',
+    backgroundColor: 'transparent',
+    border: state.isFocused ? '1px solid #CBD5E1' : '1px solid transparent',
+    boxShadow: 'none',
+    borderRadius: '6px',
+    transition: 'all .18s ease',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: '#F8FAFC',
+      border: '1px solid #E2E8F0',
+    },
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    height: '32px',
+    padding: '0 8px',
+  }),
+  input: (provided) => ({
+    ...provided,
+    margin: 0,
+    padding: 0,
+    fontSize: '.82rem',
+    color: '#334155',
+    fontFamily: 'Inter, sans-serif',
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    fontSize: '.82rem',
+    fontWeight: 500,
+    color: '#334155',
+    fontFamily: 'Inter, sans-serif',
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    fontSize: '.82rem',
+    color: '#94A3B8',
+  }),
+  indicatorsContainer: (provided) => ({
+    ...provided,
+    height: '32px',
+    opacity: 0,
+    transition: 'opacity .18s ease',
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    padding: '0 6px',
+    color: '#64748B',
+  }),
+  indicatorSeparator: () => ({
+    display: 'none',
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: '10px',
+    overflow: 'hidden',
+    border: '1px solid #E2E8F0',
+    boxShadow: '0 10px 25px rgba(15,23,42,.08)',
+    zIndex: 20,
+  }),
+  menuList: (provided) => ({
+    ...provided,
+    padding: '4px',
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#EEF2FF' : state.isFocused ? '#F8FAFC' : '#fff',
+    color: state.isSelected ? '#24247f' : '#334155',
+    fontSize: '.82rem',
+    fontWeight: state.isSelected ? 600 : 500,
+    borderRadius: '8px',
+    cursor: 'pointer',
+  }),
+}
+
 export const selectStyles = {
   control: (provided, state) => ({
     ...provided,
@@ -262,7 +341,6 @@ export const optionsProcess = [
   { label: 'PENDIENTE', value: 'Pendiente' },
   { label: 'EN REVISIÓN', value: 'En revision' },
   { label: 'APROBADO', value: 'Aprobado' },
-  { label: 'PRUEBA', value: 'PRUEBA' },
 ]
 
 export const optionsStatus = [
@@ -270,7 +348,6 @@ export const optionsStatus = [
   { label: 'EN REVISIÓN', value: 'En revision', data: 'En revision' },
   { label: 'APROBADO', value: 'Aprobado', data: 'Aprobado' },
   { label: 'CANCELADO', value: 'Cancelado', data: 'Cancelado' },
-  { label: 'PRUEBA', value: 'PRUEBA', data: 'PRUEBA' },
 ]
 
 export const getProcessClass = (status) => {

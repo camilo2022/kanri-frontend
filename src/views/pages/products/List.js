@@ -32,6 +32,8 @@ import {
   X,
   RefreshCcw,
   ClipboardList,
+  FileDown,
+  Recycle,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import { Toast } from '@/components/Toast'
@@ -53,6 +55,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
   const [searchInput, setSearchInput] = useState('')
   const [showFullscreen, setShowFullscreen] = useState(false)
   const [showEditMenu, setShowEditMenu] = useState(null)
+  const [showTransforMenu, setShowTransforMenu] = useState(null)
   const [changeStatus, setChangeStatus] = useState(null)
   const [selectedStatus, setSelectedStatus] = useState(null)
   const [selectedDetail, setSelectedDetail] = useState(null)
@@ -137,6 +140,9 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
       group: product.trademark?.group[0]?.name || '-',
       category: product.subcategory?.category[0]?.name || '-',
       subcategory: product.subcategory?.name || '-',
+      technical_sheet_consecutive: product.technical_sheet?.consecutive
+        ? product.technical_sheet?.consecutive
+        : '-',
       technical_sheet_collection: product.technical_sheet?.collection?.name
         ? `${product.technical_sheet.collection.name} - ${product.technical_sheet.collection.description ?? ''}`
         : '-',
@@ -299,6 +305,51 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
               <RefreshCcw size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
+          {!!product.technical_sheet && product.technical_sheet.production_orders?.length > 0 && (
+            <div className="position-relative">
+              <CTooltip content="Transformar" placement="top">
+                <button
+                  className="action-btn btn-teal"
+                  disabled={
+                    !!product.deleted_at ||
+                    !user_active?.permissions.some((p) => p.name === 'products.find') ||
+                    !user_active?.permissions.some((p) => p.name === 'products.update') ||
+                    !product.original
+                  }
+                  onClick={() =>
+                    setShowTransforMenu(showTransforMenu === product.id ? null : product.id)
+                  }
+                >
+                  <Recycle size={18} strokeWidth={1.5} />
+                </button>
+              </CTooltip>
+              {showTransforMenu === product.id && (
+                <div className="transfor-menu">
+                  {product.technical_sheet.production_orders.map((production_order) => {
+                    return (
+                      <button
+                        key={production_order.id}
+                        className="transfor-menu-item"
+                        onClick={() => {
+                          setShowTransforMenu(null)
+                          onChangeView({
+                            name: 'transformation',
+                            title: 'Crear Transformación',
+                            product: product,
+                            production_order: production_order.id,
+                            action: 'create',
+                          })
+                        }}
+                      >
+                        <Recycle size={16} />
+                        <span>{`Lote ${production_order.cut}`} </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
           <CTooltip content="Listar ordenes de producción" placement="top">
             <button
               className="action-btn restore-btn"
@@ -373,6 +424,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
     {
       title: 'Información de la Ficha Técnica',
       columns: [
+        { key: 'technical_sheet_consecutive', label: 'Consecutivo' },
         { key: 'technical_sheet_collection', label: 'Colección' },
         { key: 'technical_sheet_photo_d', label: 'Foto Delantera' },
         { key: 'technical_sheet_photo_t', label: 'Foto Trasera' },
@@ -472,7 +524,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
             </tr>
             <tr>
               {columns.map((column, index) => (
-                <th key={column.key} className={index === 5 || index === 12 ? 'group-divider' : ''}>
+                <th key={index} className={index === 5 || index === 12 ? 'group-divider' : ''}>
                   {column.label}
                 </th>
               ))}

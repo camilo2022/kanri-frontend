@@ -44,7 +44,7 @@ const ManagementCollections = () => {
       setCollections(
         Array.isArray(response.data.collections)
           ? response.data.collections.map((type) => ({
-              label: type.name,
+              label: `${type.settings?.code} - ${type.name}`,
               value: type.id,
             }))
           : [],
@@ -75,7 +75,7 @@ const ManagementCollections = () => {
         Array.isArray(response.data.supply_types)
           ? response.data.supply_types.reduce((acc, item) => {
               acc[item.id] = (item.variants || []).map((variant) => ({
-                label: variant.name,
+                label: `${variant.name ?? 'N/A'} - ${variant.description ?? 'N/A'}`,
                 value: variant.id,
                 data: variant,
               }))
@@ -96,7 +96,7 @@ const ManagementCollections = () => {
       setGarmentTypes(
         Array.isArray(response.data.garment_types)
           ? response.data.garment_types.map((type) => ({
-              label: type.name,
+              label: `${type.settings?.code ?? 'N/A'} - ${type.name ?? 'N/A'}`,
               value: type.id,
               data: type,
             }))
@@ -114,7 +114,7 @@ const ManagementCollections = () => {
       setWashTones(
         Array.isArray(response.data.wash_tones)
           ? response.data.wash_tones.map((type) => ({
-              label: type.name,
+              label: `${type.settings?.code ?? 'N/A'} - ${type.name ?? 'N/A'}`,
               value: type.id,
               data: type,
             }))
@@ -132,7 +132,7 @@ const ManagementCollections = () => {
       setBootTypes(
         Array.isArray(response.data.boot_types)
           ? response.data.boot_types.map((type) => ({
-              label: type.name,
+              label: `${type.settings?.code ?? 'N/A'} - ${type.name ?? 'N/A'}`,
               value: type.id,
               data: type,
             }))

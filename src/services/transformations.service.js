@@ -69,10 +69,40 @@ const store = async (data) => {
   try {
     const formData = new FormData()
 
+    const appendFormData = (formData, data, parentKey = '') => {
+      if (data === null || data === undefined) {
+        return
+      }
+
+      if (data instanceof File) {
+        formData.append(parentKey, data)
+        return
+      }
+
+      if (Array.isArray(data)) {
+        data.forEach((value, index) => {
+          const key = `${parentKey}[${index}]`
+          appendFormData(formData, value, key)
+        })
+        return
+      }
+
+      if (typeof data === 'object') {
+        Object.entries(data).forEach(([key, value]) => {
+          const formKey = parentKey ? `${parentKey}[${key}]` : key
+
+          appendFormData(formData, value, formKey)
+        })
+        return
+      }
+
+      formData.append(parentKey, data)
+    }
+
     appendFormData(formData, data)
 
     const response = await api.post(
-      `/technical_sheets/production_orders/store`,
+      `/technical_sheets/transformations/store`,
       formData,
       getConfig(),
     )
@@ -112,7 +142,7 @@ const pdf = (uuid, production_order_id) => {
   return `${api.defaults.baseURL}/technical_sheets/production_orders/pdf/${uuid}`
 }
 
-const ProductionOrdersService = {
+const TransformationsService = {
   all,
   find,
   store,
@@ -120,4 +150,4 @@ const ProductionOrdersService = {
   pdf,
 }
 
-export default ProductionOrdersService
+export default TransformationsService

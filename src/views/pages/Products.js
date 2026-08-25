@@ -9,6 +9,8 @@ import List from './products/List'
 import Create from './products/Create'
 import Edit from './products/Edit'
 import TechnicalSheets from './TechnicalSheets'
+import TechnicalSheetsService from '../../services/technical_sheets.service'
+import Transformation from './Transformation'
 
 const Products = () => {
   const dispatch = useDispatch()
@@ -37,6 +39,9 @@ const Products = () => {
       fetchProcesses({ in_technical_sheet: true })
       fetchTrademarks()
       fetchCategories()
+    }
+    if (view.name === 'transformation' && view.product?.id) {
+      findProduct(view.product.id)
     }
   }, [view])
 
@@ -199,6 +204,15 @@ const Products = () => {
 
       case 'technical_sheet':
         return <TechnicalSheets product_id={product.id} action={view.action} />
+
+      case 'transformation':
+        return (
+          <Transformation
+            product_id={product.id}
+            action={view.action}
+            production_order_id={view.production_order}
+          />
+        )
 
       default:
         return (

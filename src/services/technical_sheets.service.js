@@ -1,22 +1,31 @@
 import api from '../API/api'
 import { getConfig } from '../axiosConfig'
 
-/*
-const all = async (params) => {
-  try {
-    const response = await api.get(`/products/all`, {
-      ...getConfig(),
-      params: params,
-    })
-    return response.data
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw error.response.data
-    }
-    throw { message: 'Error desconocido' }
+const appendFormData = (formData, data, parentKey = '') => {
+  if (data === null || data === undefined) return
+
+  if (data instanceof File) {
+    formData.append(parentKey, data)
+    return
   }
+
+  if (Array.isArray(data)) {
+    data.forEach((value, index) => {
+      appendFormData(formData, value, `${parentKey}[${index}]`)
+    })
+    return
+  }
+
+  if (typeof data === 'object') {
+    Object.entries(data).forEach(([key, value]) => {
+      appendFormData(formData, value, parentKey ? `${parentKey}[${key}]` : key)
+    })
+    return
+  }
+
+  formData.append(parentKey, data)
 }
-*/
+
 const find = async (index) => {
   try {
     const response = await api.get(`/technical_sheets/find`, {
@@ -25,7 +34,6 @@ const find = async (index) => {
     })
     return response.data
   } catch (error) {
-    console.log(error)
     if (error.response && error.response.data) {
       throw error.response.data
     }
@@ -37,17 +45,7 @@ const store = async (data) => {
   try {
     const formData = new FormData()
 
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        if (typeof value === 'object' && !(value instanceof File)) {
-          Object.entries(value).forEach(([subKey, subValue]) => {
-            formData.append(`${key}[${subKey}]`, subValue)
-          })
-        } else {
-          formData.append(key, value)
-        }
-      }
-    })
+    appendFormData(formData, data)
 
     const response = await api.post(`/technical_sheets/store`, formData, getConfig())
     return response.data
@@ -61,7 +59,13 @@ const store = async (data) => {
 
 const update = async (id, data) => {
   try {
-    const response = await api.put(`/technical_sheets/update/${id}`, data, getConfig())
+    const formData = new FormData()
+
+    appendFormData(formData, data)
+
+    formData.append('_method', 'PUT')
+
+    const response = await api.post(`/technical_sheets/update/${id}`, formData, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -71,10 +75,15 @@ const update = async (id, data) => {
   }
 }
 
+const pdf = (uuid, production_order_id) => {
+  return `${api.defaults.baseURL}/technical_sheets/pdf/${uuid}?production_order_id=${production_order_id}`
+}
+
 const TechnicalSheetsService = {
   find,
   store,
   update,
+  pdf,
 }
 
 export default TechnicalSheetsService

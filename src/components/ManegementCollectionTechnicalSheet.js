@@ -277,7 +277,7 @@ const ManagementCollectionTechnicalSheet = ({
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '200px' }}
+              style={{ ...thStyle, width: '230px', minWidth: '230px' }}
             >
               TIPO DE BOTA
             </th>
@@ -304,8 +304,8 @@ const ManagementCollectionTechnicalSheet = ({
               className="text-center"
               style={{
                 ...thStyleGroup,
-                width: `${supplyTypes.length > 0 ? supplyTypes.length * 150 : 150}px`,
-                minWidth: `${supplyTypes.length > 0 ? supplyTypes.length * 150 : 150}px`,
+                width: `${supplyTypes.length > 0 ? supplyTypes.length * 220 : 220}px`,
+                minWidth: `${supplyTypes.length > 0 ? supplyTypes.length * 220 : 220}px`,
               }}
             >
               INSUMOS
@@ -315,8 +315,8 @@ const ManagementCollectionTechnicalSheet = ({
               className="text-center"
               style={{
                 ...thStyleGroup,
-                width: `${processes.length * 165}px`,
-                minWidth: `${processes.length * 165}px`,
+                width: `${processes.length * 150}px`,
+                minWidth: `${processes.length * 150}px`,
               }}
             >
               PROCESOS
@@ -324,7 +324,7 @@ const ManagementCollectionTechnicalSheet = ({
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '220px' }}
+              style={{ ...thStyle, width: '160px' }}
             >
               ESTADO
             </th>

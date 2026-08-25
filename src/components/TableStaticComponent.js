@@ -230,7 +230,7 @@ const TableStaticComponent = ({
       }
     }, 1000)
   }
-  
+
   const deleteBlock = async (info, element) => {
     const result = await Swal.fire({
       title: 'Eliminar Elemento',
@@ -404,6 +404,8 @@ const TableStaticComponent = ({
         options,
         rules: updatedRules,
       }))
+
+      return 
     }
 
     const exists = rules.some((r) => r.startsWith(`${key}:`))
@@ -1462,6 +1464,7 @@ const TableStaticComponent = ({
                   <FieldRules
                     type={auxTd.type}
                     element={auxTd}
+                    setAuxTd={setAuxTd}
                     field={auxTd.rules}
                     index={0}
                     ind={'static'}

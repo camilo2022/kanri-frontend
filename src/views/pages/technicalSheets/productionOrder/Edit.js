@@ -91,6 +91,7 @@ export const Edit = ({
   piecesCutA,
 }) => {
   console.log(production_order)
+
   const getAlphabetConsecutive = (index) => {
     let consecutive = ''
     while (index >= 0) {
@@ -131,7 +132,9 @@ export const Edit = ({
   const [trazosFile, setTrazosFile] = useState(null)
 
   const larges = useMemo(() => {
-    return production_order?.settings.reduce((acc, item) => {
+    const settings = Array.isArray(production_order?.settings) ? production_order.settings : []
+
+    return settings.reduce((acc, item) => {
       acc[item.quantity] = {
         large: item.large,
       }
@@ -142,6 +145,30 @@ export const Edit = ({
 
   useEffect(() => {
     if (!production_order || !sizes) return
+
+    console.log(
+      production_order.production_order_details
+        .filter((item) => item.model_type === 'App\\Models\\Product')
+        .map((item) => ({
+          location: item.destination,
+          reference: item.model.code,
+          product_id: item.model_id,
+          sizes: sizes.reduce((acc, size) => {
+            const quantity = item.production_order_detail_quantities.find(
+              (aux) => aux.size_id === size.id,
+            )
+
+            acc[size.id] = {
+              id: quantity?.id ?? null,
+              size_id: size.id,
+              name: size.name,
+              quantity: quantity?.quantity ?? 0,
+            }
+
+            return acc
+          }, {}),
+        })),
+    )
 
     const data = production_order.production_order_details
       .filter((item) => item.model_type === 'App\\Models\\Product')
@@ -593,17 +620,18 @@ export const Edit = ({
     setSelectedRolls([])
   }
 
-  const metrosReales = aux.reduce(
-    (acc, item) => acc + (Number(item.large) || 0) * (Number(item.quantity) || 0),
-    0,
-  )
+  const metrosReales =
+    Math.round(
+      aux.reduce((acc, item) => acc + (Number(item.large) || 0) * (Number(item.quantity) || 0), 0) *
+        1000,
+    ) / 1000
 
   const totalUnidades = aux.reduce(
     (acc, item) => acc + (Number(item.quantity) || 0) * (item.sizes?.length || 0),
     0,
   )
   const promedio = totalUnidades > 0 ? Number((metrosReales / totalUnidades).toFixed(3)) : 0
-  const cantidadCm2 = Math.round((formData?.width || 0) * promedio * 10000)
+  const cantidadCm2 = (Math.floor((formData?.width || 0) * promedio * 10000 * 100) / 100).toFixed(2)
 
   const excedente = cantidadCm2 > 15000
 
@@ -665,7 +693,7 @@ export const Edit = ({
                 .filter((item) => item.product_id !== null)
                 .map((item) => ({
                   destination: item.location,
-                  model_id: product.id,
+                  model_id: item.product_id,
                   model_type: 'App\\Models\\Product',
                   sizes: Object.values(item.sizes)
                     .filter((size) => size.quantity !== 0)
@@ -769,7 +797,7 @@ export const Edit = ({
                 .filter((item) => item.product_id !== null)
                 .map((item) => ({
                   destination: item.location,
-                  model_id: product.id,
+                  model_id: item.product_id,
                   model_type: 'App\\Models\\Product',
                   sizes: Object.values(item.sizes)
                     .filter((size) => size.quantity !== 0)
@@ -925,6 +953,7 @@ export const Edit = ({
         setSelectedReference={setSelectedReference}
         production_order={production_order}
         setDataNew={setDataNew}
+        is_reasigned={!!production_order.model_id && !!production_order.model_type}
       />
       <TableCurveGroupings
         sizes={sizes}

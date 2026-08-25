@@ -33,6 +33,7 @@ import Select from 'react-select'
 import LoadingForm from '@/components/LoadingForm'
 import { getSelectStylesInsertUniq } from '@/components/StyleManagementCollection'
 import ModalAddReassignmentCurve from '@/components/ModalAddReassignmentCurve'
+import { tableSelectStyles } from '@/components/StyleManagementCollection'
 
 const TableCurveSpecifications = ({
   technical_sheet,
@@ -53,6 +54,7 @@ const TableCurveSpecifications = ({
   setSelectedReference,
   setDataNew,
   production_order,
+  is_reasigned,
 }) => {
   const [focusedInput, setFocusedInput] = useState(null)
   const [isSelectingRef, setIsSelectingRef] = useState(false)
@@ -159,7 +161,7 @@ const TableCurveSpecifications = ({
           return
         }
         aux.set(production_order_item.id, {
-          label: `${item.code}-${production_order_item.cut}`,
+          label: `${item.code} - ${production_order_item.cut}`,
           value: production_order_item.id,
           specification_curve: production_order_item.production_order_details.filter(
             (item) => item.model_type === 'App\\Models\\Product',
@@ -395,6 +397,20 @@ const TableCurveSpecifications = ({
         ]
       : []
 
+  useEffect(() => {
+    if (!production_order?.model) {
+      return
+    }
+
+    setSelectedReference((prev) => ({
+      label: `${production_order.model.technical_sheet?.product?.code} - ${production_order.cut}`,
+      specification_curve: production_order.model.production_order_details.filter(
+        (item) => item.model_type === 'App\\Models\\Product',
+      ),
+      sizes: production_order.model.technical_sheet?.product?.trademark?.sizes || [],
+    }))
+  }, [production_order?.model])
+
   return (
     <>
       <div
@@ -429,27 +445,31 @@ const TableCurveSpecifications = ({
                   <span className="text-muted fw-normal me-1">Ref. reasignada:</span>
                   <span className="text-dark fw-semibold">{selectedReference?.label}</span>
                 </span>
-                <CButton
-                  size="sm"
-                  color="primary"
-                  className="rounded-circle p-0 d-flex align-items-center justify-content-center border-0 btn-edit-ref"
-                  onClick={() => {
-                    setDataModal([...data])
-                    setModalAddSpecification(true)
-                  }}
-                >
-                  <Edit size={12} className="text-secondary" />
-                </CButton>
-                <CButton
-                  size="sm"
-                  color="light"
-                  className="rounded-circle p-0 d-flex align-items-center justify-content-center border-0 btn-close-ref"
-                  onClick={() => {
-                    handleDeleteAsigned()
-                  }}
-                >
-                  <X size={12} className="text-secondary" />
-                </CButton>
+                {!is_reasigned && (
+                  <>
+                    <CButton
+                      size="sm"
+                      color="primary"
+                      className="rounded-circle p-0 d-flex align-items-center justify-content-center border-0 btn-edit-ref"
+                      onClick={() => {
+                        setDataModal([...data])
+                        setModalAddSpecification(true)
+                      }}
+                    >
+                      <Edit size={12} className="text-secondary" />
+                    </CButton>
+                    <CButton
+                      size="sm"
+                      color="light"
+                      className="rounded-circle p-0 d-flex align-items-center justify-content-center border-0 btn-close-ref"
+                      onClick={() => {
+                        handleDeleteAsigned()
+                      }}
+                    >
+                      <X size={12} className="text-secondary" />
+                    </CButton>
+                  </>
+                )}
               </div>
             ) : isSelectingRef ? (
               <div className="d-flex flex-column align-items-end smooth-transition position-relative">
@@ -461,44 +481,40 @@ const TableCurveSpecifications = ({
                 </span>
 
                 <div className="d-flex align-items-center gap-2">
-                  <CFormSelect
-                    size="sm"
-                    className="custom-select-clean font-inter shadow-sm"
-                    style={{
-                      minWidth: '280px',
-                      borderRadius: '6px',
-                      fontSize: '0.82rem',
-                      paddingTop: '0.35rem',
-                      paddingBottom: '0.35rem',
-                    }}
-                    value={selectedReference ?? ''}
-                    onChange={(e) => {
-                      const selected = optReasigned.find(
-                        (item) => item.value === Number(e.target.value),
-                      )
+                  <Select
+                    options={optReasigned}
+                    filterOption={customFilterOption}
+                    value={selectedReference}
+                    onChange={(selected) => {
                       setReasigned(true)
                       setSelectedReference(selected)
                       setIsSelectingRef(false)
                       setDataModal([...data])
                       setModalAddSpecification(true)
                     }}
-                  >
-                    <option value="">Seleccionar referencia</option>
-                    {Array.isArray(optReasigned) &&
-                      optReasigned.map((ref) => (
-                        <option key={ref.value} value={ref.value}>
-                          {ref.label}
-                        </option>
-                      ))}
-                  </CFormSelect>
+                    placeholder={'Seleccione...'}
+                    styles={{
+                      ...tableSelectStyles,
+                      control: (provided, state) => ({
+                        ...provided,
+                        minHeight: '35px',
+                        borderRadius: '10px',
+                        width: '200px',
+                        border: state.isFocused ? '1px solid #24247f' : '1px solid #E2E8F0',
+                        boxShadow: state.isFocused ? '0 0 0 3px rgba(36, 36, 127, 0.12)' : 'none',
+                      }),
+                      valueContainer: (provided) => ({ ...provided, padding: '0 12px' }),
+                      indicatorsContainer: (provided) => ({ ...provided, opacity: 1 }),
+                    }}
+                  />
                   <CButton
                     size="sm"
-                    variant="ghost"
+                    color="light"
                     className="border-0 text-muted px-2 font-poppins fw-medium"
                     style={{ fontSize: '0.8rem' }}
                     onClick={() => setIsSelectingRef(false)}
                   >
-                    Cancelar
+                    <X size={14} />
                   </CButton>
                 </div>
               </div>
@@ -510,19 +526,7 @@ const TableCurveSpecifications = ({
                   setIsSelectingRef(true)
                   await loadReferences()
                 }}
-                disabled={
-                  (production_order &&
-                    production_order.model_type === null &&
-                    production_order.model_id === null) ||
-                  data?.reduce((total, row) => {
-                    return (
-                      total +
-                      sizes.reduce((subtotal, size) => {
-                        return subtotal + Number(row.sizes[size.id].quantity || 0)
-                      }, 0)
-                    )
-                  }, 0) > 0
-                }
+                disabled={is_reasigned}
               >
                 <ArrowRightLeft size={14} style={{ color: '#FFFFFF' }} /> Reasignar Lote
               </CButton>
@@ -1000,22 +1004,24 @@ const TableCurveSpecifications = ({
           </CButton>
         </CModalFooter>
       </CModal>
-      <ModalAddReassignmentCurve
-        modalAddSpecification={modalAddSpecification}
-        setModalAddSpecification={setModalAddSpecification}
-        setModalAddProduct={setModalAddProduct}
-        selectedReference={selectedReference}
-        setSelectedReference={setSelectedReference}
-        dataAux={dataAux}
-        setDataAux={setDataAux}
-        dataModal={dataModal}
-        setDataModal={setDataModal}
-        sizes={sizes}
-        product={product}
-        product_stara={product_stara}
-        setData={setData}
-        setDataNew={setDataNew}
-      />
+      {modalAddSpecification && (
+        <ModalAddReassignmentCurve
+          modalAddSpecification={modalAddSpecification}
+          setModalAddSpecification={setModalAddSpecification}
+          setModalAddProduct={setModalAddProduct}
+          selectedReference={selectedReference}
+          setSelectedReference={setSelectedReference}
+          dataAux={dataAux}
+          setDataAux={setDataAux}
+          dataModal={dataModal}
+          setDataModal={setDataModal}
+          sizes={sizes}
+          product={product}
+          product_stara={product_stara}
+          setData={setData}
+          setDataNew={setDataNew}
+        />
+      )}
     </>
   )
 }

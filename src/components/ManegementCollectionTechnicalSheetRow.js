@@ -3,6 +3,7 @@ import { CFormInput, CFormTextarea, CTooltip, CPopover, CButton } from '@coreui/
 import Select from 'react-select'
 import {
   tableSelectStyles,
+  tableSelectStylesCorrect,
   optionsProcess,
   optionsStatus,
   getProcessClass,
@@ -15,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import PreviewPopover from './PreviewPopover'
 
 const selectStylesWithPortal = {
-  ...tableSelectStyles,
+  ...tableSelectStylesCorrect,
   menuPortal: (base) => ({
     ...base,
     zIndex: 9999,
@@ -344,6 +345,7 @@ const ManagementCollectionTechnicalSheetRow = ({
               placeholder={sheet?.code === '' ? 'Ingresar...' : ''}
               onChange={(e) => updateSheetField('code', e.target.value.toUpperCase())}
               className="table-input border-0 shadow-none px-2 py-1 font-inter"
+              disabled={true}
             />
           ) : (
             <div
@@ -502,9 +504,11 @@ const ManagementCollectionTechnicalSheetRow = ({
                   setEditingField('garment_type')
                 }}
               >
-                {garmentTypes[sheet?.garment_type_id]?.label ||
-                  sheet?.garment_type?.name ||
-                  'Seleccionar...'}
+                {!!garmentTypes && sheet?.garment_type_id
+                  ? garmentTypes?.[sheet?.garment_type_id]?.label
+                  : sheet?.garment_type
+                    ? `${sheet.garment_type?.settings?.code ?? 'N/A'} - ${sheet.garment_type?.name ?? 'N/A'}`
+                    : 'Seleccionar...'}
               </div>
             )}
           </div>
@@ -584,9 +588,11 @@ const ManagementCollectionTechnicalSheetRow = ({
                   setEditingField('wash_tone')
                 }}
               >
-                {washTones[sheet?.wash_tone_id]?.label ||
-                  sheet?.wash_tone?.name ||
-                  'Seleccionar...'}
+                {!!washTones && sheet?.wash_tone_id
+                  ? washTones?.[sheet?.wash_tone_id]?.label
+                  : sheet?.wash_tone
+                    ? `${sheet.wash_tone?.settings?.code ?? 'N/A'} - ${sheet.wash_tone?.name ?? 'N/A'}`
+                    : 'Seleccionar...'}
               </div>
             )}
           </div>
@@ -639,7 +645,7 @@ const ManagementCollectionTechnicalSheetRow = ({
           )}
         </div>
       </td>
-      <td className={getCellClass('boot_type_id', 'cell-width-200')}>
+      <td className={getCellClass('boot_type_id', 'cell-width-230')}>
         <div className="d-flex align-items-center gap-2 w-100">
           <div className="flex-grow-1">
             {editingField === 'boot_type' ? (
@@ -666,9 +672,11 @@ const ManagementCollectionTechnicalSheetRow = ({
                   setEditingField('boot_type')
                 }}
               >
-                {bootTypes[sheet?.boot_type_id]?.label ||
-                  sheet?.boot_type?.name ||
-                  'Seleccionar...'}
+                {!!bootTypes && sheet?.boot_type_id
+                  ? bootTypes?.[sheet?.boot_type_id]?.label
+                  : sheet?.boot_type
+                    ? `${sheet.boot_type?.settings?.code ?? 'N/A'} - ${sheet.boot_type?.name ?? 'N/A'}`
+                    : 'Seleccionar...'}
               </div>
             )}
           </div>
@@ -967,8 +975,11 @@ const ManagementCollectionTechnicalSheetRow = ({
                       {variants[supplyType.id]?.find(
                         (opt) => opt.value === sheet?.variants?.[supplyType.id],
                       )?.label ||
-                        sheet?.variants[supplyType.id]?.name ||
-                        'Seleccionar...'}
+                        (sheet?.variants?.[supplyType.id]
+                          ? `${sheet.variants[supplyType.id]?.name ?? 'N/A'} - ${
+                              sheet.variants[supplyType.id]?.description ?? 'N/A'
+                            }`
+                          : 'Seleccionar...')}
                     </div>
                   )}
                 </div>
@@ -1034,6 +1045,7 @@ const ManagementCollectionTechnicalSheetRow = ({
       {processes.map((process, index) => {
         return (
           <td
+            key={process.id}
             className={`table-cell ${getProcessClass(sheet?.technical_sheet_details?.[process.id]?.status || '')} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
           >
             <div className="d-flex align-items-center gap-2 w-100">

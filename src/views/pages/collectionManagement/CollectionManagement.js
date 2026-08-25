@@ -261,6 +261,16 @@ export const CollectionManagement = ({
               const subcategoryId = sheet?.product?.subcategory?.id
               const categoryId = sheet?.product?.subcategory?.category[0]?.id
 
+              const trademarkAux = newData[selectedBrand.id]
+              const categoryAux = trademarkAux.categories[categoryId]
+              const subcategoryAux = categoryAux.subcategories[subcategoryId]
+              const technicalSheetsAux = subcategoryAux.technical_sheets
+              const { [sheet.id]: deleted, ...restTechnicalSheets } = technicalSheetsAux
+
+              newData[selectedBrand.id].categories[categoryId].subcategories[
+                subcategoryId
+              ].technical_sheets = restTechnicalSheets
+
               newData[selectedBrand.id].categories[categoryId] ??= {}
               newData[selectedBrand.id].categories[categoryId].subcategories ??= {}
               newData[selectedBrand.id].categories[categoryId].subcategories[subcategoryId] ??= {}
@@ -270,13 +280,15 @@ export const CollectionManagement = ({
 
               newData[selectedBrand.id].categories[categoryId].subcategories[
                 subcategoryId
-              ].technical_sheets[sheet.id] = {
+              ].technical_sheets[result.data.technical_sheet.id] = {
                 ...result.data.technical_sheet,
                 photo_d_original: result.data.technical_sheet.photo_d,
                 photo_t_original: result.data.technical_sheet.photo_t,
                 variants: variantsBySupplyType,
                 technical_sheet_details: processesByDetails,
               }
+
+              console.log(newData)
 
               return newData
             })

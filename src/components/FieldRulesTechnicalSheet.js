@@ -41,7 +41,7 @@ const FIELD_RULES = {
   },
 }
 
-function FieldRules({
+function FieldRulesTechnicalSheet({
   type,
   element,
   field,
@@ -59,7 +59,6 @@ function FieldRules({
   structure,
   setStructure,
   setStructureAux,
-  setAuxTd,
   clave,
   itemRequired = true,
 }) {
@@ -434,7 +433,7 @@ function FieldRules({
               }
               onChange={(e) => {
                 if (!clave) {
-                  if (ind === 'static') {
+                  if (ind !== 'static') {
                     setAuxTd((prev) => {
                       prev.field = models[e.target.value].field || ''
                       return prev
@@ -649,4 +648,4 @@ function FieldRules({
   )
 }
 
-export default FieldRules
+export default FieldRulesTechnicalSheet
