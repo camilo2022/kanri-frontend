@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import SupplyTypesService from '../../services/supply_types.service'
-import VariantsService from '../../services/variants.service'
+import SuppliesService from '../../services/supplies.service'
 import List from './supplyTypes/List'
 import Create from './supplyTypes/Create'
 import Edit from './supplyTypes/Edit'
-import Variants from './Variants'
+import Supplies from './Supplies'
 import Settings from './supplyTypes/Settings'
 
 const SupplyTypes = () => {
@@ -120,14 +120,14 @@ const SupplyTypes = () => {
 
   const generateExcel = async (supply_type_id) => {
     try {
-      const response = await VariantsService.excel(supply_type_id)
+      const response = await SuppliesService.excel(supply_type_id)
       var blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })
       var url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = 'variants.xlsx'
+      link.download = 'supplies.xlsx'
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -139,7 +139,7 @@ const SupplyTypes = () => {
 
   const importExcel = async (file, id) => {
     try {
-      const response = await VariantsService.upload(file, id)
+      const response = await SuppliesService.upload(file, id)
       setErrors({})
       return response
     } catch (error) {
@@ -163,7 +163,7 @@ const SupplyTypes = () => {
         )
 
       case 'show':
-        return <Variants supply_type_id={supplyType.id} />
+        return <Supplies supply_type_id={supplyType.id} />
 
       case 'settings':
         return (

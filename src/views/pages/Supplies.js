@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import VariantsService from '../../services/variants.service'
+import SuppliesService from '../../services/supplies.service'
 import SupplyTypesService from '../../services/supply_types.service'
-import List from './supplyTypes/variants/List'
-import Create from './supplyTypes/variants/Create'
-import Edit from './supplyTypes/variants/Edit'
+import List from './supplyTypes/supplies/List'
+import Create from './supplyTypes/supplies/Create'
+import Edit from './supplyTypes/supplies/Edit'
 import SupplyTypes from './SupplyTypes'
 
-const Variants = ({ supply_type_id }) => {
+const Supplies = ({ supply_type_id }) => {
   const dispatch = useDispatch()
-  const [view, setView] = useState({ name: 'list', title: 'Listar Variantes' })
+  const [view, setView] = useState({ name: 'list', title: 'Listar Insumos' })
   const [data, setData] = useState({})
-  const [variant, setVariant] = useState({})
+  const [supply, setSupply] = useState({})
   const [supplyType, SetSupplyType] = useState(null)
   const [models, setModels] = useState({})
   const [loading, setLoading] = useState(false)
@@ -20,13 +20,13 @@ const Variants = ({ supply_type_id }) => {
   useEffect(() => {
     if (!supply_type_id) return
     findSupplyType(supply_type_id)
-    if (view.name === 'edit' && view.variant?.id) {
-      findVariant(view.variant.id)
+    if (view.name === 'edit' && view.supply?.id) {
+      findSupply(view.supply.id)
     }
     setLoading(true)
-    setVariant('')
+    setSupply('')
     if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Variantes' })
+      dispatch({ type: 'set', action: 'Listar Insumos' })
     }
   }, [view, supply_type_id])
 
@@ -47,9 +47,9 @@ const Variants = ({ supply_type_id }) => {
     }
   }
 
-  const fetchVariants = async (supply_type_id, params) => {
+  const fetchSupplies = async (supply_type_id, params) => {
     try {
-      const response = await VariantsService.all(supply_type_id, params)
+      const response = await SuppliesService.all(supply_type_id, params)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -59,9 +59,9 @@ const Variants = ({ supply_type_id }) => {
     }
   }
 
-  const createVariant = async (data) => {
+  const createSupply = async (data) => {
     try {
-      const response = await VariantsService.store(data)
+      const response = await SuppliesService.store(data)
       setErrors({})
       return response
     } catch (error) {
@@ -70,9 +70,9 @@ const Variants = ({ supply_type_id }) => {
     }
   }
 
-  const editVariant = async (id, data) => {
+  const editSupply = async (id, data) => {
     try {
-      const response = await VariantsService.update(id, data)
+      const response = await SuppliesService.update(id, data)
       setErrors({})
       return response
     } catch (error) {
@@ -81,19 +81,19 @@ const Variants = ({ supply_type_id }) => {
     }
   }
 
-  const findVariant = async (id) => {
+  const findSupply = async (id) => {
     try {
-      const response = await VariantsService.find(id)
-      setVariant(response.data.variant)
+      const response = await SuppliesService.find(id)
+      setSupply(response.data.supply)
       return response
     } catch (error) {
       throw error
     }
   }
 
-  const deleteVariant = async (id) => {
+  const deleteSupply = async (id) => {
     try {
-      const response = await VariantsService.destroy(id)
+      const response = await SuppliesService.destroy(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -103,7 +103,7 @@ const Variants = ({ supply_type_id }) => {
 
   const restore = async (id) => {
     try {
-      const response = await VariantsService.restore(id)
+      const response = await SuppliesService.restore(id)
       return response
     } catch (error) {
       setErrors(error.error)
@@ -119,7 +119,7 @@ const Variants = ({ supply_type_id }) => {
             supply_type={supplyType}
             models={models}
             onChangeView={changeView}
-            onSubmit={createVariant}
+            onSubmit={createSupply}
             errors={errors}
           />
         )
@@ -129,9 +129,9 @@ const Variants = ({ supply_type_id }) => {
           <Edit
             supply_type={supplyType}
             models={models}
-            variant={variant}
+            supply={supply}
             onChangeView={changeView}
-            onSubmit={editVariant}
+            onSubmit={editSupply}
             errors={errors}
           />
         )
@@ -144,9 +144,9 @@ const Variants = ({ supply_type_id }) => {
           <List
             data={data}
             loading={loading}
-            fetchVariants={fetchVariants}
+            fetchSupplies={fetchSupplies}
             onChangeView={changeView}
-            deleteVariant={deleteVariant}
+            deleteSupply={deleteSupply}
             restore={restore}
             errors={errors}
             supply_type={supplyType}
@@ -158,4 +158,4 @@ const Variants = ({ supply_type_id }) => {
   return <div>{renderView()}</div>
 }
 
-export default Variants
+export default Supplies

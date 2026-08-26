@@ -35,7 +35,7 @@ const ManagementCollectionTechnicalSheetRow = ({
   bootTypes,
   supplyTypes,
   processes,
-  variants,
+  supplies,
   onOpenModal,
   modified,
   setModified,
@@ -936,25 +936,25 @@ const ManagementCollectionTechnicalSheetRow = ({
       ) : (
         supplyTypes.map((supplyType) => {
           return (
-            <td key={supplyType.id} className={getCellClass(`variant.${supplyType.id}`)}>
+            <td key={supplyType.id} className={getCellClass(`supply.${supplyType.id}`)}>
               <div className="d-flex align-items-center gap-2 w-100">
                 <div className="flex-grow-1">
-                  {editingField === `variant.${supplyType.id}` ? (
+                  {editingField === `supply.${supplyType.id}` ? (
                     <Select
-                      ref={(el) => (inputRefs.current[`variant.${supplyType.id}`] = el)}
+                      ref={(el) => (inputRefs.current[`supply.${supplyType.id}`] = el)}
                       isDisabled={isLocked}
-                      options={variants[supplyType.id] || []}
+                      options={supplies[supplyType.id] || []}
                       value={
-                        variants[supplyType.id]?.find(
-                          (opt) => opt.value === sheet?.variants?.[supplyType.id]?.id,
+                        supplies[supplyType.id]?.find(
+                          (opt) => opt.value === sheet?.supplies?.[supplyType.id]?.id,
                         ) || null
                       }
                       onChange={(selected) => {
                         updateSheetField(
                           supplyType.id,
                           selected.data,
-                          'variants',
-                          `variant.${supplyType.id}`,
+                          'supplies',
+                          `supply.${supplyType.id}`,
                         )
                         setEditingField(null)
                       }}
@@ -969,36 +969,36 @@ const ManagementCollectionTechnicalSheetRow = ({
                       className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
                       onClick={() => {
                         if (isLocked) return
-                        setEditingField(`variant.${supplyType.id}`)
+                        setEditingField(`supply.${supplyType.id}`)
                       }}
                     >
-                      {variants[supplyType.id]?.find(
-                        (opt) => opt.value === sheet?.variants?.[supplyType.id],
+                      {supplies[supplyType.id]?.find(
+                        (opt) => opt.value === sheet?.supplies?.[supplyType.id],
                       )?.label ||
-                        (sheet?.variants?.[supplyType.id]
-                          ? `${sheet.variants[supplyType.id]?.name ?? 'N/A'} - ${
-                              sheet.variants[supplyType.id]?.description ?? 'N/A'
+                        (sheet?.supplies?.[supplyType.id]
+                          ? `${sheet.supplies[supplyType.id]?.name ?? 'N/A'} - ${
+                              sheet.supplies[supplyType.id]?.description ?? 'N/A'
                             }`
                           : 'Seleccionar...')}
                     </div>
                   )}
                 </div>
-                {getFieldErrors(`variant.${supplyType.id}`).length > 0 && (
+                {getFieldErrors(`supply.${supplyType.id}`).length > 0 && (
                   <div style={{ position: 'relative' }}>
                     <span
                       style={{ cursor: 'pointer', color: '#ef4444' }}
                       onClick={() =>
                         setOpenPopover(
-                          openPopover === `variant.${supplyType.id}`
+                          openPopover === `supply.${supplyType.id}`
                             ? null
-                            : `variant.${supplyType.id}`,
+                            : `supply.${supplyType.id}`,
                         )
                       }
                     >
                       <BadgeAlert size={16} />
                     </span>
                     <CPopover
-                      visible={openPopover === `variant.${supplyType.id}`}
+                      visible={openPopover === `supply.${supplyType.id}`}
                       placement="top"
                       onHide={() => setOpenPopover(null)}
                       title={
@@ -1022,7 +1022,7 @@ const ManagementCollectionTechnicalSheetRow = ({
                             fontSize: '0.82rem',
                           }}
                         >
-                          {getFieldErrors(`variant.${supplyType.id}`).map((err, i) => (
+                          {getFieldErrors(`supply.${supplyType.id}`).map((err, i) => (
                             <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
                               <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
                             </div>

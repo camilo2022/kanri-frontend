@@ -71,7 +71,7 @@ const TableRolls = ({
   if (!supply_type) {
     return (
       <LoadingForm
-        title="Cargando variantes"
+        title="Cargando tipos de insumos"
         subtitle="Un momento mientras se carga la información..."
         height="400px"
       />
@@ -277,7 +277,7 @@ const TableRolls = ({
                         style={{ minWidth: '350px' }}
                       >
                         <span className="table-input font-inter">
-                          {`${value.variant.name} - ${value.variant.description}`}{' '}
+                          {`${value.supply.name} - ${value.supply.description}`}{' '}
                         </span>
                       </td>
                       <td

@@ -1,57 +1,23 @@
 import api from '../../../../API/api'
 import { getConfig } from '../../../../axiosConfig'
-import { useState } from 'react'
-import {
-  CCard,
-  CFormInput,
-  CCol,
-  CButton,
-  CForm,
-  CFormFeedback,
-  CFormLabel,
-  CFormCheck,
-} from '@coreui/react'
-import { IoMdArrowDropright } from 'react-icons/io'
-import { useEffect } from 'react'
-import {
-  Save,
-  ArrowLeftCircle,
-  BadgeCheck,
-  BadgeAlert,
-  TextInitial,
-  ListChecks,
-} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CCard, CFormInput, CCol, CButton, CForm, CFormFeedback, CFormLabel } from '@coreui/react'
+import { IoIosReturnRight, IoMdArrowDropright } from 'react-icons/io'
+import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
-import LoadingForm from '@/components/LoadingForm'
 import Select from 'react-select'
 
-const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) => {
+const Create = ({ supply_type, onChangeView, onSubmit, errors, models }) => {
   const [validated, setValidated] = useState(false)
-  const [formData, setFormData] = useState({})
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    supply_type_id: supply_type.id,
+    values: {},
+    class: {},
+  })
   const [catalogsData, setCatalogsData] = useState({})
-
-  useEffect(() => {
-    if (variant) {
-      const aux =
-        supply_type?.settings?.form
-          ?.filter((item) => item.type === 'selectdinamic')
-          ?.reduce((acc, item) => {
-            const value = variant[item.field]
-
-            acc[item.field] = item.cardinality === 'multiple' ? (value ?? []) : (value ?? null)
-
-            return acc
-          }, {}) ?? {}
-      setFormData({
-        name: variant.name || '',
-        description: variant.description || '',
-        supply_type_id: supply_type.id,
-        values: variant.settings.values || {},
-        class: aux,
-      })
-    }
-  }, [variant, supply_type])
 
   useEffect(() => {
     if (!supply_type?.settings) return
@@ -64,7 +30,7 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
       for (const field of settings?.form) {
         if (
           field.type === 'selectdinamic' &&
-          field.model !== 'App\\Models\\Variant' &&
+          field.model !== 'App\\Models\\Supply' &&
           !catalogsData[field.model]
         ) {
           modelsToLoad.add(field.model)
@@ -72,7 +38,7 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
 
         if (
           field.type === 'selectdinamic' &&
-          field.model === 'App\\Models\\Variant' &&
+          field.model === 'App\\Models\\Supply' &&
           !catalogsData[field.model]
         ) {
           dependentFieldsAux.push({
@@ -98,7 +64,7 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
     try {
       let url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url
 
-      if (key === 'App\\Models\\Variant') {
+      if (key === 'App\\Models\\Supply') {
         url = url.replace(`{supply_type_id}`, dependencyValue)
       }
 
@@ -167,21 +133,21 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Editar Variante',
+      title: 'Crear Insumo',
       html: `<div style="font-size:14px">
-              Se guardará la nueva información de la variante en el sistema.<br/>
+              Se guardará la información del insumo en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, actualizar',
+      confirmButtonText: 'Si, crear',
       cancelButtonText: 'Cancelar',
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(variant.id, {
+          const response = await onSubmit({
             ...formData,
             settings: {
               ['values']: { ...formData.values },
@@ -198,7 +164,7 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
               description: '',
               supply_type_id: supply_type.id,
             })
-            onChangeView({ name: 'list', title: 'Listar Variantes' })
+            onChangeView({ name: 'list', title: 'Listar Insumos' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -232,16 +198,6 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
     }
   }
 
-  if (!variant) {
-    return (
-      <LoadingForm
-        title="Cargando formulario"
-        subtitle="Un momento mientras se carga la información..."
-        height="400px"
-      />
-    )
-  }
-
   const normalize = (title = '') => {
     return title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()
   }
@@ -256,7 +212,7 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
     <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Editar Variante</span>
+        <span className="fw-bold fs-5 font-montserrat">Crear Insumos</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
         <CCol md={6}>
@@ -319,12 +275,12 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
         </CCol>
         {supply_type?.settings?.form?.map((input) => {
           const options =
-            input?.type === 'select'
-              ? Object.values(input?.options || {}).map((opt) => ({
+            input.type === 'select'
+              ? Object.values(input.options || {}).map((opt) => ({
                   value: opt.trim(),
                   label: opt.trim(),
                 }))
-              : Object.values(catalogsData?.[input?.model] || {}).map((opt) => {
+              : Object.values(catalogsData?.[input.model] || {}).map((opt) => {
                   const optionPath = Object.entries(models).find(
                     ([_, value]) => value?.model === input?.model,
                   )?.[1]?.option
@@ -334,59 +290,55 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
                   }
                 })
           const isInvalid =
-            !!errors?.[!input?.model ? `values.${input?.field}` : `class.${input?.field}`]
+            !!errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`]
           const isValid =
-            !errors?.[!input?.model ? `values.${input?.field}` : `class.${input?.field}`] &&
-            formData?.[!input?.model ? `values` : `class`]?.[input?.field] &&
+            !errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`] &&
+            formData[!input.model ? `values` : `class`][input.field] &&
             validated
           return (
-            <CCol md={6} key={input?.id}>
+            <CCol md={6} key={input.id}>
               <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-                <TextInitial size={15} /> {normalize(input?.label)}
+                <TextInitial size={15} /> {normalize(input.label)}
                 <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
               </CFormLabel>
-              {input?.type !== 'select' && input?.type !== 'selectdinamic' ? (
-                input?.type === 'textarea' ? (
+              {input.type !== 'select' && input.type !== 'selectdinamic' ? (
+                input.type === 'textarea' ? (
                   <CFormTextarea
                     rows={1}
-                    name={`${input?.field}`}
-                    value={formData?.[`${input?.field}`]}
-                    onChange={(e) => handleChange(e, input?.cardinality, input?.type)}
+                    name={`${input.field}`}
+                    value={formData?.[`${input.field}`]}
+                    onChange={(e) => handleChange(e, input.cardinality, input.type)}
                     invalid={
-                      !!errors?.[!input?.model ? `values.${input?.field}` : `class.${input?.field}`]
+                      !!errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`]
                     }
                     valid={
-                      !errors?.[
-                        !input?.model ? `values.${input?.field}` : `class.${input?.field}`
-                      ] &&
-                      formData?.[!input?.model ? `values` : `class`][input?.field] &&
+                      !errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`] &&
+                      formData[!input.model ? `values` : `class`][input.field] &&
                       validated
                     }
                     placeholder="Ingrese..."
                     className="font-montserrat custom-input"
                   />
-                ) : input?.type === 'boolean' ? (
+                ) : input.type === 'boolean' ? (
                   <CFormCheck
-                    name={`${input?.field}`}
-                    value={formData?.[`${input?.field}`]}
+                    name={`${input.field}`}
+                    value={formData?.[`${input.field}`]}
                     onChange={handleChange}
-                    checked={formData?.[`${input?.field}`]}
+                    checked={formData?.[`${input.field}`]}
                     className="font-montserrat custom-input"
                   />
                 ) : (
                   <CFormInput
-                    type={input?.type}
-                    name={`${input?.field}`}
-                    value={formData?.[!input?.model ? `values` : `class`]?.[`${input?.field}`]}
-                    onChange={(e) => handleChange(e, input?.cardinality, input?.type)}
+                    type={input.type}
+                    name={`${input.field}`}
+                    value={formData?.[`${input.field}`]}
+                    onChange={(e) => handleChange(e, input.cardinality, input.type)}
                     invalid={
-                      !!errors?.[!input?.model ? `values.${input?.field}` : `class.${input?.field}`]
+                      !!errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`]
                     }
                     valid={
-                      !errors?.[
-                        !input?.model ? `values.${input?.field}` : `class.${input?.field}`
-                      ] &&
-                      formData?.[!input?.model ? `values` : `class`]?.[input?.field] &&
+                      !errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`] &&
+                      formData[!input.model ? `values` : `class`][input.field] &&
                       validated
                     }
                     placeholder="Ingrese..."
@@ -395,17 +347,11 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
                 )
               ) : (
                 <Select
-                  isMulti={input?.cardinality === 'multiple'}
-                  name={`${input?.field}`}
-                  value={
-                    input?.cardinality === 'multiple'
-                      ? options.filter((opt) =>
-                          (formData?.class?.[input.field] ?? []).includes(opt.value),
-                        )
-                      : (options.find(
-                          (opt) => String(opt.value) === String(formData?.class?.[input.field]),
-                        ) ?? null)
-                  }
+                  isMulti={input.cardinality === 'multiple'}
+                  name={`${input.field}`}
+                  value={options.find(
+                    (opt) => String(opt.value) === String(formData?.[input.field]),
+                  )}
                   options={options}
                   isDisabled={!options}
                   onChange={(selectedOptions) => {
@@ -485,9 +431,9 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
                   }}
                 />
               )}
-              {errors?.[!input?.model ? `values.${input?.field}` : `class.${input?.field}`] && (
+              {errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`] && (
                 <div className="invalid-feedback d-block">
-                  {errors[!input?.model ? `values.${input?.field}` : `class.${input?.field}`].map(
+                  {errors[!input.model ? `values.${input.field}` : `class.${input.field}`].map(
                     (error, index) => (
                       <div key={index} className="d-flex align-items-center gap-1">
                         <BadgeAlert size={13} />
@@ -497,8 +443,8 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
                   )}
                 </div>
               )}
-              {!errors?.[!input?.model ? `values.${input?.field}` : `class.${input?.field}`] &&
-                formData?.[!input?.model ? `values` : `class`]?.[input?.field] &&
+              {!errors?.[!input.model ? `values.${input.field}` : `class.${input.field}`] &&
+                formData[!input.model ? `values` : `class`][input.field] &&
                 validated && (
                   <div className="valid-feedback d-block">
                     <div className="d-flex align-items-center gap-1">
@@ -512,8 +458,10 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
         })}
         <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
-            className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Variantes' })}
+            className="d-flex align-items-center gap-2 font-poppins btn-primary-revolve me-2"
+            onClick={() => {
+              onChangeView({ name: 'list', title: 'Listar Insumos' })
+            }}
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>
@@ -529,4 +477,4 @@ const Edit = ({ supply_type, variant, onChangeView, onSubmit, errors, models }) 
   )
 }
 
-export default Edit
+export default Create

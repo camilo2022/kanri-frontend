@@ -29,7 +29,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    has_variants: true,
+    has_supplies: true,
     in_technical_sheet: true,
   })
 
@@ -54,7 +54,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             name: formData.name,
             description: formData.description,
             settings: {
-              has_variants: formData.has_variants,
+              has_supplies: formData.has_supplies,
               in_technical_sheet: formData.in_technical_sheet,
               in_production_order: formData.in_production_order,
               paragraph: formData.paragraph,
@@ -83,7 +83,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             setFormData({
               name: '',
               description: '',
-              has_variants: true,
+              has_supplies: true,
               in_technical_sheet: false,
             })
             onChangeView({ name: 'list', title: 'Listar Tipos de Insumo' })
@@ -176,7 +176,7 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
         </CCol>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <ListChecks size={15} /> ¿Tiene variantes?
+            <ListChecks size={15} /> ¿Tiene insumos?
           </CFormLabel>
           <div
             className="px-2 border rounded-3 d-flex align-items-center bg-white"
@@ -186,25 +186,25 @@ const Create = ({ onChangeView, onSubmit, errors }) => {
             }}
           >
             <CFormCheck
-              id="has_variants"
-              name="has_variants"
-              checked={formData.has_variants}
+              id="has_supplies"
+              name="has_supplies"
+              checked={formData.has_supplies}
               onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
-                  has_variants: e.target.checked,
+                  has_supplies: e.target.checked,
                 }))
               }}
               label={
                 <label
-                  htmlFor="has_variants"
+                  htmlFor="has_supplies"
                   className="font-montserrat cursor-pointer"
                   style={{ marginBottom: 0 }}
                 >
-                  Selecciona si el tipo de insumo tendrá variantes
+                  Selecciona si el tipo de insumo tendrá insumos
                 </label>
               }
-              valid={formData.has_variants && validated}
+              valid={formData.has_supplies && validated}
             />
           </div>
           <CFormFeedback valid>

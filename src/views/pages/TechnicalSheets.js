@@ -40,7 +40,7 @@ const TechnicalSheet = ({ product_id, action }) => {
   const [employees, setEmployees] = useState(null)
   const [processes, setProcesses] = useState(null)
   const [supplyTypes, setSupplyTypes] = useState(null)
-  const [variants, setVariants] = useState(null)
+  const [supplies, setSupplies] = useState(null)
   const [models, setModels] = useState(null)
   const [statusCollection, setStatusCollection] = useState(null)
   const [statusTechnical, setStatusTechnical] = useState(null)
@@ -113,10 +113,10 @@ const TechnicalSheet = ({ product_id, action }) => {
               return acc
             }, {})
           : {},
-        variants: Array.isArray(response.data.technical_sheet.variants)
-          ? response.data.technical_sheet.variants.reduce((acc, variant) => {
-              acc[variant?.supply_type?.[0]?.id] = {
-                ...variant,
+        supplies: Array.isArray(response.data.technical_sheet.supplies)
+          ? response.data.technical_sheet.supplies.reduce((acc, supply) => {
+              acc[supply?.supply_type?.[0]?.id] = {
+                ...supply,
               }
               return acc
             }, {})
@@ -399,16 +399,16 @@ const TechnicalSheet = ({ product_id, action }) => {
     try {
       const response = await SupplyTypesService.all({ in_technical_sheet: true })
       setSupplyTypes(response.data.supply_types)
-      setVariants(
+      setSupplies(
         Array.isArray(response.data.supply_types)
           ? response.data.supply_types.reduce((acc, supply_type) => {
-              acc[supply_type.id] = (supply_type.variants || []).reduce((variantAcc, variant) => {
-                variantAcc[variant.id] = {
-                  label: `${variant.name} - ${variant.description}`,
-                  value: variant.id,
-                  data: variant,
+              acc[supply_type.id] = (supply_type.supplies || []).reduce((supplyAcc, supply) => {
+                supplyAcc[supply.id] = {
+                  label: `${supply.name} - ${supply.description}`,
+                  value: supply.id,
+                  data: supply,
                 }
-                return variantAcc
+                return supplyAcc
               }, {})
               return acc
             }, {})
@@ -520,7 +520,7 @@ const TechnicalSheet = ({ product_id, action }) => {
             employees={employees}
             processes={processes}
             supply_types={supplyTypes}
-            variants={variants}
+            supplies={supplies}
             onChangeView={changeView}
             create={createTechnicalSheet}
             errors={errors}
@@ -557,7 +557,7 @@ const TechnicalSheet = ({ product_id, action }) => {
             employees={employees}
             processes={processes}
             supply_types={supplyTypes}
-            variants={variants}
+            supplies={supplies}
             onChangeView={changeView}
             edit={editTechnicalSheet}
             errors={errors}

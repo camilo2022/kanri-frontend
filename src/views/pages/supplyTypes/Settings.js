@@ -724,7 +724,7 @@ const Settings = ({
                                 <CRow className="g-2">
                                   <CCol
                                     md={
-                                      field?.model === 'App\\Models\\Variant'
+                                      field?.model === 'App\\Models\\Supply'
                                         ? 4
                                         : field?.type === 'selectdinamic'
                                           ? 8
@@ -744,12 +744,12 @@ const Settings = ({
                                       validated={validated}
                                       models={models}
                                       basePath={`settings.form.${index}`}
-                                      clave={'variant'}
+                                      clave={'supply'}
                                       setStructureAux={setStructure}
                                       itemRequired={false}
                                     />
                                   </CCol>
-                                  {field?.model === 'App\\Models\\Variant' && (
+                                  {field?.model === 'App\\Models\\Supply' && (
                                     <CCol md={4}>
                                       <div className="d-flex flex-column gap-2 mt-3">
                                         <label

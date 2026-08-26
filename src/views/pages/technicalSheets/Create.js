@@ -36,7 +36,7 @@ export const Create = ({
   employees,
   processes,
   supply_types,
-  variants,
+  supplies,
   onChangeView,
   create,
   errors,
@@ -52,11 +52,11 @@ export const Create = ({
   const [photoTPreview, setPhotoTPreview] = useState(null)
   const [details, setDetails] = useState({})
   const [validated, setValidated] = useState(false)
-  const [editingVariants, setEditingVariants] = useState(null)
-  const [tecVariants, setTecVariants] = useState({})
+  const [editingSupplies, setEditingSupplies] = useState(null)
+  const [tecSupplies, setTecSupplies] = useState({})
   const [dinamicValues, setDinamicValues] = useState({})
   const [staticValues, setStaticValues] = useState({})
-  const [openPopoverVariant, setOpenPopoverVariant] = useState({
+  const [openPopoverSupply, setOpenPopoverSupply] = useState({
     id: null,
   })
   const [catalogsData, setCatalogsData] = useState({})
@@ -278,7 +278,7 @@ export const Create = ({
                 settings,
               }
             }),
-            variants: Object.values(tecVariants)
+            supplies: Object.values(tecSupplies)
               .map((item) => item?.id)
               .filter(Boolean),
           })
@@ -302,9 +302,9 @@ export const Create = ({
     })
   }
 
-  const handleVariantChange = async (supply_type, data) => {
+  const handleSupplyChange = async (supply_type, data) => {
     try {
-      setTecVariants((prev) => ({
+      setTecSupplies((prev) => ({
         ...prev,
         [supply_type]: {
           ...data,
@@ -406,7 +406,7 @@ export const Create = ({
         </div>
 
         <p className="text-muted mt-2 mb-3 font-poppins" style={{ fontSize: '13px' }}>
-          Seleccione la variante correspondiente para cada tipo de insumo requerido por la ficha
+          Seleccione el insumo correspondiente para cada tipo de insumo requerido por la ficha
           técnica.
         </p>
 
@@ -433,37 +433,37 @@ export const Create = ({
                   className="text-dark fw-bold font-montserrat"
                   style={{ fontSize: '14px' }}
                 >
-                  Variante
+                  Insumo
                 </th>
               </tr>
             </thead>
             <tbody>
               {supply_types?.map((supply_type) => {
-                const hasError = !!errors?.[`variant.${supply_type.id}`]
+                const hasError = !!errors?.[`supply.${supply_type.id}`]
                 return (
                   <tr key={supply_type.id} className={hasError ? 'table-row-error' : ''}>
                     <td className="text-slate font-inter">{supply_type.name}</td>
                     <td className="text-slate font-inter">{supply_type.description}</td>
                     <td className="d-flex gap-2 align-items-center justify-content-between position-relative">
-                      {editingVariants === supply_type.id ? (
+                      {editingSupplies === supply_type.id ? (
                         <CFormSelect
                           autoFocus
                           className="custom-table-select"
                           value={
-                            variants[supply_type.id][tecVariants?.[supply_type.id]?.id]?.value || ''
+                            supplies[supply_type.id][tecSupplies?.[supply_type.id]?.id]?.value || ''
                           }
                           onChange={(e) => {
-                            handleVariantChange(
+                            handleSupplyChange(
                               supply_type.id,
-                              variants[supply_type.id][e.target.value].data,
+                              supplies[supply_type.id][e.target.value].data,
                             )
-                            setEditingVariants(null)
+                            setEditingSupplies(null)
                           }}
-                          onBlur={() => setEditingVariants(null)}
+                          onBlur={() => setEditingSupplies(null)}
                           placeholder="Seleccione..."
                         >
                           <option value={''}>Seleccione...</option>
-                          {Object.values(variants[supply_type.id]).map((v) => (
+                          {Object.values(supplies[supply_type.id]).map((v) => (
                             <option key={v.value} value={v.value}>
                               {v.label}
                             </option>
@@ -472,18 +472,18 @@ export const Create = ({
                       ) : (
                         <span
                           className="text-slate editable-span-trigger font-inter"
-                          onClick={() => setEditingVariants(supply_type.id)}
+                          onClick={() => setEditingSupplies(supply_type.id)}
                         >
-                          {tecVariants[supply_type.id]
-                            ? `${tecVariants?.[supply_type.id]?.name} - ${tecVariants?.[supply_type.id]?.description}`
+                          {tecSupplies[supply_type.id]
+                            ? `${tecSupplies?.[supply_type.id]?.name} - ${tecSupplies?.[supply_type.id]?.description}`
                             : 'Seleccione...'}
                         </span>
                       )}
                       {hasError && (
                         <CPopover
-                          visible={openPopoverVariant?.id === supply_type.id}
+                          visible={openPopoverSupply?.id === supply_type.id}
                           placement="left"
-                          onHide={() => setOpenPopoverVariant(null)}
+                          onHide={() => setOpenPopoverSupply(null)}
                           title={
                             <div
                               className="d-flex align-items-center gap-2 font-montserrat fw-bold"
@@ -505,7 +505,7 @@ export const Create = ({
                                 fontSize: '0.82rem',
                               }}
                             >
-                              {errors?.[`variant.${supply_type.id}`].map((err, i) => (
+                              {errors?.[`supply.${supply_type.id}`].map((err, i) => (
                                 <div
                                   key={i}
                                   className="d-flex align-items-start gap-2 p-1 rounded-2"
@@ -526,7 +526,7 @@ export const Create = ({
                             }}
                             onClick={(e) => {
                               e.stopPropagation()
-                              setOpenPopoverVariant((prev) => {
+                              setOpenPopoverSupply((prev) => {
                                 if (prev?.id === supply_type.id) {
                                   return null
                                 }

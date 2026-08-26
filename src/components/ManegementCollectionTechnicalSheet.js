@@ -17,7 +17,7 @@ const ManagementCollectionTechnicalSheet = ({
   setData,
   supplyTypes,
   processes,
-  variants,
+  supplies,
   garmentTypes,
   washTones,
   bootTypes,
@@ -404,7 +404,7 @@ const ManagementCollectionTechnicalSheet = ({
             bootTypes={bootTypes}
             supplyTypes={supplyTypes}
             processes={processes}
-            variants={variants}
+            supplies={supplies}
             onOpenModal={handleOpenModal}
             modified={modified}
             setModified={setModified}

@@ -115,7 +115,7 @@ export const List = ({
       consecutive: production_order.consecutive || '-',
       cut: production_order.cut || '-',
       total: production_order.production_order_details
-        .find((item) => item.model_type === 'App\\Models\\Variant')
+        .find((item) => item.model_type === 'App\\Models\\Supply')
         ?.production_order_detail_quantities?.reduce((acc, item) => {
           return acc + item.quantity
         }, 0),

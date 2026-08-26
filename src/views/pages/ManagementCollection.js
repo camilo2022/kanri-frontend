@@ -19,7 +19,7 @@ const ManagementCollections = () => {
   const [collections, setCollections] = useState(null)
   const [processes, setProcesses] = useState(null)
   const [supplyTypes, setSupplyTypes] = useState(null)
-  const [variants, setVariants] = useState(null)
+  const [supplies, setSupplies] = useState(null)
   const [garmentTypes, setGarmentTypes] = useState(null)
   const [washTones, setWashTones] = useState(null)
   const [bootTypes, setBootTypes] = useState(null)
@@ -71,13 +71,13 @@ const ManagementCollections = () => {
     try {
       const response = await SupplyTypesService.all(params)
       setSupplyTypes(response.data.supply_types)
-      setVariants(
+      setSupplies(
         Array.isArray(response.data.supply_types)
           ? response.data.supply_types.reduce((acc, item) => {
-              acc[item.id] = (item.variants || []).map((variant) => ({
-                label: `${variant.name ?? 'N/A'} - ${variant.description ?? 'N/A'}`,
-                value: variant.id,
-                data: variant,
+              acc[item.id] = (item.supplies || []).map((supply) => ({
+                label: `${supply.name ?? 'N/A'} - ${supply.description ?? 'N/A'}`,
+                value: supply.id,
+                data: supply,
               }))
               return acc
             }, {})
@@ -185,7 +185,7 @@ const ManagementCollections = () => {
         collections={collections}
         processes={processes}
         supplyTypes={supplyTypes}
-        variants={variants}
+        supplies={supplies}
         garmentTypes={garmentTypes}
         washTones={washTones}
         bootTypes={bootTypes}

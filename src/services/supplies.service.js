@@ -3,7 +3,7 @@ import { getConfig } from '../axiosConfig'
 
 const all = async (supply_type_id, params) => {
   try {
-    const response = await api.get(`/typification/supply_types/variants/all/${supply_type_id}`, {
+    const response = await api.get(`/typification/supply_types/supplies/all/${supply_type_id}`, {
       ...getConfig(),
       params: params,
     })
@@ -18,7 +18,7 @@ const all = async (supply_type_id, params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/typification/supply_types/variants/store`, data, getConfig())
+    const response = await api.post(`/typification/supply_types/supplies/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -31,7 +31,7 @@ const store = async (data) => {
 const update = async (id, data) => {
   try {
     const response = await api.put(
-      `/typification/supply_types/variants/update/${id}`,
+      `/typification/supply_types/supplies/update/${id}`,
       data,
       getConfig(),
     )
@@ -46,7 +46,7 @@ const update = async (id, data) => {
 
 const find = async (id) => {
   try {
-    const response = await api.get(`/typification/supply_types/variants/find/${id}`, getConfig())
+    const response = await api.get(`/typification/supply_types/supplies/find/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -59,7 +59,7 @@ const find = async (id) => {
 const destroy = async (id) => {
   try {
     const response = await api.delete(
-      `/typification/supply_types/variants/delete/${id}`,
+      `/typification/supply_types/supplies/delete/${id}`,
       getConfig(),
     )
     return response.data
@@ -74,7 +74,7 @@ const destroy = async (id) => {
 const restore = async (id) => {
   try {
     const response = await api.patch(
-      `/typification/supply_types/variants/restore/${id}`,
+      `/typification/supply_types/supplies/restore/${id}`,
       {},
       getConfig(),
     )
@@ -89,7 +89,7 @@ const restore = async (id) => {
 
 const excel = async (supply_type_id) => {
   try {
-    const response = await api.get(`/typification/supply_types/variants/excel/${supply_type_id}`, {
+    const response = await api.get(`/typification/supply_types/supplies/export/${supply_type_id}`, {
       ...getConfig(),
       responseType: 'blob',
     })
@@ -108,7 +108,7 @@ const upload = async (file, supply_type_id) => {
     formData.append('file', file)
 
     const response = await api.post(
-      `/typification/supply_types/variants/import/${supply_type_id}`,
+      `/typification/supply_types/supplies/import/${supply_type_id}`,
       formData,
       getConfig(),
     )
@@ -121,7 +121,7 @@ const upload = async (file, supply_type_id) => {
   }
 }
 
-const VariantsService = {
+const SuppliesService = {
   all,
   store,
   update,
@@ -132,4 +132,4 @@ const VariantsService = {
   upload,
 }
 
-export default VariantsService
+export default SuppliesService

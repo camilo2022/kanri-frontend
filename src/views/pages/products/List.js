@@ -106,7 +106,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
       const aux = {
         ...product.technical_sheet,
         status: status,
-        variants: Object.values(product.technical_sheet.variants)
+        supplies: Object.values(product.technical_sheet.supplies)
           .map((item) => item?.id)
           .filter(Boolean),
       }

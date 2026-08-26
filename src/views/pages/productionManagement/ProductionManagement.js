@@ -115,7 +115,7 @@ export const ProductionManagement = ({
             }
           }
 
-          if (detail.model_type === 'App\\Models\\Variant') {
+          if (detail.model_type === 'App\\Models\\Supply') {
             return {
               id: detail.id ?? null,
               destination: detail.destination,
@@ -161,15 +161,15 @@ export const ProductionManagement = ({
         }
 
         if (field === 'fabric_id') {
-          const hasVariant = normalizedDetails.some(
-            (detail) => detail.model_type === 'App\\Models\\Variant',
+          const hasSupply = normalizedDetails.some(
+            (detail) => detail.model_type === 'App\\Models\\Supply',
           )
 
           let updatedDetails
 
-          if (hasVariant) {
+          if (hasSupply) {
             updatedDetails = normalizedDetails.map((detail) => {
-              if (detail.model_type === 'App\\Models\\Variant') {
+              if (detail.model_type === 'App\\Models\\Supply') {
                 return {
                   ...detail,
                   model_id: value,
@@ -185,7 +185,7 @@ export const ProductionManagement = ({
                 id: null,
                 destination: null,
                 model_id: value,
-                model_type: 'App\\Models\\Variant',
+                model_type: 'App\\Models\\Supply',
               },
             ]
           }
@@ -359,79 +359,6 @@ export const ProductionManagement = ({
 
     findCollection(selectedCollection.value)
 
-    /*const getCollection = async () => {
-      try {
-        setLoadingCollection(true)
-        const response = await CollectionManagementService.find(selected.value)
-        setCollection(response.data.collection)
-        const normalizedSheets = response.data.collection.technical_sheets.reduce((acc, aux) => {
-          const variantsBySupplyType = aux.variants.reduce((variantsAcc, variant) => {
-            variantsAcc[variant.supply_type[0].id] = variant
-            return variantsAcc
-          }, {})
-
-          const processesByDetails = aux.technical_sheet_details.reduce((processesAcc, process) => {
-            processesAcc[process.model_id] = process
-            return processesAcc
-          }, {})
-
-          acc[aux.id] = {
-            ...aux,
-            variants: variantsBySupplyType,
-            technical_sheet_details: processesByDetails,
-            photo_d_original: aux.photo_d,
-            photo_t_original: aux.photo_t,
-          }
-          return acc
-        }, {})
-
-        const map = {}
-
-        Object.values(normalizedSheets).forEach((sheet) => {
-          const trademark = sheet.product?.trademark
-          const subcategory = sheet.product?.subcategory
-          const category = subcategory?.category?.[0]
-
-          if (!trademark || !category || !subcategory) return
-
-          if (!map[trademark.id]) {
-            map[trademark.id] = {
-              ...trademark,
-              categories: {},
-            }
-          }
-
-          if (!map[trademark.id].categories[category.id]) {
-            map[trademark.id].categories[category.id] = {
-              ...category,
-              subcategories: {},
-            }
-          }
-
-          if (!map[trademark.id].categories[category.id].subcategories[subcategory.id]) {
-            map[trademark.id].categories[category.id].subcategories[subcategory.id] = {
-              ...subcategory,
-              technical_sheets: {},
-            }
-          }
-
-          map[trademark.id].categories[category.id].subcategories[subcategory.id].technical_sheets =
-            {
-              ...map[trademark.id].categories[category.id].subcategories[subcategory.id]
-                .technical_sheets,
-              [sheet.id]: { ...sheet },
-            }
-        })
-
-        setData(map)
-      } catch (error) {
-        console.error('Error obteniendo colecciones:', error)
-      } finally {
-        setLoadingCollection(false)
-      }
-    }
-
-    getCollection()*/
   }, [selectedCollection])
 
   const changeCollection = async () => {
@@ -505,8 +432,8 @@ export const ProductionManagement = ({
             let production_order_details
 
             if (hasCurve) {
-              const variant = changes.production_order_details?.find(
-                (item) => item.model_type === 'App\\Models\\Variant',
+              const supply = changes.production_order_details?.find(
+                (item) => item.model_type === 'App\\Models\\Supply',
               )
 
               const products = changes.curve
@@ -525,7 +452,7 @@ export const ProductionManagement = ({
                     })),
                 }))
 
-              production_order_details = [...(variant ? [variant] : []), ...products]
+              production_order_details = [...(supply ? [supply] : []), ...products]
             } else {
               production_order_details = changes.production_order_details ?? []
             }
@@ -669,133 +596,6 @@ export const ProductionManagement = ({
       for (const production_order of normalOrders) {
         await saveProductionOrder(production_order)
       }
-
-      /*
-      for (const sheet of Object.values(technicalSheets)) {
-        try {
-          const aux = {
-            id: String(sheet.id).startsWith('temp') ? null : sheet.id,
-            code: sheet.code,
-            product: {
-              id: sheet.product.id,
-              code: sheet.product.code,
-              subcategory_id: sheet.product.subcategory_id,
-              trademark_id: sheet.product.trademark_id,
-            },
-            collection_id: sheet.collection_id,
-            garment_type_id: sheet.garment_type_id,
-            wash_tone_id: sheet.wash_tone_id,
-            boot_type_id: sheet.boot_type_id,
-            observation: sheet.observation,
-            status: sheet.status,
-            variants: Object.values(sheet.variants)
-              .map((item) => item?.id)
-              .filter(Boolean),
-            technical_sheet_details: Object.values(sheet.technical_sheet_details).map((item) => ({
-              model_type: item.model_type,
-              model_id: item.model_id,
-              status: item.status,
-              settings: item.settings || [],
-            })),
-            photo_d: sheet.photo_d !== null ? sheet.photo_d : [],
-            photo_t: sheet.photo_t !== null ? sheet.photo_t : [],
-          }
-
-          const result = await save(aux)
-
-          if (result.success) {
-            dispath({
-              type: 'REMOVE_TECHNICAL_SHEETS',
-              payload: {
-                id: sheet.id,
-              },
-            })
-            dispath({
-              type: 'REMOVE_ERRORS',
-              payload: {
-                id: sheet.id,
-              },
-            })
-            setErrors((prev) => {
-              const update = { ...prev }
-              delete update[sheet.id]
-              return update
-            })
-            setValidated((prev) => {
-              const update = { ...prev }
-              delete update[sheet.id]
-              return update
-            })
-            setModified((prev) => {
-              const update = { ...prev }
-              delete update[sheet.id]
-              return update
-            })
-
-            setData((prev) => {
-              const newData = structuredClone(prev)
-
-              const variantsBySupplyType = result.data?.technical_sheet?.variants?.reduce(
-                (variantsAcc, variant) => {
-                  variantsAcc[variant.supply_type[0].id] = variant
-                  return variantsAcc
-                },
-                {},
-              )
-
-              const processesByDetails =
-                result.data?.technical_sheet?.technical_sheet_details?.reduce(
-                  (processesAcc, process) => {
-                    processesAcc[process.model_id] = process
-                    return processesAcc
-                  },
-                  {},
-                )
-
-              const subcategoryId = sheet?.product?.subcategory?.id
-              const categoryId = sheet?.product?.subcategory?.category[0]?.id
-
-              newData[selectedBrand.id].categories[categoryId] ??= {}
-              newData[selectedBrand.id].categories[categoryId].subcategories ??= {}
-              newData[selectedBrand.id].categories[categoryId].subcategories[subcategoryId] ??= {}
-              newData[selectedBrand.id].categories[categoryId].subcategories[
-                subcategoryId
-              ].technical_sheets ??= {}
-
-              newData[selectedBrand.id].categories[categoryId].subcategories[
-                subcategoryId
-              ].technical_sheets[sheet.id] = {
-                ...result.data.technical_sheet,
-                photo_d_original: result.data.technical_sheet.photo_d,
-                photo_t_original: result.data.technical_sheet.photo_t,
-                variants: variantsBySupplyType,
-                technical_sheet_details: processesByDetails,
-              }
-
-              return newData
-            })
-            total += 1
-          } else {
-            setErrors((prev) => ({
-              ...prev,
-              [sheet.id]: result.error,
-            }))
-            setValidated((prev) => ({
-              ...prev,
-              [sheet.id]: true,
-            }))
-            dispath({
-              type: 'ADD_ERRORS',
-              payload: {
-                id: sheet.id,
-                errors: result.error,
-              },
-            })
-          }
-        } catch (error) {
-          console.log('ERROR CAPTURADO', error)
-        }
-      }*/
       /*
       if (total === Object.keys(technicalSheets).length) {
         Toast.fire({

@@ -38,7 +38,7 @@ export const CollectionManagement = ({
   collections,
   processes,
   supplyTypes,
-  variants,
+  supplies,
   garmentTypes,
   washTones,
   bootTypes,
@@ -90,9 +90,9 @@ export const CollectionManagement = ({
         const response = await CollectionManagementService.find(selected.value)
         setCollection(response.data.collection)
         const normalizedSheets = response.data.collection.technical_sheets.reduce((acc, aux) => {
-          const variantsBySupplyType = aux.variants.reduce((variantsAcc, variant) => {
-            variantsAcc[variant.supply_type[0].id] = variant
-            return variantsAcc
+          const suppliesBySupplyType = aux.supplies.reduce((suppliesAcc, supply) => {
+            suppliesAcc[supply.supply_type[0].id] = supply
+            return suppliesAcc
           }, {})
 
           const processesByDetails = aux.technical_sheet_details.reduce((processesAcc, process) => {
@@ -102,7 +102,7 @@ export const CollectionManagement = ({
 
           acc[aux.id] = {
             ...aux,
-            variants: variantsBySupplyType,
+            supplies: suppliesBySupplyType,
             technical_sheet_details: processesByDetails,
             photo_d_original: aux.photo_d,
             photo_t_original: aux.photo_t,
@@ -194,7 +194,7 @@ export const CollectionManagement = ({
             boot_type_id: sheet.boot_type_id,
             observation: sheet.observation,
             status: sheet.status,
-            variants: Object.values(sheet.variants)
+            supplies: Object.values(sheet.supplies)
               .map((item) => item?.id)
               .filter(Boolean),
             technical_sheet_details: Object.values(sheet.technical_sheet_details).map((item) => ({
@@ -241,10 +241,10 @@ export const CollectionManagement = ({
             setData((prev) => {
               const newData = structuredClone(prev)
 
-              const variantsBySupplyType = result.data?.technical_sheet?.variants?.reduce(
-                (variantsAcc, variant) => {
-                  variantsAcc[variant.supply_type[0].id] = variant
-                  return variantsAcc
+              const suppliesBySupplyType = result.data?.technical_sheet?.supplies?.reduce(
+                (suppliesAcc, supply) => {
+                  suppliesAcc[supply.supply_type[0].id] = supply
+                  return suppliesAcc
                 },
                 {},
               )
@@ -284,7 +284,7 @@ export const CollectionManagement = ({
                 ...result.data.technical_sheet,
                 photo_d_original: result.data.technical_sheet.photo_d,
                 photo_t_original: result.data.technical_sheet.photo_t,
-                variants: variantsBySupplyType,
+                supplies: suppliesBySupplyType,
                 technical_sheet_details: processesByDetails,
               }
 
@@ -920,7 +920,7 @@ export const CollectionManagement = ({
                                           },
                                           {},
                                         ),
-                                        variants: {},
+                                        supplies: {},
                                       }
                                       setData((prev) => {
                                         const brand = prev[selectedBrand.id]
@@ -974,7 +974,7 @@ export const CollectionManagement = ({
                                     subcategory={subcategory}
                                     setData={setData}
                                     garmentTypes={garmentTypesMap}
-                                    variants={variants}
+                                    supplies={supplies}
                                     washTones={washTonesMap}
                                     bootTypes={bootTypesMap}
                                     collections={collections}

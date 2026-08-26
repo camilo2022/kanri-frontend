@@ -215,17 +215,17 @@ export const List = ({
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          <CTooltip content="Gestionar Variantes" placement="top">
+          <CTooltip content="Gestionar Insumos" placement="top">
             <button
               className="action-btn permisos-btn"
               disabled={
-                !supply_type.settings['has_variants'] ||
+                !supply_type.settings['has_supplies'] ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.variants.all',
+                  (p) => p.name === 'typification.supply_types.supplies.all',
                 )
               }
               onClick={() =>
-                onChangeView({ name: 'show', title: 'Variantes', supply_type: supply_type })
+                onChangeView({ name: 'show', title: 'Insumos', supply_type: supply_type })
               }
             >
               <ListTree size={18} strokeWidth={1.5} />

@@ -217,7 +217,7 @@ export const Edit = ({
 
     const quantities =
       production_order.production_order_details.find(
-        (item) => item.model_type === 'App\\Models\\Variant',
+        (item) => item.model_type === 'App\\Models\\Supply',
       )?.production_order_detail_quantities ?? []
 
     quantities.forEach((quantity) => {
@@ -324,7 +324,7 @@ export const Edit = ({
 
       acc[row.id] = {
         id: row.id,
-        variant: row.variant,
+        supply: row.supply,
         width: row.settings.values.width,
         meters: row.settings.values.meters,
         utilized: row.pivot.quantity,
@@ -475,34 +475,34 @@ export const Edit = ({
     return getSingleValue(path) ?? defaultValue
   }
 
-  const formattedData = rolls?.variants
-    .filter((item) => item.variant_id.id === formData.fabric_id)
+  const formattedData = rolls?.supplies
+    .filter((item) => item.supply_id.id === formData.fabric_id)
     .filter((item) => !Object.keys(rollsAux || {}).includes(String(item.id)))
-    .map((variant) => {
+    .map((supply) => {
       const dynamicFields =
         supply_type?.settings?.form
           ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
           ?.reduce((acc, item) => {
             const value =
               item.cardinality === 'single'
-                ? dataGet(item.path, variant[item.field], '')
-                : variant.settings?.values?.[item.field]
+                ? dataGet(item.path, supply[item.field], '')
+                : supply.settings?.values?.[item.field]
 
             acc[item.field] = value || '-'
 
             return acc
           }, {}) ?? {}
 
-      const used_aux = variant.production_orders.reduce((acc, item) => {
+      const used_aux = supply.production_orders.reduce((acc, item) => {
         return acc + item.pivot.quantity
       }, 0)
 
       return {
-        ...variant,
+        ...supply,
         available: dynamicFields.meters - used_aux,
         used: used_aux,
         roll:
-          variant.name && variant.description ? `${variant.name} - ${variant.description}` : '-',
+          supply.name && supply.description ? `${supply.name} - ${supply.description}` : '-',
         ...dynamicFields,
       }
     })
@@ -669,7 +669,7 @@ export const Edit = ({
             production_order_details: [
               {
                 model_id: formData.fabric_id,
-                model_type: 'App\\Models\\Variant',
+                model_type: 'App\\Models\\Supply',
                 destination: null,
                 rows: rows
                   .filter((row) => Object.values(row.sizes).some((size) => size.quantity > 0))
@@ -727,14 +727,14 @@ export const Edit = ({
               production_order_details: [
                 {
                   model_id: selectedReference.production_order.production_order_details.find(
-                    (item) => item.model_type === 'App\\Models\\Variant',
+                    (item) => item.model_type === 'App\\Models\\Supply',
                   ).model_id,
-                  model_type: 'App\\Models\\Variant',
+                  model_type: 'App\\Models\\Supply',
                   destination: null,
                   rows: [
                     {
                       sizes: selectedReference.production_order.production_order_details
-                        .find((item) => item.model_type === 'App\\Models\\Variant')
+                        .find((item) => item.model_type === 'App\\Models\\Supply')
                         .production_order_detail_quantities.map((size) => ({
                           id: size.id,
                           size_id: size.size_id,
@@ -778,7 +778,7 @@ export const Edit = ({
             production_order_details: [
               {
                 model_id: formData.fabric_id,
-                model_type: 'App\\Models\\Variant',
+                model_type: 'App\\Models\\Supply',
                 destination: null,
                 rows: rows
                   .filter((row) => Object.values(row.sizes).some((size) => size.quantity > 0))
@@ -980,7 +980,7 @@ export const Edit = ({
         errors={
           errors
             ? Object.entries(errors)
-                .filter(([key]) => key.startsWith('production_order_details.App\\Models\\Variant'))
+                .filter(([key]) => key.startsWith('production_order_details.App\\Models\\Supply'))
                 .flatMap(([, value]) => value)
             : null
         }

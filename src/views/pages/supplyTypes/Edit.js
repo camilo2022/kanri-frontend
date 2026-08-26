@@ -62,7 +62,7 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
             description: formData.description,
             settings: {
               ...formData.settings,
-              has_variants: formData.settings.has_variants,
+              has_supplies: formData.settings.has_supplies,
               in_technical_sheet: formData.settings.in_technical_sheet,
               in_production_order: formData.settings.in_production_order,
               paragraph: formData.settings.paragraph,
@@ -175,7 +175,7 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
         </CCol>
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <ListChecks size={15} /> ¿Tiene variantes?
+            <ListChecks size={15} /> ¿Tiene insumos?
           </CFormLabel>
           <div
             className="px-2 border rounded-3 d-flex align-items-center bg-white"
@@ -185,28 +185,28 @@ const Edit = ({ supply_type, onChangeView, onSubmit, errors }) => {
             }}
           >
             <CFormCheck
-              id="has_variants"
-              name="has_variants"
-              checked={formData?.settings?.has_variants}
+              id="has_supplies"
+              name="has_supplies"
+              checked={formData?.settings?.has_supplies}
               onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
                   settings: {
                     ...prev.settings,
-                    has_variants: e.target.checked,
+                    has_supplies: e.target.checked,
                   },
                 }))
               }}
               label={
                 <label
-                  htmlFor="has_variants"
+                  htmlFor="has_supplies"
                   className="font-montserrat cursor-pointer"
                   style={{ marginBottom: 0 }}
                 >
-                  Selecciona si el tipo de insumo tendrá variantes
+                  Selecciona si el tipo de insumo tendrá insumos
                 </label>
               }
-              valid={formData?.settings?.has_variants && validated}
+              valid={formData?.settings?.has_supplies && validated}
             />
           </div>
           <CFormFeedback valid>

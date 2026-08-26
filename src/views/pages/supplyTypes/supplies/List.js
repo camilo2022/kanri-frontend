@@ -36,9 +36,9 @@ import LoadingForm from '@/components/LoadingForm'
 export const List = ({
   data,
   loading,
-  fetchVariants,
+  fetchSupplies,
   onChangeView,
-  deleteVariant,
+  deleteSupply,
   restore,
   errors,
   supply_type,
@@ -58,7 +58,7 @@ export const List = ({
     if (!supply_type) return
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      supply_type && fetchVariants(supply_type?.id, currentParams)
+      supply_type && fetchSupplies(supply_type?.id, currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
@@ -85,13 +85,13 @@ export const List = ({
     }
   }, [errors])
 
-  const handleConfirmDelete = (variant) => {
+  const handleConfirmDelete = (supply) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Variante</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Insumo</span>',
       html: `
         <div class="font-inter" style="font-subline: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar la variante <strong>${variant.name}</strong>.<br/>
+          Estás a punto de desactivar el insumo <strong>${supply.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -110,11 +110,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteVariant(variant.id)
-          fetchVariants(supply_type?.id, params)
+          await deleteSupply(supply.id)
+          fetchSupplies(supply_type?.id, params)
           Toast.fire({
             icon: 'success',
-            title: 'Variante desactivada con exito',
+            title: 'Insumo desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -128,13 +128,13 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (variant) => {
+  const handleConfirmRestore = (supply) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Variante</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Insumo</span>',
       html: `
         <div class="font-inter" style="font-line: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar la variante <strong>${variant.name}</strong>.<br/>
+          Estás a punto de activar el insumo <strong>${supply.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -153,11 +153,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(variant.id)
-          fetchVariants(supply_type?.id, params)
+          await restore(supply.id)
+          fetchSupplies(supply_type?.id, params)
           Toast.fire({
             icon: 'success',
-            title: 'Variante activada con exito',
+            title: 'Insumo activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -198,23 +198,23 @@ export const List = ({
     return getSingleValue(path) ?? defaultValue
   }
 
-  const formattedData = data?.variants?.map((variant) => {
+  const formattedData = data?.supplies?.map((supply) => {
     const dynamicFields =
       supply_type?.settings?.form
         ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
         ?.reduce((acc, item) => {
           const value =
             item.cardinality === 'single'
-              ? dataGet(item.path, variant[item.field], '')
-              : variant.settings?.values?.[item.field]
+              ? dataGet(item.path, supply[item.field], '')
+              : supply.settings?.values?.[item.field]
 
           acc[item.label] = value || '-'
 
           return acc
         }, {}) ?? {}
     return {
-      ...variant,
-      description: variant.description || '-',
+      ...supply,
+      description: supply.description || '-',
       ...dynamicFields,
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
@@ -222,35 +222,35 @@ export const List = ({
             <button
               className="action-btn edit-btn"
               disabled={
-                !!variant.deleted_at ||
+                !!supply.deleted_at ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.variants.find',
+                  (p) => p.name === 'typification.supply_types.supplies.find',
                 ) ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.variants.update',
+                  (p) => p.name === 'typification.supply_types.supplies.update',
                 )
               }
               onClick={() =>
                 onChangeView({
                   name: 'edit',
-                  title: 'Editar Variante',
-                  variant: variant,
+                  title: 'Editar Insumo',
+                  supply: supply,
                 })
               }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          {variant.deleted_at === null ? (
+          {supply.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'typification.supply_types.variants.delete',
+                    (p) => p.name === 'typification.supply_types.supplies.delete',
                   )
                 }
-                onClick={() => handleConfirmDelete(variant)}
+                onClick={() => handleConfirmDelete(supply)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -261,10 +261,10 @@ export const List = ({
                 className="action-btn restore-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'typification.supply_types.variants.restore',
+                    (p) => p.name === 'typification.supply_types.supplies.restore',
                   )
                 }
-                onClick={() => handleConfirmRestore(variant)}
+                onClick={() => handleConfirmRestore(supply)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -362,7 +362,7 @@ export const List = ({
   if (!supply_type) {
     return (
       <LoadingForm
-        title="Cargando variantes"
+        title="Cargando insumos"
         subtitle="Un momento mientras se carga la información..."
         height="400px"
       />
@@ -375,7 +375,7 @@ export const List = ({
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
           <div className="font-montserrat d-flex flex-column lh-1">
-            <span className="fw-bold fs-5 font-montserrat">Variantes</span>
+            <span className="fw-bold fs-5 font-montserrat">Insumos</span>
             <small className="badge bg-light text-dark border text-muted mt-1">
               Tipo de Insumo: {supply_type?.name}
             </small>
@@ -385,7 +385,7 @@ export const List = ({
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input font-inter"
-              placeholder="Buscar variante..."
+              placeholder="Buscar insumo..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -404,12 +404,12 @@ export const List = ({
               className="me-2 font-poppins btn-primary-dark"
               disabled={
                 !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.variants.store',
+                  (p) => p.name === 'typification.supply_types.supplies.store',
                 )
               }
-              onClick={() => onChangeView({ name: 'create', title: 'Crear Variante' })}
+              onClick={() => onChangeView({ name: 'create', title: 'Crear Insumo' })}
             >
-              <CirclePlus /> Agregar Variante
+              <CirclePlus /> Agregar Insumo
             </CButton>
           </div>
         </div>
@@ -443,7 +443,7 @@ export const List = ({
                   </div>
                 </td>
               </tr>
-            ) : formattedData?.length > 0 || data?.variants ? (
+            ) : formattedData?.length > 0 || data?.supplies ? (
               formattedData.map((item, index) => (
                 <tr key={index}>
                   {columns.map((col) => (

@@ -12,7 +12,7 @@ const ManagementCollectionTechnicalSheetBody = ({
   bootTypes,
   supplyTypes,
   processes,
-  variants,
+  supplies,
   onOpenModal,
   modified,
   setModified,
@@ -35,7 +35,7 @@ const ManagementCollectionTechnicalSheetBody = ({
         bootTypes={bootTypes}
         supplyTypes={supplyTypes}
         processes={processes}
-        variants={variants}
+        supplies={supplies}
         onOpenModal={onOpenModal}
         modified={modified[sheet.id]}
         setModified={setModified}
@@ -50,7 +50,7 @@ const ManagementCollectionTechnicalSheetBody = ({
     bootTypes,
     supplyTypes,
     processes,
-    variants,
+    supplies,
     validated,
     errors,
   ])

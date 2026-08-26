@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import CollectionsService from '../../services/collections.service'
 import SupplyTypesService from '../../services/supply_types.service'
-import VariantsService from '../../services/variants.service'
+import SuppliesService from '../../services/supplies.service'
 import ProductionManagement from './productionManagement/ProductionManagement'
 import ProductsService from '../../services/products.service'
 import TrademarksService from '../../services/trademarks.service'
@@ -142,14 +142,14 @@ const ManagementProduction = () => {
   const fetchFabrics = async () => {
     try {
       const aux = supplyTypes.find((item) => item.settings.paragraph === 'fabric').id || 218
-      const response = await VariantsService.all(aux)
+      const response = await SuppliesService.all(aux)
       setFabrics(
-        Array.isArray(response.data.variants)
-          ? response.data.variants.reduce((acc, variant) => {
-              acc[variant.id] = {
-                label: `${variant.name} - ${variant.description}`,
-                value: variant.id,
-                data: variant,
+        Array.isArray(response.data.supplies)
+          ? response.data.supplies.reduce((acc, supply) => {
+              acc[supply.id] = {
+                label: `${supply.name} - ${supply.description}`,
+                value: supply.id,
+                data: supply,
               }
               return acc
             }, {})
