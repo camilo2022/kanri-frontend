@@ -55,6 +55,8 @@ const Suppliers = React.lazy(() => import('./views/pages/Suppliers'))
 const ManagementCollection = React.lazy(() => import('./views/pages/ManagementCollection'))
 const Products = React.lazy(() => import('./views/pages/Products'))
 const ManagementProduction = React.lazy(() => import('./views/pages/ManagementProduction'))
+const FileTypes = React.lazy(() => import('./views/pages/FileTypes'))
+const FileSubtypes = React.lazy(() => import('./views/pages/FileSubtypes'))
 /**
  * Array of route configuration objects
  *
@@ -122,6 +124,7 @@ const routes = [
     name: 'Gestión de Producción',
     element: ManagementProduction,
   },
+  { path: '/file_types', name: 'Tipos de Archivos', element: FileTypes },
 ]
 
 export default routes

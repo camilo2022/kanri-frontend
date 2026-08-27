@@ -36,12 +36,12 @@ import LoadingForm from '@/components/LoadingForm'
 export const List = ({
   data,
   loading,
-  fetchSupplies,
+  fetchFileSubtypes,
   onChangeView,
-  deleteSupply,
+  deleteFileSubtype,
   restore,
   errors,
-  supply_type,
+  file_type,
 }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
@@ -55,14 +55,14 @@ export const List = ({
   const [searchInput, setSearchInput] = useState('')
 
   useEffect(() => {
-    if (!supply_type) return
+    if (!file_type) return
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      supply_type && fetchSupplies(supply_type?.id, currentParams)
+      file_type && fetchFileSubtypes(file_type?.id, currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [params.page, supply_type, params.per_page, params.column, params.dir, params.search])
+  }, [params.page, file_type, params.per_page, params.column, params.dir, params.search])
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -85,13 +85,13 @@ export const List = ({
     }
   }, [errors])
 
-  const handleConfirmDelete = (supply) => {
+  const handleConfirmDelete = (file_subtype) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Insumo</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Subtipo de Archivo</span>',
       html: `
         <div class="font-inter" style="font-subline: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar el insumo <strong>${supply.name}</strong>.<br/>
+          Estás a punto de desactivar el subtipo de archivo <strong>${file_subtype.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -110,11 +110,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteSupply(supply.id)
-          fetchSupplies(supply_type?.id, params)
+          await deleteFileSubtype(file_subtype.id)
+          fetchFileSubtypes(file_type?.id, params)
           Toast.fire({
             icon: 'success',
-            title: 'Insumo desactivado con exito',
+            title: 'Subtipo de Archivo desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -128,12 +128,13 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (supply) => {
+  const handleConfirmRestore = (file_subtype) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Insumo</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Subtipo de Archivo</span>',
       html: `
         <div class="font-inter" style="font-line: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar el insumo <strong>${supply.name}</strong>.<br/>
+          Estás a punto de activar el subtipo de archivo <strong>${file_subtype.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -152,11 +153,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(supply.id)
-          fetchSupplies(supply_type?.id, params)
+          await restore(file_subtype.id)
+          fetchFileSubtypes(file_type?.id, params)
           Toast.fire({
             icon: 'success',
-            title: 'Insumo activado con exito',
+            title: 'Subtipo de Archivo activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -170,86 +171,46 @@ export const List = ({
     })
   }
 
-  const dataGet = (path, data, defaultValue = undefined, separator = ' ') => {
-    const getSingleValue = (singlePath) => {
-      if (!singlePath) return undefined
-
-      return singlePath
-        .replace(/\[(\w+)\]/g, '.$1')
-        .replace(/^\./, '')
-        .split('.')
-        .reduce((acc, key) => {
-          if (acc === null || acc === undefined) {
-            return undefined
-          }
-
-          return acc[key]
-        }, data)
-    }
-
-    if (Array.isArray(path)) {
-      const values = path
-        .map((p) => getSingleValue(p))
-        .filter((value) => value !== undefined && value !== null && value !== '')
-      return values.length ? values.join(separator) : defaultValue
-    }
-
-    return getSingleValue(path) ?? defaultValue
-  }
-
-  const formattedData = data?.supplies?.map((supply) => {
-    const dynamicFields =
-      supply_type?.settings?.form
-        ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
-        ?.reduce((acc, item) => {
-          const value =
-            item.cardinality === 'single'
-              ? dataGet(item.path, supply[item.field], '')
-              : supply.settings?.values?.[item.field]
-
-          acc[item.label] = value || '-'
-
-          return acc
-        }, {}) ?? {}
+  const formattedData = data?.file_subtypes?.map((file_subtype) => {
     return {
-      ...supply,
-      description: supply.description || '-',
-      ...dynamicFields,
+      ...file_subtype,
+      name: file_subtype.name || '-',
+      description: file_subtype.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
             <button
               className="action-btn edit-btn"
               disabled={
-                !!supply.deleted_at ||
+                !!file_subtype.deleted_at ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.supplies.find',
+                  (p) => p.name === 'typification.file_types.file_subtypes.find',
                 ) ||
                 !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.supplies.update',
+                  (p) => p.name === 'typification.file_types.file_subtypes.update',
                 )
               }
               onClick={() =>
                 onChangeView({
                   name: 'edit',
-                  title: 'Editar Insumo',
-                  supply: supply,
+                  title: 'Editar Subtipo de Archivo',
+                  file_subtype: file_subtype,
                 })
               }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          {supply.deleted_at === null ? (
+          {file_subtype.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'typification.supply_types.supplies.delete',
+                    (p) => p.name === 'typification.file_types.file_subtypes.delete',
                   )
                 }
-                onClick={() => handleConfirmDelete(supply)}
+                onClick={() => handleConfirmDelete(file_subtype)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -260,10 +221,10 @@ export const List = ({
                 className="action-btn restore-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'typification.supply_types.supplies.restore',
+                    (p) => p.name === 'typification.file_types.file_subtypes.restore',
                   )
                 }
-                onClick={() => handleConfirmRestore(supply)}
+                onClick={() => handleConfirmRestore(file_subtype)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -281,20 +242,6 @@ export const List = ({
       dir: prev.column === column && prev.dir === 'asc' ? 'desc' : 'asc',
     }))
   }
-
-  const dynamicColumns =
-    supply_type?.settings?.form
-      ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
-      ?.map((item) => ({
-        key: item.label,
-        label: (
-          <div className="sortable-header text-center" onClick={() => handleSort(item.field)}>
-            {item.label?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())}{' '}
-            {params.column === item.field &&
-              (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-          </div>
-        ),
-      })) ?? []
 
   const columns = [
     {
@@ -327,7 +274,6 @@ export const List = ({
         </div>
       ),
     },
-    ...dynamicColumns,
     {
       key: 'acciones',
       label: <div className="sortable-header text-center">Acciones </div>,
@@ -358,18 +304,15 @@ export const List = ({
 
   const { pages, start, end } = getPages()
 
-  if (!supply_type) {
+  if (!file_type) {
     return (
       <LoadingForm
-        title="Cargando insumos"
+        title="Cargando subtipo de archivos"
         subtitle="Un momento mientras se carga la información..."
         height="400px"
       />
     )
   }
-
-  console.log(formattedData)
-  console.log(data.supplies)
 
   return (
     <>
@@ -377,9 +320,9 @@ export const List = ({
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
           <div className="font-montserrat d-flex flex-column lh-1">
-            <span className="fw-bold fs-5 font-montserrat">Insumos</span>
+            <span className="fw-bold fs-5 font-montserrat">Subtipo de Archivos</span>
             <small className="badge bg-light text-dark border text-muted mt-1">
-              Tipo de Insumo: {supply_type?.name}
+              Tipo de Archivo: {file_type?.name}
             </small>
           </div>
         </div>
@@ -387,7 +330,7 @@ export const List = ({
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input font-inter"
-              placeholder="Buscar insumo..."
+              placeholder="Buscar subtipo de archivo..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -396,7 +339,7 @@ export const List = ({
             <CButton
               className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
               onClick={() => {
-                onChangeView({ name: 'back', title: 'Listar Tipos de Insumo' })
+                onChangeView({ name: 'back', title: 'Listar Tipos de Archivo' })
               }}
             >
               <ArrowLeftCircle size={16} /> Volver
@@ -406,12 +349,12 @@ export const List = ({
               className="me-2 font-poppins btn-primary-dark"
               disabled={
                 !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.supplies.store',
+                  (p) => p.name === 'typification.file_types.file_subtypes.store',
                 )
               }
-              onClick={() => onChangeView({ name: 'create', title: 'Crear Insumo' })}
+              onClick={() => onChangeView({ name: 'create', title: 'Crear Subtipo de Archivo' })}
             >
-              <CirclePlus /> Agregar Insumo
+              <CirclePlus /> Agregar Subtipo de Archivo
             </CButton>
           </div>
         </div>
@@ -445,7 +388,7 @@ export const List = ({
                   </div>
                 </td>
               </tr>
-            ) : formattedData?.length > 0 || data.supplies.length > 0 ? (
+            ) : formattedData?.length > 0 || data.file_subtypes.length > 0 ? (
               formattedData.map((item, index) => (
                 <tr key={index}>
                   {columns.map((col) => (

@@ -10,6 +10,11 @@ import {
   CCol,
   CTooltip,
   CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import { useEffect } from 'react'
@@ -25,24 +30,15 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  ArrowLeftCircle,
+  ListTree,
+  Upload,
 } from 'lucide-react'
-import no_data from '../../../../assets/images/no-data.png'
+import no_data from '../../../assets/images/no-data.png'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
 import { useSelector } from 'react-redux'
-import LoadingForm from '@/components/LoadingForm'
 
-export const List = ({
-  data,
-  loading,
-  fetchSupplies,
-  onChangeView,
-  deleteSupply,
-  restore,
-  errors,
-  supply_type,
-}) => {
+export const List = ({ data, loading, fetchFileTypes, onChangeView, deleteFileType, restore }) => {
   const user_active = useSelector((state) => state.user)
   const [params, setParams] = useState({
     search: '',
@@ -55,14 +51,13 @@ export const List = ({
   const [searchInput, setSearchInput] = useState('')
 
   useEffect(() => {
-    if (!supply_type) return
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
-      supply_type && fetchSupplies(supply_type?.id, currentParams)
+      fetchFileTypes(currentParams)
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [params.page, supply_type, params.per_page, params.column, params.dir, params.search])
+  }, [params.page, params.per_page, params.column, params.dir, params.search])
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -76,22 +71,13 @@ export const List = ({
     return () => clearTimeout(handler)
   }, [searchInput])
 
-  useEffect(() => {
-    if (Object.keys(errors).length !== 0) {
-      Toast.fire({
-        icon: 'error',
-        title: errors.message,
-      })
-    }
-  }, [errors])
-
-  const handleConfirmDelete = (supply) => {
+  const handleConfirmDelete = (file_type) => {
     Swal.fire({
       title:
-        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Insumo</span>',
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Desactivar Tipo de Archivo</span>',
       html: `
         <div class="font-inter" style="font-subline: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de desactivar el insumo <strong>${supply.name}</strong>.<br/>
+          Estás a punto de desactivar el tipo de archivo <strong>${file_type.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -110,11 +96,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteSupply(supply.id)
-          fetchSupplies(supply_type?.id, params)
+          await deleteFileType(file_type.id)
+          fetchFileTypes(params)
           Toast.fire({
             icon: 'success',
-            title: 'Insumo desactivado con exito',
+            title: 'Tipo de Archivo desactivado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -128,12 +114,13 @@ export const List = ({
     })
   }
 
-  const handleConfirmRestore = (supply) => {
+  const handleConfirmRestore = (file_type) => {
     Swal.fire({
-      title: '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Insumo</span>',
+      title:
+        '<span class="font-montserrat fw-bold" style="color: #1f2937;">Activar Tipo de Archivo</span>',
       html: `
         <div class="font-inter" style="font-line: 15px; color: #4b5563; line-height: 1.6;">
-          Estás a punto de activar el insumo <strong>${supply.name}</strong>.<br/>
+          Estás a punto de activar el tipo de archivo <strong>${file_type.name}</strong>.<br/>
           <div className="mt-2" style="font-weight: 600; color: #111827;">¿Deseas continuar?</div>
         </div>`,
       icon: 'warning',
@@ -152,11 +139,11 @@ export const List = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await restore(supply.id)
-          fetchSupplies(supply_type?.id, params)
+          await restore(file_type.id)
+          fetchFileTypes(params)
           Toast.fire({
             icon: 'success',
-            title: 'Insumo activado con exito',
+            title: 'Tipo de Archivo activado con exito',
           })
         } catch (error) {
           console.error(error)
@@ -170,86 +157,58 @@ export const List = ({
     })
   }
 
-  const dataGet = (path, data, defaultValue = undefined, separator = ' ') => {
-    const getSingleValue = (singlePath) => {
-      if (!singlePath) return undefined
-
-      return singlePath
-        .replace(/\[(\w+)\]/g, '.$1')
-        .replace(/^\./, '')
-        .split('.')
-        .reduce((acc, key) => {
-          if (acc === null || acc === undefined) {
-            return undefined
-          }
-
-          return acc[key]
-        }, data)
-    }
-
-    if (Array.isArray(path)) {
-      const values = path
-        .map((p) => getSingleValue(p))
-        .filter((value) => value !== undefined && value !== null && value !== '')
-      return values.length ? values.join(separator) : defaultValue
-    }
-
-    return getSingleValue(path) ?? defaultValue
-  }
-
-  const formattedData = data?.supplies?.map((supply) => {
-    const dynamicFields =
-      supply_type?.settings?.form
-        ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
-        ?.reduce((acc, item) => {
-          const value =
-            item.cardinality === 'single'
-              ? dataGet(item.path, supply[item.field], '')
-              : supply.settings?.values?.[item.field]
-
-          acc[item.label] = value || '-'
-
-          return acc
-        }, {}) ?? {}
+  const formattedData = data?.file_types?.map((file_type) => {
     return {
-      ...supply,
-      description: supply.description || '-',
-      ...dynamicFields,
+      ...file_type,
+      description: file_type.description || '-',
       acciones: (
         <div className="d-flex gap-2 justify-content-center">
           <CTooltip content="Editar" placement="top">
             <button
               className="action-btn edit-btn"
               disabled={
-                !!supply.deleted_at ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.supplies.find',
-                ) ||
-                !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.supplies.update',
-                )
+                !!file_type.deleted_at ||
+                !user_active?.permissions.some((p) => p.name === 'typification.file_types.find') ||
+                !user_active?.permissions.some((p) => p.name === 'typification.file_types.update')
               }
               onClick={() =>
                 onChangeView({
                   name: 'edit',
-                  title: 'Editar Insumo',
-                  supply: supply,
+                  title: 'Editar Tipo de Archivo',
+                  file_type: file_type,
                 })
               }
             >
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          {supply.deleted_at === null ? (
+          <CTooltip content="Gestionar Subtipos de Archivos" placement="top">
+            <button
+              className="action-btn permisos-btn"
+              disabled={
+                !user_active?.permissions.some(
+                  (p) => p.name === 'typification.file_types.file_subtypes.all',
+                )
+              }
+              onClick={() =>
+                onChangeView({
+                  name: 'show',
+                  title: 'Subtipos de Archivos',
+                  file_type: file_type,
+                })
+              }
+            >
+              <ListTree size={18} strokeWidth={1.5} />
+            </button>
+          </CTooltip>
+          {file_type.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button
                 className="action-btn delete-btn"
                 disabled={
-                  !user_active?.permissions.some(
-                    (p) => p.name === 'typification.supply_types.supplies.delete',
-                  )
+                  !user_active?.permissions.some((p) => p.name === 'typification.file_types.delete')
                 }
-                onClick={() => handleConfirmDelete(supply)}
+                onClick={() => handleConfirmDelete(file_type)}
               >
                 <Trash2 size={18} strokeWidth={1.5} />
               </button>
@@ -260,10 +219,10 @@ export const List = ({
                 className="action-btn restore-btn"
                 disabled={
                   !user_active?.permissions.some(
-                    (p) => p.name === 'typification.supply_types.supplies.restore',
+                    (p) => p.name === 'typification.file_types.restore',
                   )
                 }
-                onClick={() => handleConfirmRestore(supply)}
+                onClick={() => handleConfirmRestore(file_type)}
               >
                 <RotateCcw size={18} strokeWidth={1.5} />
               </button>
@@ -281,20 +240,6 @@ export const List = ({
       dir: prev.column === column && prev.dir === 'asc' ? 'desc' : 'asc',
     }))
   }
-
-  const dynamicColumns =
-    supply_type?.settings?.form
-      ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
-      ?.map((item) => ({
-        key: item.label,
-        label: (
-          <div className="sortable-header text-center" onClick={() => handleSort(item.field)}>
-            {item.label?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())}{' '}
-            {params.column === item.field &&
-              (params.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-          </div>
-        ),
-      })) ?? []
 
   const columns = [
     {
@@ -327,7 +272,6 @@ export const List = ({
         </div>
       ),
     },
-    ...dynamicColumns,
     {
       key: 'acciones',
       label: <div className="sortable-header text-center">Acciones </div>,
@@ -358,62 +302,32 @@ export const List = ({
 
   const { pages, start, end } = getPages()
 
-  if (!supply_type) {
-    return (
-      <LoadingForm
-        title="Cargando insumos"
-        subtitle="Un momento mientras se carga la información..."
-        height="400px"
-      />
-    )
-  }
-
-  console.log(formattedData)
-  console.log(data.supplies)
-
   return (
     <>
       <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
         <div className="d-flex align-items-center mb-3">
           <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-          <div className="font-montserrat d-flex flex-column lh-1">
-            <span className="fw-bold fs-5 font-montserrat">Insumos</span>
-            <small className="badge bg-light text-dark border text-muted mt-1">
-              Tipo de Insumo: {supply_type?.name}
-            </small>
-          </div>
+          <span className="fw-bold fs-5 font-montserrat">Tipos de Archivo</span>
         </div>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input font-inter"
-              placeholder="Buscar insumo..."
+              placeholder="Buscar tipo de archivo..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
-          <div className="d-flex">
-            <CButton
-              className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-              onClick={() => {
-                onChangeView({ name: 'back', title: 'Listar Tipos de Insumo' })
-              }}
-            >
-              <ArrowLeftCircle size={16} /> Volver
-            </CButton>
-            <CButton
-              variant="outline"
-              className="me-2 font-poppins btn-primary-dark"
-              disabled={
-                !user_active?.permissions.some(
-                  (p) => p.name === 'typification.supply_types.supplies.store',
-                )
-              }
-              onClick={() => onChangeView({ name: 'create', title: 'Crear Insumo' })}
-            >
-              <CirclePlus /> Agregar Insumo
-            </CButton>
-          </div>
+          <CButton
+            variant="outline"
+            className="me-2 font-poppins btn-primary-dark"
+            disabled={
+              !user_active?.permissions.some((p) => p.name === 'typification.file_types.store')
+            }
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Tipo de Archivo' })}
+          >
+            <CirclePlus /> Agregar Tipo de Archivo
+          </CButton>
         </div>
 
         <CTable hover responsive align="middle" className="text-center font-inter">
@@ -427,7 +341,7 @@ export const List = ({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={999} className="py-5 border-0">
+                <td colSpan="5" className="py-5 border-0">
                   <div className="d-flex flex-column align-items-center justify-content-center">
                     <div className="data-loader-container mb-3">
                       <div className="radar-circle"></div>
@@ -445,7 +359,7 @@ export const List = ({
                   </div>
                 </td>
               </tr>
-            ) : formattedData?.length > 0 || data.supplies.length > 0 ? (
+            ) : formattedData?.length > 0 ? (
               formattedData.map((item, index) => (
                 <tr key={index}>
                   {columns.map((col) => (
@@ -470,7 +384,7 @@ export const List = ({
             <div className="d-flex align-items-center gap-2 text-muted small font-poppins">
               Ver
               <CFormSelect
-                variant="sm"
+                file_type="sm"
                 style={{ width: '70px' }}
                 value={params.per_page}
                 onChange={(e) => setParams({ ...params, per_page: e.target.value, page: 1 })}
@@ -484,7 +398,7 @@ export const List = ({
           </CCol>
 
           <CCol xs={12} md={8} className="d-flex justify-content-md-end mt-2 mt-md-0 font-poppins">
-            <CPagination variant="sm" aria-label="Navegación de páginas">
+            <CPagination file_type="sm" aria-label="Navegación de páginas">
               <CPaginationItem
                 disabled={currentPage === 1}
                 onClick={() => setParams((prev) => ({ ...prev, page: 1 }))}
