@@ -1,29 +1,65 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import SuppliersService from '../../services/suppliers.service'
-import ProcessesService from '../../services/processes.service'
-import List from './suppliers/List'
-import Create from './suppliers/Create'
-import Edit from './suppliers/Edit'
+import SupplierTypesService from '../../services/supplier_types.service'
+import GenderService from '../../services/gender.service'
+import BloodTypeService from '../../services/blood_types.service'
+import PersonTypeService from '../../services/person_types.service'
+import DocumentTypeService from '../../services/document_types.service'
+import BanksService from '../../services/banks.service'
+import AccountTypesService from '../../services/account_types.service'
+import List from './supplierTypes/suppliers/List'
+import Create from './supplierTypes/suppliers/Create'
+import Edit from './supplierTypes/suppliers/Edit'
+import SupplierTypes from './SupplierTypes'
 
-const Suppliers = () => {
+const Suppliers = ({ supplier_type_id }) => {
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: 'list', title: 'Listar Proveedores' })
   const [data, setData] = useState({})
   const [supplier, setSupplier] = useState({})
+  const [supplierType, setSupplierType] = useState(null)
+  const [genders, setGenders] = useState({})
+  const [bloodTypes, setBloodTypes] = useState({})
+  const [personTypes, setPersonTypes] = useState({})
+  const [documentTypes, setDocumentTypes] = useState()
+  const [banks, setBanks] = useState({})
+  const [accountTypes, setAccountTypes] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    setLoading(true)
-    setSupplier('')
-    if (view.name === 'edit' && view.supplier?.id) {
-      findSupplier(view.supplier.id)
+    const loadData = async () => {
+      if (!supplier_type_id) return
+
+      setLoading(true)
+      setSupplier('')
+
+      const supplierTypeAux = await findSupplierType(supplier_type_id)
+      console.log(supplierTypeAux)
+
+      if (view.name === 'edit' && view.supplier?.id) {
+        await findSupplier(view.supplier.id)
+      }
+
+      if (supplierTypeAux.data.supplier_type.settings?.has_person) {
+        allGender()
+        allBloodType()
+        allPersonType()
+      }
+
+      if (supplierTypeAux.data.supplier_type.settings?.has_account_bank) {
+        allBanks()
+        allAccountTypes()
+      }
+
+      if (view.name === 'list') {
+        dispatch({ type: 'set', action: 'Listar Proveedores' })
+      }
     }
-    if (view.name === 'list') {
-      dispatch({ type: 'set', action: 'Listar Proveedores' })
-    }
-  }, [view])
+
+    loadData()
+  }, [view, supplier_type_id])
 
   const changeView = (newView) => {
     setErrors({})
@@ -31,9 +67,20 @@ const Suppliers = () => {
     setView(newView)
   }
 
-  const fetchSuppliers = async (params) => {
+  const findSupplierType = async (id) => {
     try {
-      const response = await SuppliersService.all(params)
+      const response = await SupplierTypesService.find(id)
+      setSupplierType(response.data.supplier_type)
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const fetchSuppliers = async (supplier_type, params) => {
+    try {
+      const response = await SuppliersService.all(supplier_type, params)
+      console.log(response)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -97,44 +144,113 @@ const Suppliers = () => {
     }
   }
 
-  const setting = async (id, data) => {
+  const allGender = async (params) => {
     try {
-      const response = await SuppliersService.setting(id, data)
-      setErrors({})
-      setSupplier(response.data.supplier)
-      return response
+      const response = await GenderService.all(params)
+      setGenders(response.data.genders)
     } catch (error) {
-      console.log(error)
-      setErrors(error)
-      throw error
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
     }
   }
+
+  const allBloodType = async (params) => {
+    try {
+      const response = await BloodTypeService.all(params)
+      setBloodTypes(response.data.blood_types)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const allPersonType = async (params) => {
+    try {
+      const response = await PersonTypeService.all(params)
+      setPersonTypes(response.data.person_types)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fecthDocumentTypes = async (person_type_id, params) => {
+    try {
+      const response = await DocumentTypeService.all(person_type_id, params)
+      setDocumentTypes(response.data.document_types)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const allBanks = async (params) => {
+    try {
+      const response = await BanksService.all(params)
+      setBanks(response.data.banks)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const allAccountTypes = async (params) => {
+    try {
+      const response = await AccountTypesService.all(params)
+      console.log(response)
+      setAccountTypes(response.data.account_types)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  console.log(accountTypes)
 
   const renderView = () => {
     switch (view.name) {
       case 'create':
-        return <Create onChangeView={changeView} onSubmit={createSupplier} errors={errors} />
+        return (
+          <Create
+            supplier_type={supplierType}
+            onChangeView={changeView}
+            onSubmit={createSupplier}
+            errors={errors}
+            genders={genders}
+            blood_types={bloodTypes}
+            person_types={personTypes}
+            banks={banks}
+            account_types={accountTypes}
+            fecthDocumentTypes={fecthDocumentTypes}
+            document_types={documentTypes}
+          />
+        )
 
       case 'edit':
         return (
           <Edit
+            supplier_type={supplierType}
             supplier={supplier}
             onChangeView={changeView}
             onSubmit={editSupplier}
             errors={errors}
+            genders={genders}
+            blood_types={bloodTypes}
+            person_types={personTypes}
+            banks={banks}
+            account_types={accountTypes}
+            fecthDocumentTypes={fecthDocumentTypes}
+            document_types={documentTypes}
           />
         )
-
-      case 'show':
-        return (
-          <Show
-            supplier={supplier}
-            onChangeView={changeView}
-            errors={errors}
-            loading={loading}
-            setting={setting}
-          />
-        )
+      case 'back':
+        return <SupplierTypes />
 
       default:
         return (
@@ -146,6 +262,7 @@ const Suppliers = () => {
             deleteSupplier={deleteSupplier}
             restore={restore}
             errors={errors}
+            supplier_type={supplierType}
           />
         )
     }

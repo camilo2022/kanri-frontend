@@ -51,12 +51,16 @@ const YokeTypes = React.lazy(() => import('./views/pages/YokeTypes'))
 const FabricTypes = React.lazy(() => import('./views/pages/FabricTypes'))
 const ThreadTypes = React.lazy(() => import('./views/pages/ThreadTypes'))
 const SupplyTypes = React.lazy(() => import('./views/pages/SupplyTypes'))
-const Suppliers = React.lazy(() => import('./views/pages/Suppliers'))
+const SupplierTypes = React.lazy(() => import('./views/pages/SupplierTypes'))
 const ManagementCollection = React.lazy(() => import('./views/pages/ManagementCollection'))
 const Products = React.lazy(() => import('./views/pages/Products'))
 const ManagementProduction = React.lazy(() => import('./views/pages/ManagementProduction'))
 const FileTypes = React.lazy(() => import('./views/pages/FileTypes'))
 const FileSubtypes = React.lazy(() => import('./views/pages/FileSubtypes'))
+const PersonTypes = React.lazy(() => import('./views/pages/PersonTypes'))
+const DocumentTypes = React.lazy(() => import('./views/pages/DocumentTypes'))
+const Banks = React.lazy(() => import('./views/pages/Banks'))
+const AccountTypes = React.lazy(() => import('./views/pages/AccountTypes'))
 /**
  * Array of route configuration objects
  *
@@ -109,7 +113,7 @@ const routes = [
   { path: '/colors', name: 'Colores', element: Colors },
   { path: '/collections', name: 'Colecciones', element: Collections },
   { path: '/yoke_types', name: 'Tipos de Cotilla', element: YokeTypes },
-  { path: '/suppliers', name: 'Proveedores', element: Suppliers },
+  { path: '/supplier_types', name: 'Tipos de Proveedores', element: SupplierTypes },
   { path: '/fabric_types', name: 'Tipos de Tela', element: FabricTypes },
   { path: '/thread_types', name: 'Tipos de Hilo', element: ThreadTypes },
   { path: '/supply_types', name: 'Tipos de Insumo', element: SupplyTypes },
@@ -125,6 +129,9 @@ const routes = [
     element: ManagementProduction,
   },
   { path: '/file_types', name: 'Tipos de Archivos', element: FileTypes },
+  { path: '/person_types', name: 'Tipos de Personas', element: PersonTypes },
+  { path: '/banks', name: 'Bancos', element: Banks },
+  { path: '/account_types', name: 'Tipos de Cuenta', element: AccountTypes },
 ]
 
 export default routes

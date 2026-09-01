@@ -28,8 +28,18 @@ import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import LoadingForm from '@/components/LoadingForm'
 
-const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loading }) => {
-  console.log(person)
+const Edit = ({
+  person,
+  onChangeView,
+  onSubmit,
+  errors,
+  genders,
+  bloodTypes,
+  loading,
+  personTypes,
+  fecthDocumentTypes,
+  documentTypes,
+}) => {
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     document: '',
@@ -38,6 +48,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
     gender_id: '',
     birth_date: '',
     blood_type_id: '',
+    document_type_id: '',
     address: '',
     phone: '',
     photo: '',
@@ -45,19 +56,34 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
 
   const [preview, setPreview] = useState(null)
 
+  const loadDocumentTypes = async (id) => {
+    if (documentTypes) return
+    try {
+      await fecthDocumentTypes(id)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   useEffect(() => {
     if (person) {
       setFormData({
         document: person.document || '',
         names: person.names || '',
         last_names: person.last_names || '',
-        gender_id: person.gender.id || '',
+        document_type_id: person.document_type?.id || '',
+        person_type_id: person.document_type?.person_type?.[0]?.id || '',
+        gender_id: person.gender?.id || '',
         birth_date: person.birth_date || '',
-        blood_type_id: person.blood_type.id || '',
+        blood_type_id: person.blood_type?.id || '',
         address: person.address || '',
         phone: person.phone || '',
         photo: person.photo || '',
       })
+
+      if (person.document_type?.person_type?.[0]?.id) {
+        loadDocumentTypes(person.document_type?.person_type?.[0]?.id)
+      }
       setPreview(person?.photo?.path)
     }
   }, [person])
@@ -106,6 +132,8 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
               document: '',
               names: '',
               last_names: '',
+              document_type_id: '',
+              person_type_id: '',
               gender_id: '',
               birth_date: '',
               blood_type_id: '',
@@ -246,7 +274,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
           </CCol>
           <CCol md={9} className="ps-md-4 ">
             <div className="row g-3 mb-4">
-              <CCol md={6} sm={6}>
+              <CCol md={4} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <UserRound size={15} /> Nombres
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -275,7 +303,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
                   </div>
                 </CFormFeedback>
               </CCol>
-              <CCol md={6} sm={6}>
+              <CCol md={4} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <UserRound size={15} /> Apellidos
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -306,6 +334,102 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
               </CCol>
               <CCol md={4} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+                  <Droplets size={15} /> Tipo de Persona
+                  <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+                </CFormLabel>
+                <CInputGroup>
+                  <CFormSelect
+                    className="font-montserrat input-custom"
+                    name="person_type_id"
+                    value={formData.person_type_id}
+                    onChange={(e) => {
+                      handleChange(e)
+                      loadDocumentTypes(e.target.value)
+                    }}
+                    disabled={!Array.isArray(personTypes)}
+                    options={
+                      !Array.isArray(personTypes)
+                        ? [{ label: 'Cargando Tipos de Persona...', value: '' }]
+                        : [
+                            { label: 'Seleccione un Tipo de Persona', value: '' },
+                            ...personTypes.map((person_type) => ({
+                              label: person_type.name,
+                              value: person_type.id,
+                            })),
+                          ]
+                    }
+                    invalid={!!errors?.person_type_id}
+                    valid={!errors?.person_type_id && formData.person_type_id !== '' && validated}
+                    style={{ borderRadius: '5px 5px 5px 5px' }}
+                  />
+                  <CFormFeedback invalid>
+                    {errors?.person_type_id?.map((error, index) => (
+                      <div key={index} className="d-flex align-items-center gap-1">
+                        <BadgeAlert size={13} />
+                        <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                          {error}
+                        </small>
+                      </div>
+                    ))}
+                  </CFormFeedback>
+                  <CFormFeedback valid>
+                    <div className="d-flex align-items-center gap-1">
+                      <BadgeCheck size={13} />
+                      <small className="font-inter">Dato Válido</small>
+                    </div>
+                  </CFormFeedback>
+                </CInputGroup>
+              </CCol>
+
+              <CCol md={4} sm={6}>
+                <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+                  <IdCard size={15} /> T. de Documento
+                  <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+                </CFormLabel>
+                <CInputGroup>
+                  <CFormSelect
+                    className="font-montserrat input-custom"
+                    name="document_type_id"
+                    value={formData.document_type_id}
+                    onChange={handleChange}
+                    disabled={!Array.isArray(documentTypes)}
+                    options={
+                      !Array.isArray(documentTypes)
+                        ? [{ label: 'Cargando Tipos de Documentos...', value: '' }]
+                        : [
+                            { label: 'Seleccione un Tipo de Persona', value: '' },
+                            ...documentTypes.map((document_type) => ({
+                              label: document_type.name,
+                              value: document_type.id,
+                            })),
+                          ]
+                    }
+                    invalid={!!errors?.document_type_id}
+                    valid={
+                      !errors?.document_type_id && formData.document_type_id !== '' && validated
+                    }
+                    style={{ borderRadius: '5px 5px 5px 5px' }}
+                  />
+                  <CFormFeedback invalid>
+                    {errors?.document_type_id?.map((error, index) => (
+                      <div key={index} className="d-flex align-items-center gap-1">
+                        <BadgeAlert size={13} />
+                        <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                          {error}
+                        </small>
+                      </div>
+                    ))}
+                  </CFormFeedback>
+                  <CFormFeedback valid>
+                    <div className="d-flex align-items-center gap-1">
+                      <BadgeCheck size={13} />
+                      <small className="font-inter">Dato Válido</small>
+                    </div>
+                  </CFormFeedback>
+                </CInputGroup>
+              </CCol>
+              <CCol md={4} sm={6}>
+                <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <IdCard size={15} /> N° de Documento
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
                 </CFormLabel>
@@ -333,7 +457,6 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
                   </div>
                 </CFormFeedback>
               </CCol>
-
               <CCol md={4} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <MapPinHouse size={15} /> Dirección
@@ -363,7 +486,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
                   </div>
                 </CFormFeedback>
               </CCol>
-              <CCol md={4} sm={6}>
+              <CCol md={3} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <Phone size={15} /> Telefono
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -392,9 +515,9 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
                   </div>
                 </CFormFeedback>
               </CCol>
-              <CCol md={4} sm={6}>
+              <CCol md={3} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-                  <UserRound size={15} /> Fecha de Nacimiento
+                  <UserRound size={15} /> F. de Nacimiento
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
                 </CFormLabel>
                 <CFormInput
@@ -423,7 +546,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
                   </div>
                 </CFormFeedback>
               </CCol>
-              <CCol md={4} sm={6}>
+              <CCol md={3} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <Droplets size={15} /> Tipo de Sangre
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -468,7 +591,7 @@ const Edit = ({ person, onChangeView, onSubmit, errors, genders, bloodTypes, loa
                   </CFormFeedback>
                 </CInputGroup>
               </CCol>
-              <CCol md={4} sm={6}>
+              <CCol md={3} sm={6}>
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <VenusAndMars size={15} /> Género
                   <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>

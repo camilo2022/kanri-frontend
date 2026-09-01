@@ -45,6 +45,7 @@ export const ProductionManagement = ({
   findCollection,
   trademarks,
   fabrics,
+  suppliers,
   products,
   fetchProducts,
   aux_trademarks,
@@ -60,6 +61,7 @@ export const ProductionManagement = ({
   delete_builder,
   errors_builder,
   builders,
+  processes,
 }) => {
   const [selectedCollection, setSelectedCollection] = useState(null)
   const [selectedTrademark, setSelectedTrademark] = useState(null)
@@ -77,6 +79,7 @@ export const ProductionManagement = ({
   const handleOrderChange = useCallback(
     (technical_sheet_id, production_order, field, value, product_stara = null) => {
       setProductionChanges((prev) => {
+        console.log(field, value)
         const technicalSheetChanges = prev[technical_sheet_id] ?? {}
 
         if (product_stara !== null) {
@@ -160,6 +163,20 @@ export const ProductionManagement = ({
           }
         }
 
+        if (field === 'production_place') {
+          updatedProductionOrder = {
+            ...updatedProductionOrder,
+            production_place: value || null,
+          }
+        }
+
+        if (field === 'supplier_id') {
+          updatedProductionOrder = {
+            ...updatedProductionOrder,
+            supplier_id: value || null,
+          }
+        }
+
         if (field === 'fabric_id') {
           const hasSupply = normalizedDetails.some(
             (detail) => detail.model_type === 'App\\Models\\Supply',
@@ -200,6 +217,13 @@ export const ProductionManagement = ({
           updatedProductionOrder = {
             ...updatedProductionOrder,
             curve: value,
+          }
+        }
+
+        if (field === 'programation') {
+          updatedProductionOrder = {
+            ...updatedProductionOrder,
+            programation: value,
           }
         }
 
@@ -358,7 +382,6 @@ export const ProductionManagement = ({
     if (!selectedCollection) return
 
     findCollection(selectedCollection.value)
-
   }, [selectedCollection])
 
   const changeCollection = async () => {
@@ -427,16 +450,21 @@ export const ProductionManagement = ({
       const production_orders = Object.entries(productionChanges).flatMap(
         ([technical_sheet_id, technicalSheetData]) =>
           Object.entries(technicalSheetData.orders ?? {}).map(([production_order_id, changes]) => {
-            const hasCurve = Array.isArray(changes.curve)
+            const hasCurve = Array.isArray(changes.curve) && changes.curve.length > 0
 
-            let production_order_details
+            const hasProgramation =
+              changes.programation &&
+              typeof changes.programation === 'object' &&
+              !Array.isArray(changes.programation)
+
+            const currentDetails = changes.production_order_details ?? []
+
+            const supply = currentDetails.find((item) => item.model_type === 'App\\Models\\Supply')
+
+            let products
 
             if (hasCurve) {
-              const supply = changes.production_order_details?.find(
-                (item) => item.model_type === 'App\\Models\\Supply',
-              )
-
-              const products = changes.curve
+              products = changes.curve
                 .filter((item) => item.reference_id !== null)
                 .map((item) => ({
                   id: item.id ?? null,
@@ -451,11 +479,42 @@ export const ProductionManagement = ({
                       quantity: Number(size.quantity ?? 0),
                     })),
                 }))
-
-              production_order_details = [...(supply ? [supply] : []), ...products]
             } else {
-              production_order_details = changes.production_order_details ?? []
+              products = currentDetails.filter((item) => item.model_type === 'App\\Models\\Product')
             }
+
+            let processes
+
+            if (hasProgramation) {
+              processes = Object.values(changes.programation)
+                .filter((item) => item)
+                .map((item) => ({
+                  id: item.id ?? null,
+                  destination: null,
+                  model_id: item.model_id,
+                  model_type: 'App\\Models\\Process',
+                  settings: {
+                    date: item.date,
+                  },
+                }))
+            } else {
+              processes = currentDetails.filter(
+                (item) => item.model_type === 'App\\Models\\Process',
+              )
+            }
+            const otherDetails = currentDetails.filter(
+              (item) =>
+                item.model_type !== 'App\\Models\\Supply' &&
+                item.model_type !== 'App\\Models\\Product' &&
+                item.model_type !== 'App\\Models\\Process',
+            )
+
+            const production_order_details = [
+              ...(supply ? [supply] : []),
+              ...products,
+              ...processes,
+              ...otherDetails,
+            ]
 
             return {
               ...changes,
@@ -928,6 +987,7 @@ export const ProductionManagement = ({
                                     production_changes={productionChanges}
                                     production_reassignments={productionReassignments}
                                     fabrics={fabrics}
+                                    suppliers={suppliers}
                                     products={products}
                                     trademarks={trademarks}
                                     fetchProducts={fetchProducts}
@@ -942,6 +1002,7 @@ export const ProductionManagement = ({
                                     errors={errors}
                                     opt_status={opt_status}
                                     builders={builders}
+                                    processes={processes}
                                   />
                                 </div>
                               </div>

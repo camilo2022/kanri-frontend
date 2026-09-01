@@ -363,6 +363,22 @@ export const getProcessClass = (status) => {
   }
 }
 
+export const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case 'Aprobado':
+      return 'badge-status-approved-aux'
+
+    case 'Cancelado':
+      return 'badge-status-cancelled-aux'
+
+    case 'En revision':
+      return 'badge-status-review-aux'
+
+    default:
+      return 'badge-status-pending-aux'
+  }
+}
+
 export const getStatusClass = (status) => {
   switch (status) {
     case 'Aprobado':

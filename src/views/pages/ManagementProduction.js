@@ -3,6 +3,8 @@ import { useDispatch } from 'react-redux'
 import CollectionsService from '../../services/collections.service'
 import SupplyTypesService from '../../services/supply_types.service'
 import SuppliesService from '../../services/supplies.service'
+import SupplierTypesService from '../../services/supplier_types.service'
+import SuppliersService from '../../services/suppliers.service'
 import ProductionManagement from './productionManagement/ProductionManagement'
 import ProductsService from '../../services/products.service'
 import TrademarksService from '../../services/trademarks.service'
@@ -10,6 +12,7 @@ import ProductionManagementService from '../../services/production_management.se
 import CategoriesService from '../../services/categories.service'
 import SubcategoriesService from '../../services/subcategories.service'
 import BuildersService from '../../services/builders.service'
+import ProcessesService from '../../services/processes.service'
 
 const ManagementProduction = () => {
   const dispatch = useDispatch()
@@ -24,24 +27,34 @@ const ManagementProduction = () => {
   const [trademarksAux, setTrademarksAux] = useState(null)
   const [supplyTypes, setSupplyTypes] = useState(null)
   const [fabrics, setFabrics] = useState(null)
+  const [supplierTypes, setSupplierTypes] = useState(null)
+  const [suppliers, setSuppliers] = useState(null)
   const [products, setProducts] = useState(null)
   const [optStatus, setOptStatus] = useState(null)
   const [categories, setCategories] = useState(null)
   const [subcategories, setSubcategories] = useState()
   const [builders, setBuilders] = useState(null)
+  const [processes, setProcesses] = useState(null)
 
   useEffect(() => {
     fetchCollections()
     fetchSupplyTypes({ in_production_order: 'true' })
+    fetchSupplierTypes({ in_production_order: 'true' })
     fetchTrademarks()
     fetchCategories()
     fetchBuilders()
+    fetchProcesses({ in_technical_sheet: true })
   }, [])
 
   useEffect(() => {
     if (!supplyTypes) return
     fetchFabrics()
   }, [supplyTypes])
+
+  useEffect(() => {
+    if (!supplierTypes) return
+    fetchSuppliers()
+  }, [supplierTypes])
 
   const fetchCollections = async (params) => {
     try {
@@ -71,7 +84,7 @@ const ManagementProduction = () => {
         Array.isArray(response.data.status_production_order)
           ? response.data.status_production_order.map((item) => ({
               value: item,
-              label: item,
+              label: item.toUpperCase(),
             }))
           : [],
       )
@@ -150,6 +163,42 @@ const ManagementProduction = () => {
                 label: `${supply.name} - ${supply.description}`,
                 value: supply.id,
                 data: supply,
+              }
+              return acc
+            }, {})
+          : {},
+      )
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSupplierTypes = async (params) => {
+    try {
+      const response = await SupplierTypesService.all(params)
+      setSupplierTypes(response.data.supplier_types)
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSuppliers = async () => {
+    try {
+      const aux = supplierTypes.find((item) => item.settings.paragraph === 'production').id || 423
+      const response = await SuppliersService.all(aux)
+      setSuppliers(
+        Array.isArray(response.data.suppliers)
+          ? response.data.suppliers.reduce((acc, supplier) => {
+              acc[supplier.id] = {
+                label: `${supplier.settings?.code} - ${supplier.name}`,
+                value: supplier.id,
+                data: supplier,
               }
               return acc
             }, {})
@@ -275,6 +324,16 @@ const ManagementProduction = () => {
     }
   }
 
+  const fetchProcesses = async (params) => {
+    try {
+      const response = await ProcessesService.all(params)
+      setProcesses(response.data.processes)
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    }
+  }
+
   return (
     <div>
       <ProductionManagement
@@ -284,6 +343,7 @@ const ManagementProduction = () => {
         findCollection={findCollection}
         trademarks={trademarks}
         fabrics={fabrics}
+        suppliers={suppliers}
         products={products}
         fetchProducts={fetchProducts}
         aux_trademarks={trademarksAux}
@@ -299,6 +359,7 @@ const ManagementProduction = () => {
         delete_builder={delete_builder}
         errors_builder={errorsBuilder}
         builders={builders}
+        processes={processes}
       />
     </div>
   )

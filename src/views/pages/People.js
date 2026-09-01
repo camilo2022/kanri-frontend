@@ -3,6 +3,8 @@ import { useDispatch } from 'react-redux'
 import PeopleService from '../../services/people.service'
 import GenderService from '../../services/gender.service'
 import BloodTypeService from '../../services/blood_types.service'
+import PersonTypeService from '../../services/person_types.service'
+import DocumentTypeService from '../../services/document_types.service'
 import List from './people/List'
 import Create from './people/Create'
 import Edit from './people/Edit'
@@ -13,6 +15,8 @@ const People = () => {
   const [data, setData] = useState({})
   const [genders, setGenders] = useState({})
   const [bloodTypes, setBloodTypes] = useState({})
+  const [personTypes, setPersonTypes] = useState({})
+  const [documentTypes, setDocumentTypes] = useState()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [person, setPerson] = useState()
@@ -22,10 +26,12 @@ const People = () => {
       findPerson(view.person.id)
       allGender()
       allBloodType()
+      allPersonType()
     }
     if (view.name === 'create') {
       allGender()
       allBloodType()
+      allPersonType()
     }
     setPerson('')
     setLoading(true)
@@ -86,6 +92,28 @@ const People = () => {
     }
   }
 
+  const allPersonType = async (params) => {
+    try {
+      const response = await PersonTypeService.all(params)
+      setPersonTypes(response.data.person_types)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fecthDocumentTypes = async (person_type_id, params) => {
+    try {
+      const response = await DocumentTypeService.all(person_type_id, params)
+      setDocumentTypes(response.data.document_types)
+    } catch (error) {
+      setErrors(error.error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const editPerson = async (id, data) => {
     try {
       const response = await PeopleService.update(id, data)
@@ -127,48 +155,6 @@ const People = () => {
     }
   }
 
-  const generatePDF = async () => {
-    try {
-      const response = await PeopleService.pdf()
-      var blob = new Blob([response.data], {
-        type: 'application/pdf',
-      })
-      var url = window.URL.createObjectURL(blob)
-      window.open(url)
-    } catch (error) {
-      throw error
-    }
-  }
-
-  const generateExcel = async () => {
-    try {
-      const response = await PeopleService.excel()
-      var blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      })
-      var url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'people.xlsx'
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      throw error
-    }
-  }
-
-  const importExcel = async (file) => {
-    try {
-      const response = await PeopleService.upload(file)
-      setErrors({})
-      return response
-    } catch (error) {
-      throw error
-    }
-  }
-
   const renderView = () => {
     switch (view.name) {
       case 'create':
@@ -179,6 +165,9 @@ const People = () => {
             errors={errors}
             genders={genders}
             bloodTypes={bloodTypes}
+            personTypes={personTypes}
+            fecthDocumentTypes={fecthDocumentTypes}
+            documentTypes={documentTypes}
           />
         )
 
@@ -192,6 +181,9 @@ const People = () => {
             genders={genders}
             bloodTypes={bloodTypes}
             loading={loading}
+            personTypes={personTypes}
+            fecthDocumentTypes={fecthDocumentTypes}
+            documentTypes={documentTypes}
           />
         )
 
@@ -205,9 +197,6 @@ const People = () => {
             deletePerson={deletePerson}
             restore={restore}
             errors={errors}
-            generatePDF={generatePDF}
-            generateExcel={generateExcel}
-            importExcel={importExcel}
           />
         )
     }

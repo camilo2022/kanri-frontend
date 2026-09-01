@@ -13,6 +13,7 @@ const ManagementProductionTechnicalSheetRow = ({
   onCancelEdit,
   sizes,
   fabrics,
+  suppliers,
   products,
   fetchProducts,
   onCreateOrder,
@@ -31,6 +32,7 @@ const ManagementProductionTechnicalSheetRow = ({
   errors,
   opt_status,
   builders,
+  processes,
 }) => {
   const lastOriginalCut = useMemo(() => {
     const productionOrders = technical_sheet.production_orders ?? []
@@ -201,7 +203,7 @@ const ManagementProductionTechnicalSheetRow = ({
   return (
     <>
       <tr className="technical-sheet-reference-row">
-        <td colSpan={sizes.length + 17}>
+        <td colSpan={sizes.length + processes.length + 17}>
           <div className="technical-sheet-reference-content">
             <span className="reference-code">{technical_sheet.product.code}</span>
           </div>
@@ -223,14 +225,16 @@ const ManagementProductionTechnicalSheetRow = ({
           <ProductionOrderRow
             key={production_order.id}
             technical_sheet={technical_sheet}
+            details={technical_sheet.technical_sheet_details}
             production_order={production_order}
-            technicalSheetRowSpan={auxProductionOrders.length * 3}
+            technicalSheetRowSpan={auxProductionOrders.length * 4}
             showTechnicalSheetData={index === 0}
             isEditing={editingOrderId === production_order.id_orden_produccion}
             onEdit={onEditOrder}
             onCancelEdit={onCancelEdit}
             sizes={sizes}
             fabrics={fabrics}
+            suppliers={suppliers}
             products={products}
             trademarks={aux_trademarks}
             onOrderChange={onOrderChange}
@@ -249,6 +253,7 @@ const ManagementProductionTechnicalSheetRow = ({
             validated={validated?.[production_order.id]}
             errors={errors?.[production_order.id]}
             opt_status={opt_status}
+            processes={processes}
           />
         ))
       ) : (

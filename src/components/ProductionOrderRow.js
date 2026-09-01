@@ -29,15 +29,22 @@ import {
   BadgeAlert,
   Edit,
   CircleX,
+  Factory,
+  Map,
+  Package,
+  Boxes,
 } from 'lucide-react'
 import Select from 'react-select'
 import {
   getSelectStylesInsertUniq,
   tableSelectStyles,
+  getStatusClass,
+  getStatusBadgeClass,
 } from '@/components/StyleManagementCollection'
 import ModalAddReassignmentCurveProgramation from './ModalAddReassignmentCurveProgramation'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
+import { toast } from 'react-toastify'
 
 const selectStylesWithPortal = {
   ...tableSelectStyles,
@@ -50,6 +57,7 @@ const selectStylesWithPortal = {
 const ProductionOrderRow = ({
   key,
   technical_sheet,
+  details,
   production_order,
   rowSpan,
   technicalSheetRowSpan,
@@ -59,6 +67,7 @@ const ProductionOrderRow = ({
   onCancelEdit,
   sizes,
   fabrics,
+  suppliers,
   products,
   trademarks,
   onOrderChange,
@@ -74,6 +83,7 @@ const ProductionOrderRow = ({
   is_reference_reasigned,
   errors,
   opt_status,
+  processes,
 }) => {
   const curveDestinations = ['NACIONAL', 'MEDELLIN', 'STARA']
   const errorIconRef = useRef(null)
@@ -83,21 +93,28 @@ const ProductionOrderRow = ({
   const [focusedInput, setFocusedInput] = useState(null)
   const [validatedAdd, setValidatedAdd] = useState(null)
   const [openModalReasigned, setOpenModalReasigned] = useState(false)
+  const [openModalChangePlace, setOpenModalChangePlace] = useState(false)
   const [dataModal, setDataModal] = useState(null)
   const [selectedReference, setSelectedReference] = useState(null)
   const [modalAddProductStara, setModalAddProductStara] = useState(false)
   const [builderTotal, setBuilderTotal] = useState('')
   const [builderTotals, setBuilderTotals] = useState({})
   const [formData, setFormData] = useState({
-    date: production_changes.date ?? production_order.date?.split('T')[0] ?? '',
     fabric_id: production_changes.fabric_id ?? production_order.fabric?.model_id ?? null,
     color_id: production_changes.color_id ?? production_order.color?.[0]?.id ?? null,
+    production_place:
+      production_changes.production_place ?? production_order.production_place ?? null,
+    supplier_id: production_changes.supplier_id ?? production_order.supplier_id ?? null,
     status: production_changes.status ?? production_order.status ?? null,
   })
   const [formDataStara, setFormDataStara] = useState({
     reference_relation: true,
     subcategory_id: technical_sheet.product.subcategory_id,
     technical_sheet_id: technical_sheet.id,
+  })
+  const [changePlaceData, setChangePlaceData] = useState({
+    production_place: formData?.production_place || '',
+    supplier_id: formData?.supplier_id || null,
   })
 
   const isInvalidTrademarkStara = !!errors_create?.trademark_id
@@ -137,6 +154,43 @@ const ProductionOrderRow = ({
       }
     })
   })
+
+  const [programation, setProgramation] = useState(() => {
+    if (production_changes?.programation) {
+      return production_changes.programation
+    }
+
+    return processes.reduce((acc, process) => {
+      const detail = production_order.production_order_details?.find(
+        (item) => item.model_id === process.id,
+      )
+
+      if (!detail) {
+        acc[process.id] = {
+          id: null,
+          model_id: process.id,
+          date: null,
+        }
+      } else {
+        acc[process.id] = {
+          id: detail.id,
+          model_id: detail.model_id,
+          date: detail.settings?.date,
+        }
+      }
+
+      return acc
+    }, {})
+  })
+
+  const handleOpenChangePlace = () => {
+    setChangePlaceData({
+      production_place: formData?.production_place || '',
+      supplier_id: formData?.supplier_id || null,
+    })
+
+    setOpenModalChangePlace(true)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -242,10 +296,44 @@ const ProductionOrderRow = ({
     })
   }
 
+  const handleDateChange = (process_id, date) => {
+    setProgramation((prev) => {
+      const updatedProgramation = {
+        ...prev,
+        [process_id]: {
+          ...prev[process_id],
+          date: date,
+        },
+      }
+
+      console.log(updatedProgramation)
+
+      onOrderChange?.(technical_sheet.id, production_order, 'programation', updatedProgramation)
+
+      return updatedProgramation
+    })
+  }
+
   const getDestinationTotal = (destination) => {
     const row = getCurveRow(destination)
 
     return row?.quantities.reduce((total, item) => total + (Number(item.quantity) || 0), 0) ?? 0
+  }
+
+  const getSizeTotal = (sizeId) => {
+    return curve.reduce((total, item) => {
+      const curveRow = getCurveRow(item.destination)
+
+      const quantity = curveRow?.quantities.find((item) => item.size_id === sizeId)?.quantity ?? 0
+
+      return total + (Number(quantity) || 0)
+    }, 0)
+  }
+
+  const getCurveTotal = () => {
+    return sizes.reduce((total, size) => {
+      return total + getSizeTotal(size.id)
+    }, 0)
   }
 
   const handleChange = (field, value) => {
@@ -264,6 +352,8 @@ const ProductionOrderRow = ({
 
     return value
   }
+
+  console.log(production_changes)
 
   const handleDeleteReassignment = async () => {
     const result = await Swal.fire({
@@ -625,6 +715,19 @@ const ProductionOrderRow = ({
     executeBuilder(destination, total)
   }
 
+  const handleSaveChangePlace = () => {
+    handleChange('production_place', changePlaceData.production_place)
+
+    handleChange('supplier_id', changePlaceData.supplier_id)
+
+    Toast.fire({
+      icon: 'success',
+      title: 'Lugar de producción cambiado correctamente',
+    })
+
+    setOpenModalChangePlace(false)
+  }
+
   return (
     <>
       {curveDestinations.map((destination, index) => {
@@ -749,7 +852,7 @@ const ProductionOrderRow = ({
                   </div>
                 </td>
 
-                <td rowSpan={technicalSheetRowSpan} className="table-cell cell-width-230">
+                <td rowSpan={technicalSheetRowSpan} className="table-cell">
                   <div className="d-flex justify-content-center align-items-center h-100">
                     {technical_sheet?.photo_d?.path ? (
                       <div
@@ -790,7 +893,7 @@ const ProductionOrderRow = ({
                   </div>
                 </td>
 
-                <td rowSpan={technicalSheetRowSpan} className="table-cell cell-width-160">
+                <td rowSpan={technicalSheetRowSpan} className="table-cell">
                   <div className="d-flex justify-content-center align-items-center h-100">
                     {technical_sheet?.photo_t?.path ? (
                       <div
@@ -836,7 +939,7 @@ const ProductionOrderRow = ({
             {index === 0 && (
               <>
                 <td
-                  rowSpan={3}
+                  rowSpan={4}
                   className={`table-cell ${errors?.['fabric_id'] ? 'table-cell-error' : ''}`}
                   style={{ width: '200px' }}
                 >
@@ -926,7 +1029,7 @@ const ProductionOrderRow = ({
                 </td>
 
                 <td
-                  rowSpan={3}
+                  rowSpan={4}
                   className={`table-cell ${errors?.['color_id'] ? 'table-cell-error' : ''}`}
                 >
                   <div className="d-flex align-items-center justify-content-center h-100 px-2">
@@ -1031,7 +1134,7 @@ const ProductionOrderRow = ({
                 </td>
 
                 <td
-                  rowSpan={3}
+                  rowSpan={4}
                   className={`table-cell ${errors?.['cut'] ? 'table-cell-error' : ''}`}
                 >
                   <div className="d-flex align-items-center justify-content-center h-100">
@@ -1109,24 +1212,25 @@ const ProductionOrderRow = ({
                 </td>
 
                 <td
-                  rowSpan={3}
+                  rowSpan={4}
                   className={`table-cell ${errors?.['date'] ? 'table-cell-error' : ''}`}
                 >
-                  <div className="d-flex align-items-center justify-content-center h-100 px-2">
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => handleChange('date', e.target.value)}
-                      className="font-inter text-center border-0 shadow-none"
+                  <div className="d-flex align-items-center justify-content-center h-100 px-2 w-100">
+                    <span
+                      className="font-inter fw-semibold text-center"
                       style={{
-                        width: '100%',
-                        background: 'transparent',
-                        outline: 'none',
-                        cursor: 'pointer',
                         fontSize: '14px',
                         color: '#334155',
+                        cursor: 'pointer',
                       }}
-                    />
+                    >
+                      {formData?.production_place === 'BLESS'
+                        ? 'BLESS'
+                        : formData?.production_place === 'SATELITE'
+                          ? suppliers[formData?.supplier_id]?.label || 'SATÉLITE'
+                          : 'Sin lugar'}
+                    </span>
+
                     {errors?.['date']?.length > 0 && (
                       <div style={{ position: 'relative' }}>
                         <span
@@ -1135,6 +1239,7 @@ const ProductionOrderRow = ({
                         >
                           <BadgeAlert size={16} />
                         </span>
+
                         <CPopover
                           visible={openPopover === 'date'}
                           placement="top"
@@ -1335,75 +1440,138 @@ const ProductionOrderRow = ({
 
             {index === 0 && (
               <>
-                <td rowSpan={3} className="table-cell cell-width-160 align-middle">
-                  <div className="d-flex align-items-center justify-content-center h-100">
+                {processes.map((process) => {
+                  const detail = details.find((item) => item.model_id === process.id)
+
+                  return (
+                    <td
+                      key={process.id}
+                      rowSpan={4}
+                      className="table-cell text-center align-middle"
+                    >
+                      <div
+                        className={`status-badge-aux gap-2 ${getStatusBadgeClass(detail?.status)}`}
+                      >
+                        {detail?.status === 'Pendiente' ? (
+                          <span
+                            className="font-inter text-center"
+                            style={{
+                              fontSize: '11px',
+                              color: '#64748B',
+                              lineHeight: '1',
+                            }}
+                            title="El proceso aún no ha sido aprobado por Gerencia"
+                          >
+                            Pendiente de aprobación
+                          </span>
+                        ) : (
+                          <input
+                            type="date"
+                            value={programation[process.id]?.date}
+                            onChange={(e) => handleDateChange(process.id, e.target.value)}
+                            className="font-inter text-center border-0 shadow-none"
+                            style={{
+                              background: 'transparent',
+                              outline: 'none',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              color: '#334155',
+                            }}
+                          />
+                        )}
+
+                        {errors?.['date']?.length > 0 && (
+                          <div style={{ position: 'relative' }}>
+                            <span
+                              style={{ cursor: 'pointer', color: '#ef4444' }}
+                              onClick={() => setOpenPopover(openPopover === 'date' ? null : 'date')}
+                            >
+                              <BadgeAlert size={16} />
+                            </span>
+                            <CPopover
+                              visible={openPopover === 'date'}
+                              placement="top"
+                              onHide={() => setOpenPopover(null)}
+                              title={
+                                <div
+                                  className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                                  style={{
+                                    color: '#991B1B',
+                                    fontSize: '0.85rem',
+                                    padding: '2px 0',
+                                  }}
+                                >
+                                  <BadgeAlert size={15} className="text-danger" />
+                                  <span>Errores de validación</span>
+                                </div>
+                              }
+                              content={
+                                <div
+                                  className="font-inter custom-popover-error"
+                                  style={{
+                                    maxWidth: '260px',
+                                    fontSize: '0.82rem',
+                                  }}
+                                >
+                                  {errors?.['date'].map((err, i) => (
+                                    <div
+                                      key={i}
+                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                    >
+                                      <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              }
+                            >
+                              <span
+                                className="position-absolute"
+                                style={{ transform: 'translateY(-10px)' }}
+                              />
+                            </CPopover>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  )
+                })}
+                <td rowSpan={4} className="table-cell text-center align-middle">
+                  <div
+                    className={`status-badge-aux-select gap-2 ${getStatusBadgeClass(formData?.status)}`}
+                  >
                     <Select
                       options={opt_status}
                       value={opt_status.find((opt) => opt.value === formData?.status)}
                       onChange={(selected) => handleChange('status', selected.value)}
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
-                      styles={{
-                        ...selectStylesWithPortal,
-                        control: (base, state) => ({
-                          ...base,
-                          minHeight: 'auto',
-                          height: 'auto',
-                          minWidth: '80px',
-                          padding: '0',
-                          borderRadius: '999px',
-                          backgroundColor: statusStyle.backgroundColor,
-                          border: `1px solid ${statusStyle.borderColor}`,
-                          boxShadow: 'none',
-                          cursor: 'pointer',
-                          '&:hover': {
-                            borderColor: statusStyle.borderColor,
-                          },
-                          ...(state.isFocused && {
-                            borderColor: statusStyle.borderColor,
-                            boxShadow: `0 0 0 1px ${statusStyle.borderColor}`,
-                          }),
-                        }),
-
-                        valueContainer: (base) => ({
-                          ...base,
-                          padding: '4px 10px',
-                        }),
-
-                        singleValue: (base) => ({
-                          ...base,
-                          margin: 0,
-                          color: statusStyle.color,
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          lineHeight: 1.2,
-                        }),
-
-                        indicatorsContainer: (base) => ({
-                          ...base,
-                          paddingRight: '6px',
-                        }),
-
-                        dropdownIndicator: (base) => ({
-                          ...base,
-                          padding: '0 4px',
-                          color: statusStyle.color,
-                        }),
-
-                        indicatorSeparator: () => ({
-                          display: 'none',
-                        }),
-
-                        menuPortal: (base) => ({
-                          ...base,
-                          zIndex: 9999,
-                        }),
-                      }}
+                      styles={selectStylesWithPortal}
                     />
                   </div>
                 </td>
-                <td rowSpan={3} className="table-cell text-center align-middle">
+                <td rowSpan={4} className="table-cell text-center align-middle">
                   <div className="d-flex align-items-center justify-content-center gap-2">
+                    <CTooltip content="Cambiar lugar de producción" placement="top">
+                      <button
+                        type="button"
+                        className="td-button-refresh"
+                        onClick={handleOpenChangePlace}
+                      >
+                        <div className="position-relative d-inline-flex">
+                          <Package size={16} />
+                          <RefreshCw
+                            size={10}
+                            strokeWidth={3}
+                            className="position-absolute  rounded-circle"
+                            style={{
+                              bottom: -1,
+                              right: -4,
+                              background: '#eff6ff',
+                            }}
+                          />
+                        </div>
+                      </button>
+                    </CTooltip>
                     {String(production_order.id).startsWith('new') ? (
                       production_reassignments &&
                       Object.keys(production_reassignments).length > 0 ? (
@@ -1485,6 +1653,45 @@ const ProductionOrderRow = ({
           </tr>
         )
       })}
+      <tr className="production-order-total">
+        <td
+          colSpan={2}
+          className="table-cell text-center align-middle fw-medium font-inter"
+          style={{
+            background: '#F8FAFC',
+            borderBottom: '2px solid #CBD5E1',
+            borderLeft: '4px solid #CBD5E1',
+            fontSize: '0.82rem',
+          }}
+        >
+          TOTAL
+        </td>
+
+        {sizes.map((size) => (
+          <td
+            key={size.id}
+            className="table-cell text-center align-middle fw-medium font-inter"
+            style={{
+              background: '#F8FAFC',
+              borderBottom: '2px solid #CBD5E1',
+              fontSize: '0.82rem',
+            }}
+          >
+            {getSizeTotal(size.id)}
+          </td>
+        ))}
+
+        <td
+          className="table-cell text-center align-middle fw-semibold font-inter"
+          style={{
+            background: '#F1F5F9',
+            borderBottom: '2px solid #CBD5E1',
+            fontSize: '0.82rem',
+          }}
+        >
+          {getCurveTotal()}
+        </td>
+      </tr>
 
       {openModalReasigned && (
         <ModalAddReassignmentCurveProgramation
@@ -1762,6 +1969,179 @@ const ProductionOrderRow = ({
                 }}
                 onClick={() => {
                   handleSubmit()
+                }}
+              >
+                <Save size={16} />
+                Guardar
+              </CButton>
+            </CModalFooter>
+          </CModal>,
+          document.body,
+        )}
+
+      {openModalChangePlace &&
+        createPortal(
+          <CModal
+            visible={openModalChangePlace}
+            onClose={() => {
+              setOpenModalChangePlace(false)
+            }}
+            alignment="center"
+            className="font-montserrat"
+          >
+            <CModalHeader
+              style={{
+                borderBottom: '1px solid #E2E8F0',
+                backgroundColor: '#F8FAFC',
+              }}
+            >
+              <CModalTitle
+                style={{
+                  fontSize: '1.05rem',
+                  fontWeight: 700,
+                  color: '#0F172A',
+                }}
+              >
+                Cambiar lugar de producción
+              </CModalTitle>
+            </CModalHeader>
+            <CModalBody className="px-4 py-1">
+              <CForm className="row g-3 needs-validation p-4">
+                <CCol md={12}>
+                  <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+                    <TextInitial size={15} /> Lugar de Producción
+                    <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+                  </CFormLabel>
+                  <Select
+                    options={[
+                      {
+                        label: 'BLESS',
+                        value: 'BLESS',
+                      },
+                      {
+                        label: 'SATÉLITE',
+                        value: 'SATELITE',
+                      },
+                    ]}
+                    value={
+                      changePlaceData.production_place
+                        ? {
+                            label:
+                              changePlaceData.production_place === 'BLESS' ? 'BLESS' : 'SATÉLITE',
+                            value: changePlaceData.production_place,
+                          }
+                        : null
+                    }
+                    onChange={(selected) => {
+                      const value = selected?.value || ''
+
+                      setChangePlaceData((prev) => ({
+                        ...prev,
+                        production_place: value,
+                        supplier_id: value === 'BLESS' ? null : prev.supplier_id,
+                      }))
+                    }}
+                    isSearchable
+                    styles={{
+                      ...tableSelectStyles,
+                      control: (provided, state) => ({
+                        ...provided,
+                        minHeight: '40px',
+                        borderRadius: '10px',
+                        border: state.isFocused ? '1px solid #24247f' : '1px solid #E2E8F0',
+                        boxShadow: state.isFocused ? '0 0 0 3px rgba(36, 36, 127, 0.12)' : 'none',
+                      }),
+                      valueContainer: (provided) => ({ ...provided, padding: '0 12px' }),
+                      indicatorsContainer: (provided) => ({ ...provided, opacity: 1 }),
+                    }}
+                  />
+
+                  <CFormFeedback invalid>
+                    {errors_create?.['code']?.map((error, index) => (
+                      <div key={index} className="d-flex align-items-center gap-1">
+                        <BadgeAlert size={13} />
+                        <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                          {error}
+                        </small>
+                      </div>
+                    ))}
+                  </CFormFeedback>
+                  <CFormFeedback valid>
+                    <div className="d-flex align-items-center gap-1">
+                      <BadgeCheck size={13} />
+                      <small className="font-inter">Dato Válido</small>
+                    </div>
+                  </CFormFeedback>
+                </CCol>
+                {changePlaceData.production_place === 'SATELITE' && (
+                  <CCol md={12}>
+                    <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+                      <TextInitial size={15} /> Satelite
+                      <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+                    </CFormLabel>
+                    <Select
+                      options={Object.values(suppliers)}
+                      value={suppliers[changePlaceData.supplier_id] ?? null}
+                      onChange={(selected) => {
+                        setChangePlaceData((prev) => ({
+                          ...prev,
+                          supplier_id: selected?.value || null,
+                        }))
+                      }}
+                      isSearchable
+                      styles={{
+                        ...tableSelectStyles,
+                        control: (provided, state) => ({
+                          ...provided,
+                          minHeight: '40px',
+                          borderRadius: '10px',
+                          border: state.isFocused ? '1px solid #24247f' : '1px solid #E2E8F0',
+                          boxShadow: state.isFocused ? '0 0 0 3px rgba(36, 36, 127, 0.12)' : 'none',
+                        }),
+                        valueContainer: (provided) => ({ ...provided, padding: '0 12px' }),
+                        indicatorsContainer: (provided) => ({ ...provided, opacity: 1 }),
+                      }}
+                    />
+
+                    <CFormFeedback invalid>
+                      {errors_create?.['code']?.map((error, index) => (
+                        <div key={index} className="d-flex align-items-center gap-1">
+                          <BadgeAlert size={13} />
+                          <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                            {error}
+                          </small>
+                        </div>
+                      ))}
+                    </CFormFeedback>
+                    <CFormFeedback valid>
+                      <div className="d-flex align-items-center gap-1">
+                        <BadgeCheck size={13} />
+                        <small className="font-inter">Dato Válido</small>
+                      </div>
+                    </CFormFeedback>
+                  </CCol>
+                )}
+              </CForm>
+            </CModalBody>
+            <CModalFooter className="mt-2">
+              <CButton
+                color="secondary"
+                size="sm"
+                onClick={() => {
+                  setOpenModalChangePlace(false)
+                }}
+              >
+                Cancelar
+              </CButton>
+              <CButton
+                size="sm"
+                className="text-white d-flex align-items-center gap-2"
+                style={{
+                  backgroundColor: '#24247F',
+                  border: 'none',
+                }}
+                onClick={() => {
+                  handleSaveChangePlace()
                 }}
               >
                 <Save size={16} />

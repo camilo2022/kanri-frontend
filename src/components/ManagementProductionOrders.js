@@ -14,6 +14,7 @@ const ManagementProductionOrders = ({
   technical_sheets,
   sizes,
   fabrics,
+  suppliers,
   products,
   fetchProducts,
   onCreateOrder,
@@ -32,6 +33,7 @@ const ManagementProductionOrders = ({
   errors,
   opt_status,
   builders,
+  processes,
 }) => {
   const dispath = useDispatch()
   const [editingOrderId, setEditingOrderId] = useState(null)
@@ -47,9 +49,8 @@ const ManagementProductionOrders = ({
   return (
     <>
       <table
-        className="table align-middle mb-0"
+        className="table align-middle mb-0 table-programation"
         style={{
-          minWidth: '1800px',
           borderCollapse: 'separate',
           borderSpacing: 0,
         }}
@@ -66,7 +67,7 @@ const ManagementProductionOrders = ({
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '120px' }}
+              style={{ ...thStyle, width: '140px', minWidth: '140px' }}
             >
               CÓDIGO
             </th>
@@ -110,8 +111,8 @@ const ManagementProductionOrders = ({
               className="text-center"
               style={{
                 ...thStyleGroup,
-                width: '400px',
-                minWidth: '400px',
+                width: '300px',
+                minWidth: '300px',
               }}
             >
               FOTOS
@@ -140,9 +141,9 @@ const ManagementProductionOrders = ({
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '150px', minWidth: '150px' }}
+              style={{ ...thStyle, width: '200px', minWidth: '200px' }}
             >
-              FECHA
+              LUGAR DE PRODUCCION
             </th>
             <th
               colSpan={sizes.length + 3}
@@ -157,9 +158,21 @@ const ManagementProductionOrders = ({
             </th>
 
             <th
+              colSpan={processes.length}
+              className="text-center align-middle"
+              style={{
+                ...thStyleGroup,
+                width: `${160 * processes.length}px`,
+                minWidth: `${160 * processes.length}px`,
+              }}
+            >
+              PROCESOS
+            </th>
+
+            <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '150px', minWidth: '150px' }}
+              style={{ ...thStyle, width: '160px', minWidth: '160px' }}
             >
               ESTADO
             </th>
@@ -225,6 +238,16 @@ const ManagementProductionOrders = ({
             <th className="text-center" style={{ ...thStyleGroup, width: '70px' }}>
               TOTAL
             </th>
+
+            {processes.map((process) => (
+              <th
+                key={process.id}
+                className="text-center"
+                style={{ ...thStyleGroup, width: '160px', minWidth: '160px' }}
+              >
+                {process.name}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="font-inter">
@@ -239,6 +262,7 @@ const ManagementProductionOrders = ({
               onCancelEdit={handleCancelEdit}
               sizes={sizes}
               fabrics={fabrics}
+              suppliers={suppliers}
               onCreateOrder={onCreateOrder}
               onDeleteOrder={onDeleteOrder}
               onOrderChange={onOrderChange}
@@ -255,6 +279,7 @@ const ManagementProductionOrders = ({
               errors={errors}
               opt_status={opt_status}
               builders={builders}
+              processes={processes}
             />
           ))}
         </tbody>

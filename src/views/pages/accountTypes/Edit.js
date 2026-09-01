@@ -5,32 +5,27 @@ import { useEffect } from 'react'
 import { Save, ArrowLeftCircle, BadgeCheck, BadgeAlert, TextInitial } from 'lucide-react'
 import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
-import Select from 'react-select'
 import LoadingForm from '@/components/LoadingForm'
 
-const Edit = ({ supplier, onChangeView, onSubmit, errors }) => {
+const Edit = ({ account_type, onChangeView, onSubmit, errors }) => {
   const [validated, setValidated] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  })
+  const [formData, setFormData] = useState({})
 
   useEffect(() => {
-    if (supplier) {
+    if (account_type) {
       setFormData({
-        name: supplier.name || '',
-        description: supplier.description || '',
-        code: supplier.settings.code || '',
+        name: account_type.name || '',
+        description: account_type.description || '',
       })
     }
-  }, [supplier])
+  }, [account_type])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     Swal.fire({
-      title: 'Editar Proveedor',
+      title: 'Editar Tipo de Cuenta',
       html: `<div style="font-size:14px">
-              Se guardará la nueva información del proveedor en el sistema.<br/>
+              Se guardará la nueva información del tipo de cuenta en el sistema.<br/>
               <strong>¿Deseas continuar?</strong>
             </div>`,
       icon: 'question',
@@ -42,25 +37,15 @@ const Edit = ({ supplier, onChangeView, onSubmit, errors }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const inf = {
-            name: formData.name,
-            description: formData.description,
-            settings: {
-              code: formData.code,
-            },
-          }
-          const response = await onSubmit(supplier.id, inf)
+          const response = await onSubmit(account_type.id, { ...formData })
           setValidated(true)
           Toast.fire({
             icon: 'success',
             title: response.message,
           })
           setTimeout(() => {
-            setFormData({
-              name: '',
-              description: '',
-            })
-            onChangeView({ name: 'list', title: 'Listar Proveedores' })
+            setFormData({})
+            onChangeView({ name: 'list', title: 'Listar Tipos de Cuenta' })
           }, 2510)
         } catch (error) {
           setValidated(true)
@@ -83,13 +68,7 @@ const Edit = ({ supplier, onChangeView, onSubmit, errors }) => {
     }))
   }
 
-  const customFilterOption = (option, rawInput) => {
-    const words = rawInput.toLowerCase().split(' ')
-    const label = option.label.toLowerCase()
-    return words.every((word) => label.includes(word))
-  }
-
-  if (!supplier) {
+  if (!account_type) {
     return (
       <LoadingForm
         title="Cargando formulario"
@@ -103,10 +82,10 @@ const Edit = ({ supplier, onChangeView, onSubmit, errors }) => {
     <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center mb-3">
         <IoMdArrowDropright style={{ color: '#C21111' }} size={35} />
-        <span className="fw-bold fs-5 font-montserrat">Editar Proveedor</span>
+        <span className="fw-bold fs-5 font-montserrat">Editar Tipo de Cuenta</span>
       </div>
       <CForm className="row g-3 needs-validation p-4" onSubmit={handleSubmit}>
-        <CCol md={4}>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Nombre
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -135,7 +114,7 @@ const Edit = ({ supplier, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={4}>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <TextInitial size={15} /> Descripción
             <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
@@ -164,39 +143,10 @@ const Edit = ({ supplier, onChangeView, onSubmit, errors }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={4}>
-          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
-            <TextInitial size={15} /> Código
-            <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
-          </CFormLabel>
-          <CFormInput
-            type="text"
-            name="code"
-            value={formData.code}
-            onChange={handleChange}
-            invalid={!!errors['settings.code']}
-            valid={!errors['settings.code'] && formData.code !== '' && validated}
-            className="font-montserrat custom-input"
-          />
-          <CFormFeedback invalid>
-            {errors['settings.code']?.map((error, index) => (
-              <div key={index} className="d-flex align-items-center gap-1">
-                <BadgeAlert size={13} />
-                <small className="font-inter">{error}</small>
-              </div>
-            ))}
-          </CFormFeedback>
-          <CFormFeedback valid>
-            <div className="d-flex align-items-center gap-1">
-              <BadgeCheck size={13} />
-              <small className="font-inter">Dato Válido</small>
-            </div>
-          </CFormFeedback>
-        </CCol>
         <div className="d-flex justify-content-between align-items-center mt-5">
           <CButton
             className="d-flex align-items-center gap-2 font-poppins  btn-primary-revolve me-2"
-            onClick={() => onChangeView({ name: 'list', title: 'Listar Proveedores' })}
+            onClick={() => onChangeView({ name: 'list', title: 'Listar Tipos de Cuenta' })}
           >
             <ArrowLeftCircle size={16} /> Volver
           </CButton>

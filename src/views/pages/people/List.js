@@ -360,6 +360,22 @@ export const List = ({
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
+        <div className="d-flex flex-wrap justify-content-end gap-2">
+          <CButton
+            variant="outline"
+            className="font-poppins btn-primary-dark d-flex align-items-center gap-2"
+            disabled={!user_active?.permissions.some((p) => p.name === 'people.store')}
+            style={{
+              cursor: !user_active?.permissions.some((p) => p.name === 'people.store')
+                ? 'not-allowed'
+                : 'pointer',
+            }}
+            onClick={() => onChangeView({ name: 'create', title: 'Crear Persona' })}
+          >
+            <CirclePlus />
+            <span className="d-none d-md-inline">Agregar Persona</span>
+          </CButton>
+        </div>
       </div>
       <CTable hover responsive align="middle" className="text-center font-inter">
         <thead>
