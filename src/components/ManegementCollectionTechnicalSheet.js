@@ -315,8 +315,8 @@ const ManagementCollectionTechnicalSheet = ({
               className="text-center"
               style={{
                 ...thStyleGroup,
-                width: `${processes.length * 150}px`,
-                minWidth: `${processes.length * 150}px`,
+                width: `${processes.length * 160}px`,
+                minWidth: `${processes.length * 160}px`,
               }}
             >
               PROCESOS
@@ -385,6 +385,8 @@ const ManagementCollectionTechnicalSheet = ({
                 style={{
                   ...thStyleGroup,
                   borderTop: '0px',
+                  width: '160px',
+                  minWidth: '160px',
                 }}
               >
                 {process.name}

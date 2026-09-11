@@ -33,20 +33,23 @@ const appendFormData = (formData, data, parentKey = '') => {
   formData.append(parentKey, data)
 }
 
-const all = async (technical_sheet_id, params) => {
+const all = async (technical_sheet_id = null, params = {}) => {
   try {
-    const response = await api.get(
-      `/technical_sheets/production_orders/all/${technical_sheet_id}`,
-      {
-        ...getConfig(),
-        params: params,
-      },
-    )
+    const url = technical_sheet_id
+      ? `/technical_sheets/production_orders/all/${technical_sheet_id}`
+      : `/technical_sheets/production_orders/all`
+
+    const response = await api.get(url, {
+      ...getConfig(),
+      params,
+    })
+
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
       throw error.response.data
     }
+
     throw { message: 'Error desconocido' }
   }
 }

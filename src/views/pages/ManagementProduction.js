@@ -43,7 +43,7 @@ const ManagementProduction = () => {
     fetchTrademarks()
     fetchCategories()
     fetchBuilders()
-    fetchProcesses({ in_technical_sheet: true })
+    fetchProcesses({ in_production_order: true })
   }, [])
 
   useEffect(() => {

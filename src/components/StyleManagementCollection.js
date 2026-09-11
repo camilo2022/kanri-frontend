@@ -340,7 +340,6 @@ export const processStatusStyles = {
 export const optionsProcess = [
   { label: 'PENDIENTE', value: 'Pendiente' },
   { label: 'EN REVISIÓN', value: 'En revision' },
-  { label: 'APROBADO', value: 'Aprobado' },
 ]
 
 export const optionsStatus = [

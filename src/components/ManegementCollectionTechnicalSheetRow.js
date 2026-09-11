@@ -82,6 +82,8 @@ const ManagementCollectionTechnicalSheetRow = ({
     }
   }, [])
 
+  useEffect(() => {}, [sheet.technical_sheet_details])
+
   const updateSheetField = useCallback(
     (field, value, item = '', aux = '') => {
       setData((prev) => {
@@ -180,6 +182,131 @@ const ManagementCollectionTechnicalSheetRow = ({
       }))
     },
     [[sheetId, trademark.id, category.id, subcategory.id, setData, setModified]],
+  )
+
+  const updatePreviousProcessStatuses = (process, status, technicalSheetDetails) => {
+    technicalSheetDetails[process.id] ??= {
+      model_id: process.id,
+      model_type: 'App\\Models\\Process',
+      status: '',
+      settings: process.settings?.schema || null,
+    }
+
+    technicalSheetDetails[process.id].status = status
+
+    process.before_processes?.forEach((previousProcess) => {
+      updatePreviousProcessStatuses(previousProcess, status, technicalSheetDetails)
+    })
+  }
+
+  const getTechnicalSheetStatus = (details) => {
+    const statuses = Object.values(details)
+      .map((detail) => detail?.status)
+      .filter(Boolean)
+
+    if (statuses.length === 0) {
+      return 'Pendiente'
+    }
+
+    if (statuses.some((status) => status === 'En revisión')) {
+      return 'En revisión'
+    }
+
+    if (statuses.every((status) => status === 'Aprobado')) {
+      return 'Aprobado'
+    }
+
+    if (statuses.every((status) => status === 'Pendiente')) {
+      return 'Pendiente'
+    }
+
+    return 'En revisión'
+  }
+
+  const updateProcessStatus = useCallback(
+    (process, value) => {
+      setData((prev) => {
+        const newData = structuredClone(prev)
+
+        const trademarkData = (newData[trademark.id] ??= {
+          categories: {},
+        })
+
+        const categoryData = (trademarkData.categories[category.id] ??= {
+          subcategories: {},
+        })
+
+        const subcategoryData = (categoryData.subcategories[subcategory.id] ??= {
+          technical_sheets: {},
+        })
+
+        const sheetData = (subcategoryData.technical_sheets[sheetId] ??= {
+          technical_sheet_details: {},
+        })
+
+        const details = sheetData.technical_sheet_details
+
+        const updatePreviousProcesses = (currentProcess) => {
+          if (details[currentProcess.id].status !== 'Aprobado') {
+            details[currentProcess.id] ??= {
+              model_id: currentProcess.id,
+              model_type: 'App\\Models\\Process',
+              status: '',
+              settings: currentProcess.settings?.schema || null,
+            }
+
+            details[currentProcess.id].status = value
+          }
+
+          currentProcess.before_processes?.forEach((previousProcess) => {
+            const detail_previus = processes.find((item) => item.id === previousProcess.id)
+
+            if (detail_previus) {
+              updatePreviousProcesses(detail_previus)
+            }
+          })
+        }
+
+        updatePreviousProcesses(process)
+
+        const statuses = Object.values(details)
+          .map((detail) => detail?.status)
+          .filter(Boolean)
+
+        let technicalSheetStatus = 'Pendiente'
+
+        if (statuses.some((status) => status === 'En revisión')) {
+          technicalSheetStatus = 'En revisión'
+        } else if (statuses.length > 0 && statuses.every((status) => status === 'Aprobado')) {
+          technicalSheetStatus = 'Aprobado'
+        } else if (statuses.length > 0 && statuses.every((status) => status === 'Pendiente')) {
+          technicalSheetStatus = 'Pendiente'
+        } else {
+          technicalSheetStatus = 'En revision'
+        }
+
+        sheetData.status = technicalSheetStatus
+
+        dispath({
+          type: 'ADD_TECHNICAL_SHEET',
+          payload: {
+            id: sheetId,
+            technicalSheet: sheetData,
+          },
+        })
+
+        return newData
+      })
+
+      setModified((prev) => ({
+        ...prev,
+        [sheetId]: {
+          ...prev[sheetId],
+          technical_sheet_details: true,
+        },
+      }))
+    },
+    [sheetId, trademark.id, category.id, subcategory.id, setData, setModified, dispath],
   )
 
   const getCellClass = useCallback(
@@ -1053,12 +1180,15 @@ const ManagementCollectionTechnicalSheetRow = ({
                 {editingField === `process-${process.id}` ? (
                   <Select
                     ref={(el) => (inputRefs.current[`process-${process.id}`] = el)}
-                    isDisabled={isLocked}
+                    isDisabled={
+                      isLocked ||
+                      sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                    }
                     options={optionsProcess}
                     value={optionsProcess.find(
                       (opt) => opt.value === sheet?.technical_sheet_details?.[process.id]?.status,
                     )}
-                    onChange={(selected) => updateSheetDeatilsField(process, selected.value)}
+                    onChange={(selected) => updateProcessStatus(process, selected.value)}
                     isSearchable
                     menuPortalTarget={document.body}
                     menuPosition="fixed"
@@ -1068,7 +1198,12 @@ const ManagementCollectionTechnicalSheetRow = ({
                   <div
                     className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
                     onClick={() => {
-                      if (isLocked) return
+                      if (
+                        isLocked ||
+                        sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                      ) {
+                        return
+                      }
                       setEditingField(`process-${process.id}`)
                     }}
                   >

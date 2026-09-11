@@ -8,6 +8,8 @@ import {
   CFormFeedback,
   CFormLabel,
   CFormCheck,
+  CInputGroup,
+  CFormSelect,
 } from '@coreui/react'
 import { IoMdArrowDropright } from 'react-icons/io'
 import {
@@ -19,6 +21,7 @@ import {
   ListTree,
   Workflow,
   FileCheckCorner,
+  ListChecks,
 } from 'lucide-react'
 import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
@@ -235,6 +238,7 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
             </div>
           </CFormFeedback>
         </CCol>
+
         <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <Workflow size={15} /> ¿Tiene Subprocesos?
@@ -284,7 +288,103 @@ const Edit = ({ process, onChangeView, onSubmit, errors, processes }) => {
             </div>
           </CFormFeedback>
         </CCol>
-        <CCol md={12}>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <FileCheckCorner size={15} /> ¿Pertenece a la orden de producción?
+          </CFormLabel>
+          <div
+            className="px-2 border rounded-3 d-flex align-items-center bg-white"
+            style={{
+              minHeight: '40px',
+              borderColor: '#dbdfea',
+            }}
+          >
+            <CFormCheck
+              name="in_production_order"
+              label={
+                <span className="font-montserrat">
+                  Selecciona si el proceso pertenece a la orden de producción
+                </span>
+              }
+              checked={formData?.settings?.in_production_order}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  settings: {
+                    ...prev.settings,
+                    in_production_order: e.target.checked,
+                  },
+                }))
+              }}
+              invalid={!!errors['settings.in_production_order']}
+              valid={
+                !errors['settings.in_production_order'] &&
+                formData?.settings?.in_production_order !== '' &&
+                validated
+              }
+            />
+          </div>
+          <CFormFeedback valid>
+            <div className="d-flex align-items-center gap-1">
+              <BadgeCheck size={13} />
+              <small className="font-inter">Dato Válido</small>
+            </div>
+          </CFormFeedback>
+        </CCol>
+        <CCol md={6}>
+          <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+            <ListChecks size={15} /> ¿A que apartado pertenece?
+          </CFormLabel>
+          <CInputGroup>
+            <CFormSelect
+              name="paragraph"
+              value={formData?.settings?.paragraph}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  paragraph: e.target.value,
+                }))
+              }}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  settings: {
+                    ...prev.settings,
+                    paragraph: e.target.value,
+                  },
+                }))
+              }}
+              disabled={!formData.settings?.in_production_order}
+              options={[
+                { label: 'Seleccione una opción', value: '' },
+                { label: 'LUGAR DE PRODUCCION', value: 'production' },
+              ]}
+              invalid={!!errors?.['settings.paragraph']}
+              valid={
+                !errors?.['settings.paragraph'] && formData.settings?.paragraph !== '' && validated
+              }
+              style={{ borderRadius: '5px 5px 5px 5px' }}
+              className="font-montserrat input-custom"
+            />
+            <CFormFeedback invalid>
+              {errors?.['settings.paragraph']?.map((error, index) => (
+                <div key={index} className="d-flex align-items-center gap-1">
+                  <BadgeAlert size={13} />
+                  <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                    {error}
+                  </small>
+                </div>
+              ))}
+            </CFormFeedback>
+            <CFormFeedback valid>
+              <div className="d-flex align-items-center gap-1">
+                <BadgeCheck size={13} />
+                <small className="font-inter">Dato Válido</small>
+              </div>
+            </CFormFeedback>
+          </CInputGroup>
+        </CCol>
+        <CCol md={6}>
           <CFormLabel className="d-flex gap-2 font-inter align-items-center">
             <ListTree size={15} /> Siguientes Procesos
           </CFormLabel>

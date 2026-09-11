@@ -91,7 +91,6 @@ const ManagementProductionTechnicalSheetRow = ({
     const categoryId = String(technical_sheet.product?.subcategory?.category?.[0]?.id)
     const subcategoryId = String(technical_sheet.product?.subcategory_id)
 
-    // 1. Marca + categoría + subcategoría
     const exactBuilder = builders.find((builder) => {
       const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
       const categories = builder.categories?.map((item) => String(item.id)) ?? []
@@ -108,7 +107,6 @@ const ManagementProductionTechnicalSheetRow = ({
       return exactBuilder
     }
 
-    // 2. Marca + categoría
     const categoryBuilder = builders.find((builder) => {
       const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
       const categories = builder.categories?.map((item) => String(item.id)) ?? []
@@ -124,7 +122,6 @@ const ManagementProductionTechnicalSheetRow = ({
       return categoryBuilder
     }
 
-    // 3. Marca
     const trademarkBuilder = builders.find((builder) => {
       const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
 

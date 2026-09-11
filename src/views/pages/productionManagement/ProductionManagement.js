@@ -63,6 +63,7 @@ export const ProductionManagement = ({
   builders,
   processes,
 }) => {
+  console.log(processes)
   const [selectedCollection, setSelectedCollection] = useState(null)
   const [selectedTrademark, setSelectedTrademark] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -836,14 +837,16 @@ export const ProductionManagement = ({
                   <ArrowDownUp size={15} />
                   Cambiar colección
                 </CButton>
-                <CButton
-                  className="d-flex align-items-center gap-2 px-3 font-inter button-save-changes"
-                  size="sm"
-                  onClick={handleSubmit}
-                >
-                  <Save size={16} strokeWidth={2.5} />
-                  Guardar Cambios
-                </CButton>
+                {Object.values(productionChanges || {}).length > 0 && (
+                  <CButton
+                    className="d-flex align-items-center gap-2 px-3 font-inter button-save-changes"
+                    size="sm"
+                    onClick={handleSubmit}
+                  >
+                    <Save size={16} strokeWidth={2.5} />
+                    Guardar Cambios
+                  </CButton>
+                )}
                 <CButton
                   color="primary"
                   size="sm"
@@ -978,7 +981,11 @@ export const ProductionManagement = ({
                                 </div>
                                 <div className="table-responsive">
                                   <ManagementProductionOrders
-                                    technical_sheets={subcategory.technical_sheets || {}}
+                                    technical_sheets={
+                                      subcategory.technical_sheets.filter(
+                                        (item) => item.status !== 'Pendiente',
+                                      ) || {}
+                                    }
                                     sizes={selectedTrademark.sizes}
                                     onCreateOrder={handleCreateOrder}
                                     onDeleteOrder={handleDeleteOrder}

@@ -56,6 +56,7 @@ export const CollectionManagement = ({
   auxSubcategories,
   save,
 }) => {
+  console.log(processes)
   const dispath = useDispatch()
   const technicalSheets = useSelector((state) => state.technicalSheetsModified)
   const [data, setData] = useState({})

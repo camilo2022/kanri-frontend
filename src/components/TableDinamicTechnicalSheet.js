@@ -301,6 +301,10 @@ const TableDinamicTechnicalSheet = ({
                         (model) => model.field === field.depend,
                       )
 
+                      console.log(field)
+                      console.log(models)
+                      console.log(modelDepend)
+
                       const auxModelDepend = Object.values(models).find(
                         (model) => model.model === modelDepend.param,
                       )

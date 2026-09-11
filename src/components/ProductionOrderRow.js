@@ -306,8 +306,6 @@ const ProductionOrderRow = ({
         },
       }
 
-      console.log(updatedProgramation)
-
       onOrderChange?.(technical_sheet.id, production_order, 'programation', updatedProgramation)
 
       return updatedProgramation
@@ -353,7 +351,7 @@ const ProductionOrderRow = ({
     return value
   }
 
-  console.log(production_changes)
+  console.log(suppliers)
 
   const handleDeleteReassignment = async () => {
     const result = await Swal.fire({
@@ -728,6 +726,272 @@ const ProductionOrderRow = ({
     setOpenModalChangePlace(false)
   }
 
+  console.log(formData)
+
+  const getProcessLine = (startProcess) => {
+    const processIds = new Set()
+
+    const visitNextProcesses = (currentProcess) => {
+      if (!currentProcess || processIds.has(currentProcess.id)) {
+        return
+      }
+
+      processIds.add(currentProcess.id)
+
+      currentProcess.after_processes?.forEach((nextProcess) => {
+        const fullNextProcess = processes.find((item) => item.id === nextProcess.id)
+
+        if (fullNextProcess) {
+          visitNextProcesses(fullNextProcess)
+        }
+      })
+    }
+
+    visitNextProcesses(startProcess)
+
+    return processIds
+  }
+
+  const isProcessEnabled = (process) => {
+    if (!formData?.production_place) {
+      return false
+    }
+
+    const satelliteProcess = processes.find((item) => item?.settings?.paragraph === 'production')
+
+    if (!satelliteProcess) {
+      return false
+    }
+
+    const corteRelation = satelliteProcess.before_processes?.[0]
+
+    if (!corteRelation) {
+      return false
+    }
+
+    const corteProcess = processes.find((item) => item.id === corteRelation.id)
+
+    if (!corteProcess) {
+      return false
+    }
+
+    const commonProcessIds = new Set([
+      corteProcess.id,
+      ...(corteProcess.before_processes?.map((beforeProcess) => beforeProcess.id) || []),
+    ])
+
+    if (formData.production_place === 'SATELITE') {
+      const satelliteLine = getProcessLine(satelliteProcess)
+
+      commonProcessIds.forEach((id) => {
+        satelliteLine.add(id)
+      })
+
+      return satelliteLine.has(process.id)
+    }
+
+    if (formData.production_place === 'BLESS') {
+      const preparationRelation = corteProcess.after_processes?.find(
+        (afterProcess) => afterProcess.id !== satelliteProcess.id,
+      )
+
+      if (!preparationRelation) {
+        return false
+      }
+
+      const preparationProcess = processes.find((item) => item.id === preparationRelation.id)
+
+      if (!preparationProcess) {
+        return false
+      }
+
+      const blessLine = getProcessLine(preparationProcess)
+
+      commonProcessIds.forEach((id) => {
+        blessLine.add(id)
+      })
+
+      return blessLine.has(process.id)
+    }
+
+    return false
+  }
+
+  const getProductionProcess = () => {
+    return processes.find((item) => item?.settings?.paragraph === 'production')
+  }
+
+  const getBlessBranch = () => {
+    const productionProcess = getProductionProcess()
+
+    if (!productionProcess) {
+      return []
+    }
+
+    const corteRelation = productionProcess.before_processes?.[0]
+
+    if (!corteRelation) {
+      return []
+    }
+
+    const corteProcess = processes.find((item) => item.id === corteRelation.id)
+
+    if (!corteProcess) {
+      return []
+    }
+
+    const preparationRelation = corteProcess.after_processes?.find(
+      (afterProcess) => afterProcess.id !== productionProcess.id,
+    )
+
+    if (!preparationRelation) {
+      return []
+    }
+
+    const preparationProcess = processes.find((item) => item.id === preparationRelation.id)
+
+    if (!preparationProcess) {
+      return []
+    }
+
+    return [preparationProcess]
+  }
+
+  const getBlessExclusiveProcessIds = () => {
+    const productionProcess = getProductionProcess()
+
+    if (!productionProcess) {
+      return new Set()
+    }
+
+    const corteRelation = productionProcess.before_processes?.[0]
+
+    if (!corteRelation) {
+      return new Set()
+    }
+
+    const corteProcess = processes.find((item) => item.id === corteRelation.id)
+
+    if (!corteProcess) {
+      return new Set()
+    }
+
+    const nextProcesses = corteProcess.after_processes || []
+
+    const blessStartRelation = nextProcesses.find(
+      (nextProcess) => nextProcess.id !== productionProcess.id,
+    )
+
+    if (!blessStartRelation) {
+      return new Set()
+    }
+
+    const blessStartProcess = processes.find((item) => item.id === blessStartRelation.id)
+
+    if (!blessStartProcess) {
+      return new Set()
+    }
+
+    const satelliteProcessIds = new Set()
+
+    const visitSatellite = (currentProcess) => {
+      if (!currentProcess) {
+        return
+      }
+
+      if (satelliteProcessIds.has(currentProcess.id)) {
+        return
+      }
+
+      satelliteProcessIds.add(currentProcess.id)
+
+      currentProcess.after_processes?.forEach((nextProcess) => {
+        const fullNextProcess = processes.find((item) => item.id === nextProcess.id)
+
+        if (fullNextProcess) {
+          visitSatellite(fullNextProcess)
+        }
+      })
+    }
+
+    visitSatellite(productionProcess)
+
+    const exclusiveProcessIds = new Set()
+
+    const visitBless = (currentProcess) => {
+      if (!currentProcess) {
+        return
+      }
+
+      if (satelliteProcessIds.has(currentProcess.id)) {
+        return
+      }
+
+      if (exclusiveProcessIds.has(currentProcess.id)) {
+        return
+      }
+
+      exclusiveProcessIds.add(currentProcess.id)
+
+      currentProcess.after_processes?.forEach((nextProcess) => {
+        const fullNextProcess = processes.find((item) => item.id === nextProcess.id)
+
+        if (fullNextProcess) {
+          visitBless(fullNextProcess)
+        }
+      })
+    }
+
+    visitBless(blessStartProcess)
+
+    console.log(exclusiveProcessIds)
+
+    return exclusiveProcessIds
+  }
+
+  const getSatelliteStatus = (details) => {
+    const exclusiveProcessIds = getBlessExclusiveProcessIds()
+
+    console.log(exclusiveProcessIds)
+
+    if (exclusiveProcessIds.size === 0) {
+      return 'Pendiente'
+    }
+
+    console.log(details)
+
+    const statuses = [...exclusiveProcessIds].map(
+      (processId) => details?.find((item) => item.model_id === processId)?.status || 'Pendiente',
+    )
+
+    console.log(statuses)
+
+    if (statuses.some((status) => status === 'Pendiente')) {
+      return 'Pendiente'
+    }
+    if (statuses.some((status) => status === 'En revision')) {
+      return 'En revision'
+    }
+
+    if (statuses.every((status) => status === 'Aprobado')) {
+      return 'Aprobado'
+    }
+
+    return 'Pendiente'
+  }
+
+  const getProcessStatus = (process, detail) => {
+    if (process?.settings?.paragraph === 'production') {
+      if (formData?.production_place === 'SATELITE') {
+        return getSatelliteStatus(details)
+      }
+
+      return detail?.status || 'Pendiente'
+    }
+
+    return detail?.status || 'Pendiente'
+  }
+
   return (
     <>
       {curveDestinations.map((destination, index) => {
@@ -782,25 +1046,6 @@ const ProductionOrderRow = ({
           >
             {showTechnicalSheetData && index === 0 && (
               <>
-                {/*<td
-                  rowSpan={technicalSheetRowSpan}
-                  className="sticky-actions text-center align-middle"
-                >
-                  <div className="d-flex align-items-center justify-content-center gap-2">
-                    <CTooltip content="Reasignar" placement="top">
-                      <button className="td-button-refresh">
-                        <RefreshCw size={16} />
-                      </button>
-                    </CTooltip>
-
-                    <CTooltip content="Eliminar" placement="top">
-                      <button className="td-button-delete">
-                        <Trash2 size={16} />
-                      </button>
-                    </CTooltip>
-                  </div>
-                </td>*/}
-
                 <td rowSpan={technicalSheetRowSpan} className="table-cell cell-width-160">
                   <div className="d-flex align-items-center justify-content-center h-100">
                     <span className="font-inter text-center table-input">
@@ -808,17 +1053,6 @@ const ProductionOrderRow = ({
                     </span>
                   </div>
                 </td>
-
-                {/*<td
-                  rowSpan={technicalSheetRowSpan}
-                  className="table-cell cell-width-160 sticky-reference"
-                >
-                  <div className="d-flex align-items-center justify-content-center h-100">
-                    <span className="font-inter text-center table-input">
-                      {renderValue(technical_sheet?.product?.code)}
-                    </span>
-                  </div>
-                </td>*/}
 
                 <td rowSpan={technicalSheetRowSpan} className="table-cell cell-width-160">
                   <div className="d-flex align-items-center justify-content-center h-100">
@@ -1213,7 +1447,7 @@ const ProductionOrderRow = ({
 
                 <td
                   rowSpan={4}
-                  className={`table-cell ${errors?.['date'] ? 'table-cell-error' : ''}`}
+                  className={`table-cell ${errors?.['production_place'] ? 'table-cell-error' : ''}`}
                 >
                   <div className="d-flex align-items-center justify-content-center h-100 px-2 w-100">
                     <span
@@ -1228,62 +1462,62 @@ const ProductionOrderRow = ({
                         ? 'BLESS'
                         : formData?.production_place === 'SATELITE'
                           ? suppliers[formData?.supplier_id]?.label || 'SATÉLITE'
-                          : 'Sin lugar'}
+                          : '-'}
                     </span>
-
-                    {errors?.['date']?.length > 0 && (
-                      <div style={{ position: 'relative' }}>
-                        <span
-                          style={{ cursor: 'pointer', color: '#ef4444' }}
-                          onClick={() => setOpenPopover(openPopover === 'date' ? null : 'date')}
-                        >
-                          <BadgeAlert size={16} />
-                        </span>
-
-                        <CPopover
-                          visible={openPopover === 'date'}
-                          placement="top"
-                          onHide={() => setOpenPopover(null)}
-                          title={
-                            <div
-                              className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                              style={{
-                                color: '#991B1B',
-                                fontSize: '0.85rem',
-                                padding: '2px 0',
-                              }}
-                            >
-                              <BadgeAlert size={15} className="text-danger" />
-                              <span>Errores de validación</span>
-                            </div>
-                          }
-                          content={
-                            <div
-                              className="font-inter custom-popover-error"
-                              style={{
-                                maxWidth: '260px',
-                                fontSize: '0.82rem',
-                              }}
-                            >
-                              {errors?.['date'].map((err, i) => (
-                                <div
-                                  key={i}
-                                  className="d-flex align-items-start gap-2 p-1 rounded-2"
-                                >
-                                  <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                                </div>
-                              ))}
-                            </div>
-                          }
-                        >
-                          <span
-                            className="position-absolute"
-                            style={{ transform: 'translateY(-10px)' }}
-                          />
-                        </CPopover>
-                      </div>
-                    )}
                   </div>
+                  {errors?.['production_place']?.length > 0 && (
+                    <div style={{ position: 'relative' }}>
+                      <span
+                        style={{ cursor: 'pointer', color: '#ef4444' }}
+                        onClick={() =>
+                          setOpenPopover(
+                            openPopover === 'production_place' ? null : 'production_place',
+                          )
+                        }
+                      >
+                        <BadgeAlert size={16} />
+                      </span>
+
+                      <CPopover
+                        visible={openPopover === 'production_place'}
+                        placement="top"
+                        onHide={() => setOpenPopover(null)}
+                        title={
+                          <div
+                            className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                            style={{
+                              color: '#991B1B',
+                              fontSize: '0.85rem',
+                              padding: '2px 0',
+                            }}
+                          >
+                            <BadgeAlert size={15} className="text-danger" />
+                            <span>Errores de validación</span>
+                          </div>
+                        }
+                        content={
+                          <div
+                            className="font-inter custom-popover-error"
+                            style={{
+                              maxWidth: '260px',
+                              fontSize: '0.82rem',
+                            }}
+                          >
+                            {errors?.['production_place'].map((err, i) => (
+                              <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                                <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                              </div>
+                            ))}
+                          </div>
+                        }
+                      >
+                        <span
+                          className="position-absolute"
+                          style={{ transform: 'translateY(-10px)' }}
+                        />
+                      </CPopover>
+                    </div>
+                  )}
                 </td>
               </>
             )}
@@ -1450,19 +1684,33 @@ const ProductionOrderRow = ({
                       className="table-cell text-center align-middle"
                     >
                       <div
-                        className={`status-badge-aux gap-2 ${getStatusBadgeClass(detail?.status)}`}
+                        className={`gap-2 w-100 ${
+                          !isProcessEnabled(process)
+                            ? 'status-badge-aux-no-place badge-status-disabled-aux'
+                            : `${getStatusBadgeClass(getProcessStatus(process, detail))} status-badge-aux`
+                        }`}
                       >
-                        {detail?.status === 'Pendiente' ? (
+                        {!isProcessEnabled(process) ? (
                           <span
-                            className="font-inter text-center"
+                            className="font-inter text-center px-2"
                             style={{
                               fontSize: '11px',
                               color: '#64748B',
                               lineHeight: '1',
                             }}
+                          >
+                            -
+                          </span>
+                        ) : detail?.status === 'Pendiente' ? (
+                          <span
+                            className="font-inter text-center"
+                            style={{
+                              fontSize: '13px',
+                              padding: '1px',
+                            }}
                             title="El proceso aún no ha sido aprobado por Gerencia"
                           >
-                            Pendiente de aprobación
+                            PENDIENTE
                           </span>
                         ) : (
                           <input
@@ -1477,6 +1725,7 @@ const ProductionOrderRow = ({
                               fontSize: '14px',
                               color: '#334155',
                             }}
+                            disabled={!formData.production_place}
                           />
                         )}
 

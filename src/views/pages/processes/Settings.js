@@ -23,6 +23,8 @@ const Settings = ({ process, onChangeView, errors, setting, models }) => {
   const [catalogsData, setCatalogsData] = useState({})
   const [validated, setValidated] = useState({})
 
+  console.log(models)
+
   const getCatalog = async (key, params = {}) => {
     try {
       const url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url
@@ -187,7 +189,7 @@ const Settings = ({ process, onChangeView, errors, setting, models }) => {
 
     return getSingleValue(path) ?? defaultValue
   }
-  
+
   return (
     <div className="animate-fade-in">
       <CCard className="mb-4 p-3 shadow-sm border-0">

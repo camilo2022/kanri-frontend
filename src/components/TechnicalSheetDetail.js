@@ -588,6 +588,7 @@ export const TechnicalSheetDetail = ({
                               checked={
                                 details?.[process?.id]?.settings?.dinamic?.insert_values || false
                               }
+                              disabled={details?.[process.id]?.status === 'Pendiente'}
                               onChange={(e) =>
                                 setDetails((prev) => ({
                                   ...prev,
@@ -604,8 +605,9 @@ export const TechnicalSheetDetail = ({
                                 }))
                               }
                               disabled={
-                                !details?.[process?.id]?.settings?.dinamic?.body?.length &&
-                                !details?.[process?.id]?.settings?.dinamic?.header?.length
+                                (!details?.[process?.id]?.settings?.dinamic?.body?.length &&
+                                  !details?.[process?.id]?.settings?.dinamic?.header?.length) ||
+                                details?.[process.id]?.status === 'Pendiente'
                               }
                             />
                           </div>
@@ -626,7 +628,10 @@ export const TechnicalSheetDetail = ({
                                       type="button"
                                       className="btn-update-structure font-inter d-flex align-items-center gap-2"
                                       onClick={() => handleChangeStructure(process.id, 'dinamic')}
-                                      disabled={equalDinamic}
+                                      disabled={
+                                        equalDinamic ||
+                                        details?.[process.id]?.status === 'Pendiente'
+                                      }
                                     >
                                       <RefreshCcw size={15} className="icon-load" />
                                       <span className="small fw-semibold">
@@ -643,7 +648,9 @@ export const TechnicalSheetDetail = ({
                                     onClick={() =>
                                       console.log('Actualizando estructura de:', process.id)
                                     }
-                                    disabled={equalDinamic}
+                                    disabled={
+                                      equalDinamic || details?.[process.id]?.status === 'Pendiente'
+                                    }
                                   >
                                     <RefreshCcw size={15} className="icon-load" />
                                     <span className="small fw-semibold">Actualizar estructura</span>
@@ -787,8 +794,9 @@ export const TechnicalSheetDetail = ({
                                 }))
                               }
                               disabled={
-                                !details?.[process?.id]?.settings?.static?.body?.length &&
-                                !details?.[process?.id]?.settings?.static?.header?.length
+                                (!details?.[process?.id]?.settings?.static?.body?.length &&
+                                  !details?.[process?.id]?.settings?.static?.header?.length) ||
+                                details?.[process.id]?.status === 'Pendiente'
                               }
                             />
                           </div>
@@ -809,7 +817,9 @@ export const TechnicalSheetDetail = ({
                                       type="button"
                                       className="btn-update-structure font-inter d-flex align-items-center gap-2"
                                       onClick={() => handleChangeStructure(process.id, 'static')}
-                                      disabled={equalStatic}
+                                      disabled={
+                                        equalStatic || details?.[process.id]?.status === 'Pendiente'
+                                      }
                                     >
                                       <RefreshCcw size={15} className="icon-load" />
                                       <span className="small fw-semibold">
@@ -826,7 +836,9 @@ export const TechnicalSheetDetail = ({
                                     onClick={() =>
                                       console.log('Actualizando estructura de:', process.id)
                                     }
-                                    disabled={equalStatic}
+                                    disabled={
+                                      equalStatic || details?.[process.id]?.status === 'Pendiente'
+                                    }
                                   >
                                     <RefreshCcw size={15} className="icon-load" />
                                     <span className="small fw-semibold">Actualizar estructura</span>
@@ -880,6 +892,7 @@ export const TechnicalSheetDetail = ({
                             setSubprocesses(process.subprocesses || {})
                             setAddSubprocess(true)
                           }}
+                          disabled={details?.[process.id]?.status === 'Pendiente'}
                         >
                           <Plus size={16} /> Agregar Subproceso
                         </CButton>
