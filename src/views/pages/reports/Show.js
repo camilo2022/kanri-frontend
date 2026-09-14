@@ -53,7 +53,9 @@ export const Show = ({
   statusses_process,
   destinations,
   data,
+  setData,
   data_fields,
+  setDataFields,
 }) => {
   const user_active = useSelector((state) => state.user)
 
@@ -290,46 +292,35 @@ export const Show = ({
         fields: [...selectedFields]
           .sort((a, b) => a.order - b.order)
           .map((field) => {
+            console.log(field)
             const display = field.displayValue ?? field.display?.default
             const type = field.display?.type
 
+            const result = {
+              data_key: field.data_key,
+            }
+
             if (type === 'relation') {
               if (display === 'code_name') {
-                return {
-                  data_key: field.data_key,
-                  display: display,
-                }
-              }
-
-              return {
-                data_key: `${field.data_key}.${display}`,
+                result.display = display
+              } else {
+                result.data_key = `${field.data_key}.${display}`
               }
             }
 
             if (type === 'date') {
-              return {
-                data_key: field.data_key,
-                format: display,
-              }
+              result.format = display
             }
 
             if (type === 'boolean') {
-              return {
-                data_key: field.data_key,
-                format: display,
-              }
+              result.format = display
             }
 
-            if (field.relation !== null) {
-              return {
-                data_key: field.data_key,
-                relation: field.relation,
-              }
+            if (field.relations) {
+              result.key = field.groupKey
             }
 
-            return {
-              data_key: field.data_key,
-            }
+            return result
           }),
 
         filters: Object.entries(selectedFilters).reduce((acc, [key, values]) => {
@@ -352,6 +343,8 @@ export const Show = ({
           return acc
         }, {}),
       }
+
+      console.log(payload)
 
       await generateReport(selectedReport.value, payload)
 
@@ -379,36 +372,31 @@ export const Show = ({
             const display = field.displayValue ?? field.display?.default
             const type = field.display?.type
 
+            const result = {
+              data_key: field.data_key,
+            }
+
             if (type === 'relation') {
               if (display === 'code_name') {
-                return {
-                  data_key: field.data_key,
-                  display: display,
-                }
-              }
-
-              return {
-                data_key: `${field.data_key}.${display}`,
+                result.display = display
+              } else {
+                result.data_key = `${field.data_key}.${display}`
               }
             }
 
             if (type === 'date') {
-              return {
-                data_key: field.data_key,
-                format: display,
-              }
+              result.format = display
             }
 
             if (type === 'boolean') {
-              return {
-                data_key: field.data_key,
-                format: display,
-              }
+              result.format = display
             }
 
-            return {
-              data_key: field.data_key,
+            if (field.relations) {
+              result.key = field.groupKey
             }
+
+            return result
           }),
 
         filters: Object.entries(selectedFilters).reduce((acc, [key, values]) => {
@@ -586,6 +574,8 @@ export const Show = ({
 
           const data = response.data?.data?.[groupKey] ?? response.data?.[groupKey] ?? []
 
+          console.log(data)
+
           const fields = data.reduce((acc, item) => {
             acc[item.id] = {
               label: formatLabel(item.name),
@@ -593,7 +583,7 @@ export const Show = ({
               dynamic_id: item.id,
               data_key: `${item.id}_${formatLabel(item.name)}`,
               display: group.display,
-              relation: group.relation,
+              relations: group.relations ? true : false,
             }
 
             return acc
@@ -685,6 +675,31 @@ export const Show = ({
     }
 
     return getCatalogOptions(item, key)
+  }
+
+  const changeReport = async () => {
+    const result = await Swal.fire({
+      title: 'Cambiar Reporte',
+      html: `<div style="font-size:16px;"> <strong>Atención:</strong> al cambiar de reporte, se perderán los filtros y la información actualmente generada. <br /><br /> Si deseas conservar esta información, puedes descargar el reporte en Excel antes de continuar. <br /><br /> <strong>¿Deseas continuar?</strong> </div>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, cambiar',
+      cancelButtonText: 'Cancelar',
+    })
+    if (!result.isConfirmed) {
+      Toast.fire({
+        icon: 'error',
+        title: 'Acción cancelada',
+      })
+      return false
+    }
+    setSelectedReport(null)
+    setSelectedFields([])
+    setSelectedFilters({})
+    setData()
+    setDataFields()
   }
 
   return (
@@ -1624,7 +1639,7 @@ export const Show = ({
                         <table
                           className="table align-middle mb-0"
                           style={{
-                            tableLayout: 'fixed',
+                            tableLayout: 'auto',
                             width: 'max-content',
                             minWidth: '100%',
                             borderCollapse: 'separate',
@@ -1676,7 +1691,13 @@ export const Show = ({
                                 <th
                                   key={index}
                                   className="text-center align-middle"
-                                  style={{ ...thStyle, width: '160px', minWidth: '160px' }}
+                                  style={{
+                                    ...thStyle,
+                                    width: 'auto',
+                                    minWidth: '60px',
+                                    maxWidth: '160px',
+                                    padding: '12px 10px',
+                                  }}
                                 >
                                   {field}
                                 </th>
@@ -1687,7 +1708,11 @@ export const Show = ({
                             {data.map((row, index) => (
                               <tr key={index}>
                                 {data_fields.map((field) => {
-                                  const value = row[field] ?? '-'
+                                  const cell = row[field] ?? {}
+                                  const value = cell.value ?? '-'
+                                  const styles = cell.style ?? {}
+                                  console.log(field, styles)
+
                                   const selectedField = selectedFields.find(
                                     (item) => item.label === field,
                                   )
@@ -1696,28 +1721,21 @@ export const Show = ({
                                     selectedField?.groupLabel === 'Procesos' ||
                                     selectedField?.label === 'Estado'
 
-                                  const styles = isProcess
-                                    ? (selectedFields.find((item) => item.label === field).display
-                                        ?.styles?.[value] ?? {
-                                        background: '#F1F5F9',
-                                        color: '#64748B',
-                                        borderLeft: '4px solid #94A3B8',
-                                      })
-                                    : null
-
                                   return (
                                     <td
                                       key={field.data_key}
                                       className="table-cell"
                                       style={{
-                                        backgroundColor: styles?.background,
-                                        color: styles?.color,
-                                        borderLeft: styles?.borderLeft,
+                                        backgroundColor: styles.background,
+                                        color: styles.color,
+                                        borderLeft: styles.borderLeft,
                                       }}
                                     >
                                       <div className="d-flex align-items-center justify-content-center h-100">
                                         <span className="font-inter text-center table-input">
-                                          {isProcess ? value.toUpperCase() : value}
+                                          {isProcess && typeof value === 'string'
+                                            ? value.toUpperCase()
+                                            : value}
                                         </span>
                                       </div>
                                     </td>

@@ -238,16 +238,6 @@ const ReportColumnsModal = ({
 
   console.log(availableFields)
 
-  useEffect(() => {
-    if (availableFields && typeof availableFields === 'object') {
-      const keys = Object.keys(availableFields)
-
-      if (keys.length > 0) {
-        setActiveGroup(keys)
-      }
-    }
-  }, [availableFields])
-
   const toggleGroup = (groupKey) => {
     setActiveGroup((prev) => {
       if (prev.includes(groupKey)) {
@@ -321,12 +311,13 @@ const ReportColumnsModal = ({
         groupLabel,
         order: prev.length + 1,
         displayValue: field.display?.default ?? field.display?.styles ?? null,
-        relation: field.relation ?? null,
+        relations: field.relations ?? false,
       },
     ])
   }
 
-  const handleToggleGroupFields = (groupFields) => {
+  const handleToggleGroupFields = (groupFields, groupKey) => {
+    console.log(groupFields, groupKey)
     const groupItems = Object.values(groupFields.fields || {})
 
     const groupKeys = new Set(groupItems.map((field) => field.data_key))
@@ -353,12 +344,18 @@ const ReportColumnsModal = ({
 
       const newFields = groupItems
         .filter((field) => !existingKeys.has(field.data_key))
-        .map((field, index) => ({
-          ...field,
-          groupLabel: groupFields.label,
-          order: prev.length + index + 1,
-          displayValue: field.display?.default ?? null,
-        }))
+        .map((field, index) => {
+          console.log(field)
+
+          return {
+            ...field,
+            groupKey,
+            groupLabel: groupFields.label,
+            order: prev.length + index + 1,
+            displayValue: field.display?.default ?? null,
+            relations: field.relations ?? false,
+          }
+        })
       return [...prev, ...newFields]
     })
   }
@@ -538,7 +535,7 @@ const ReportColumnsModal = ({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleToggleGroupFields(groupFields)
+                              handleToggleGroupFields(groupFields, groupKey)
                             }}
                             style={{
                               width: '18px',

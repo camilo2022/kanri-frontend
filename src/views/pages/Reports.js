@@ -128,7 +128,9 @@ const Reports = () => {
             generateReport={generateReport}
             exportReport={exportReport}
             data={data}
+            setData={setData}
             data_fields={dataFields}
+            setDataFields={setDataFields}
           />
         )
     }
