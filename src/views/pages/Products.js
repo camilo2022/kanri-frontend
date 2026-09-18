@@ -20,6 +20,7 @@ const Products = () => {
   const [trademarks, setTrademarks] = useState({})
   const [categories, setCategories] = useState({})
   const [subcategories, setSubcategories] = useState({})
+  const [process, setProcess] = useState({})
   const [product, setProduct] = useState({})
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -28,11 +29,15 @@ const Products = () => {
   useEffect(() => {
     setLoading(true)
     setProduct('')
+    console.log(view)
     if (view.name === 'edit' && view.product?.id) {
       findProduct(view.product.id)
     }
     if (view.name === 'technical_sheet' && view.product?.id) {
       findProduct(view.product.id)
+    }
+    if (view.name === 'technical_sheet' && view.process?.id) {
+      findProcess(view.process.id)
     }
     if (view.name === 'list') {
       dispatch({ type: 'set', action: 'Listar Productos' })
@@ -72,6 +77,7 @@ const Products = () => {
           ? response.data.processes.map((process) => ({
               label: process.name.charAt(0).toUpperCase() + process.name.slice(1).toLowerCase(),
               key: `technical_sheet_detail_${process.id}`,
+              id: process.id,
             }))
           : [],
       )
@@ -173,6 +179,17 @@ const Products = () => {
     }
   }
 
+  const findProcess = async (process_id) => {
+    try {
+      const response = await ProcessesService.find(process_id)
+      console.log(response)
+      setProcess(response.data.process)
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+
   const renderView = () => {
     switch (view.name) {
       case 'create':
@@ -203,7 +220,9 @@ const Products = () => {
         )
 
       case 'technical_sheet':
-        return <TechnicalSheets product_id={product.id} action={view.action} />
+        return (
+          <TechnicalSheets product_id={product.id} action={view.action} process_id={process.id} />
+        )
 
       case 'transformation':
         return (

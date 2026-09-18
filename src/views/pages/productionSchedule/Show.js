@@ -81,6 +81,8 @@ const ProductionSchedule = ({ schedule, processes }) => {
   const getDayStats = (day) => {
     const orders = new Set()
     let units = 0
+    let units_satelite = 0
+    let units_bless = 0
 
     day.garmentTypes.forEach((garmentType) => {
       garmentType.items.forEach((item) => {
@@ -90,10 +92,43 @@ const ProductionSchedule = ({ schedule, processes }) => {
 
         orders.add(productionOrder.id)
 
+        const total_satelite =
+          productionOrder.production_place === 'SATELITE'
+            ? productionOrder.production_order_details
+                ?.filter((detail) => detail.model_type === 'App\\Models\\Product')
+                .reduce((acc, detail) => {
+                  console.log(detail)
+                  return (
+                    acc +
+                    (detail.production_order_detail_quantities || []).reduce(
+                      (sum, quantity) => sum + Number(quantity.quantity || 0),
+                      0,
+                    )
+                  )
+                }, 0) || 0
+            : 0
+
+        const total_bless =
+          productionOrder.production_place === 'BLESS'
+            ? productionOrder.production_order_details
+                ?.filter((detail) => detail.model_type === 'App\\Models\\Product')
+                .reduce((acc, detail) => {
+                  console.log(detail)
+                  return (
+                    acc +
+                    (detail.production_order_detail_quantities || []).reduce(
+                      (sum, quantity) => sum + Number(quantity.quantity || 0),
+                      0,
+                    )
+                  )
+                }, 0) || 0
+            : 0
+
         const total =
           productionOrder.production_order_details
             ?.filter((detail) => detail.model_type === 'App\\Models\\Product')
             .reduce((acc, detail) => {
+              console.log(detail)
               return (
                 acc +
                 (detail.production_order_detail_quantities || []).reduce(
@@ -103,13 +138,19 @@ const ProductionSchedule = ({ schedule, processes }) => {
               )
             }, 0) || 0
 
+        console.log(total, total_satelite)
+
         units += total
+        units_satelite += total_satelite
+        units_bless += total_bless
       })
     })
 
     return {
       orders: orders.size,
       units,
+      units_satelite,
+      units_bless,
     }
   }
 
@@ -117,6 +158,8 @@ const ProductionSchedule = ({ schedule, processes }) => {
     <div className="production-dashboard">
       {schedule.map((day) => {
         const stats = getDayStats(day)
+
+        console.log(stats)
 
         return (
           <section key={day.date} className="schedule-section">
@@ -140,6 +183,20 @@ const ProductionSchedule = ({ schedule, processes }) => {
                 <div className="schedule-summary-item">
                   <span>UNIDADES</span>
                   <strong>{stats.units.toLocaleString('es-CO')}</strong>
+                </div>
+
+                <div className="schedule-summary-divider" />
+
+                <div className="schedule-summary-item">
+                  <span>SATÉLITE</span>
+                  <strong>{stats.units_satelite.toLocaleString('es-CO')}</strong>
+                </div>
+
+                <div className="schedule-summary-divider" />
+
+                <div className="schedule-summary-item">
+                  <span>BLESS</span>
+                  <strong>{stats.units_bless.toLocaleString('es-CO')}</strong>
                 </div>
               </div>
             </div>
@@ -265,6 +322,7 @@ const ProcessCell = ({ items }) => {
   return (
     <div className="process-items w-100">
       {items.map((item) => {
+        console.log(item)
         const productionOrder = item.production_order
 
         if (!productionOrder) return null
@@ -285,7 +343,19 @@ const ProcessCell = ({ items }) => {
             }, 0) || 0
 
         return (
-          <div key={item.detail.id} className="production-card">
+          <div
+            key={item.detail.id}
+            className="production-card"
+            style={{
+              borderLeft:
+                item.production_order.production_place === 'SATELITE'
+                  ? '4px solid #1417db'
+                  : '4px solid #e02d15',
+
+              '--hover-color':
+                item.production_order.production_place === 'SATELITE' ? '#1417db' : '#e02d15',
+            }}
+          >
             <div className="production-card-main">
               <span className="production-card-reference">{reference}</span>
 

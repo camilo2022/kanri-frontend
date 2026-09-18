@@ -8,6 +8,7 @@ import { Save } from 'lucide-react'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
 import { useDispatch } from 'react-redux'
+import { useRef } from 'react'
 
 const ManagementCollectionTechnicalSheet = ({
   technical_sheets,
@@ -33,6 +34,8 @@ const ManagementCollectionTechnicalSheet = ({
   const [rechangeModal, setRechangeModal] = useState(false)
   const [selectedSheet, setSelectedSheet] = useState(null)
   const [inf, setInf] = useState(null)
+
+  const tableRef = useRef(null)
 
   const handleOpenModal = (sheet) => {
     setSelectedSheet(sheet)
@@ -226,9 +229,16 @@ const ManagementCollectionTechnicalSheet = ({
     }, {})
   }, [subcategories])
 
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      tableRef.current?.getBoundingClientRect()
+    })
+  }, [technical_sheets.length])
+
   return (
     <>
       <table
+        ref={tableRef}
         className="table align-middle mb-0"
         style={{
           tableLayout: 'fixed',

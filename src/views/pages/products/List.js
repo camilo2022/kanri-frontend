@@ -34,6 +34,7 @@ import {
   ClipboardList,
   FileDown,
   Recycle,
+  ChartNetwork,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
 import { Toast } from '@/components/Toast'
@@ -41,6 +42,7 @@ import { useSelector } from 'react-redux'
 import { tableSelectStyles } from '@/components/StyleManagementCollection'
 import Select from 'react-select'
 import ProductionOrders from '../ProductionOrders'
+import { createPortal } from 'react-dom'
 
 export const List = ({ data, processes, loading, fetchProducts, onChangeView, errors, status }) => {
   const user_active = useSelector((state) => state.user)
@@ -60,6 +62,9 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
   const [selectedStatus, setSelectedStatus] = useState(null)
   const [selectedDetail, setSelectedDetail] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null)
+
+  const [showProcessMenu, setShowProcessMenu] = useState(null)
+  const [processMenuPosition, setProcessMenuPosition] = useState(null)
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -126,6 +131,40 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
     }
   }
 
+  const handleShowProcessMenu = (productId, event) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+
+    const menuWidth = 230
+    const menuHeight = Math.min(processes.length * 42 + 12, 350)
+    const gap = 6
+
+    let top = rect.bottom + gap
+    let left = rect.left
+
+    if (top + menuHeight > window.innerHeight - 10) {
+      top = rect.top - menuHeight - gap
+    }
+
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10
+    }
+
+    if (left < 10) {
+      left = 10
+    }
+
+    if (showProcessMenu !== null) {
+      setShowProcessMenu(null)
+    } else {
+      setShowProcessMenu(productId)
+    }
+
+    setProcessMenuPosition({
+      top,
+      left,
+    })
+  }
+
   const formattedData = data?.products?.map((product) => {
     const details =
       product.technical_sheet?.technical_sheet_details?.reduce((acc, detail) => {
@@ -140,6 +179,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
       group: product.trademark?.group[0]?.name || '-',
       category: product.subcategory?.category[0]?.name || '-',
       subcategory: product.subcategory?.name || '-',
+      technical_sheet_code: product.technical_sheet?.code ? product.technical_sheet?.code : '-',
       technical_sheet_consecutive: product.technical_sheet?.consecutive
         ? product.technical_sheet?.consecutive
         : '-',
@@ -224,7 +264,17 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
                   !user_active?.permissions.some((p) => p.name === 'products.update') ||
                   !product.original
                 }
-                onClick={() => setShowEditMenu(showEditMenu === product.id ? null : product.id)}
+                onClick={() => {
+                  if (showEditMenu === product.id) {
+                    setShowEditMenu(null)
+                    setShowProcessMenu(null)
+                    setProcessMenuPosition(null)
+                  } else {
+                    setShowEditMenu(product.id)
+                    setShowProcessMenu(null)
+                    setProcessMenuPosition(null)
+                  }
+                }}
               >
                 <Pencil size={18} strokeWidth={1.5} />
               </button>
@@ -246,24 +296,77 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
                   <span>Editar producto</span>
                 </button>
                 {!!product.technical_sheet && (
-                  <button
-                    className="edit-menu-item"
-                    onClick={() => {
-                      setShowEditMenu(null)
-                      onChangeView({
-                        name: 'technical_sheet',
-                        title: 'Editar Ficha Técnica',
-                        product: product,
-                        action: 'edit_technical_sheet',
-                      })
-                    }}
-                  >
-                    <FileText size={16} />
-                    <span>Editar ficha técnica</span>
-                  </button>
+                  <>
+                    <button
+                      className="edit-menu-item"
+                      onClick={() => {
+                        setShowEditMenu(null)
+                        onChangeView({
+                          name: 'technical_sheet',
+                          title: 'Editar Ficha Técnica',
+                          product: product,
+                          action: 'edit_technical_sheet',
+                        })
+                      }}
+                    >
+                      <FileText size={16} />
+                      <span>Editar ficha técnica</span>
+                    </button>
+                    <button
+                      className="edit-menu-item process-menu-trigger"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        handleShowProcessMenu(product.id, event)
+                      }}
+                    >
+                      <ChartNetwork size={16} />
+                      <span>Editar proceso</span>
+                      <ChevronRight size={14} className="ms-auto" />
+                    </button>
+                  </>
                 )}
               </div>
             )}
+            {showProcessMenu === product.id &&
+              processMenuPosition &&
+              createPortal(
+                <div
+                  className="process-submenu"
+                  style={{
+                    position: 'fixed',
+                    top: `${processMenuPosition.top}px`,
+                    left: `${processMenuPosition.left}px`,
+                    zIndex: 999999999,
+                  }}
+                >
+                  {processes.map((process, index) => (
+                    <button
+                      key={process.key ?? process.id ?? index}
+                      className="process-submenu-item"
+                      onClick={(event) => {
+                        event.stopPropagation()
+
+                        setShowProcessMenu(null)
+                        setProcessMenuPosition(null)
+                        setShowEditMenu(null)
+
+                        onChangeView({
+                          name: 'technical_sheet',
+                          title: `Editar Proceso ${process.label}`,
+                          product: product,
+                          process: process,
+                          action: 'edit_process',
+                        })
+                      }}
+                    >
+                      <span className="process-number">{index + 1}</span>
+                      {console.log(process)}
+                      <span>{process.label}</span>
+                    </button>
+                  ))}
+                </div>,
+                document.body,
+              )}
           </div>
           <CTooltip content="Agregar Ficha Tecnica" placement="top">
             <button
@@ -424,6 +527,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
     {
       title: 'Información de la Ficha Técnica',
       columns: [
+        { key: 'technical_sheet_code', label: 'Código' },
         { key: 'technical_sheet_consecutive', label: 'Consecutivo' },
         { key: 'technical_sheet_collection', label: 'Colección' },
         { key: 'technical_sheet_photo_d', label: 'Foto Delantera' },
@@ -478,6 +582,29 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
     }
   }
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!showEditMenu && !showProcessMenu) return
+
+      const clickedInsideMenu =
+        event.target.closest('.edit-menu') ||
+        event.target.closest('.process-submenu') ||
+        event.target.closest('.edit-btn')
+
+      if (!clickedInsideMenu) {
+        setShowEditMenu(null)
+        setShowProcessMenu(null)
+        setProcessMenuPosition(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEditMenu, showProcessMenu])
+
   return (
     <>
       <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
@@ -524,7 +651,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
             </tr>
             <tr>
               {columns.map((column, index) => (
-                <th key={index} className={index === 5 || index === 12 ? 'group-divider' : ''}>
+                <th key={index} className={index === 5 || index === 14 ? 'group-divider' : ''}>
                   {column.label}
                 </th>
               ))}
@@ -562,7 +689,7 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
                     return (
                       <td
                         key={column.key}
-                        className={colIndex === 5 || colIndex === 12 ? 'group-divider' : ''}
+                        className={colIndex === 5 || colIndex === 14 ? 'group-divider' : ''}
                       >
                         {isProcess ? (
                           <div className={`status-badge ${getProcessClass(item[column.key])}`}>

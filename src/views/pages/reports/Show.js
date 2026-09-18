@@ -1,40 +1,36 @@
 import api from '../../../API/api'
 import { getConfig } from '../../../axiosConfig'
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
-import { CCard, CSpinner, CButton, CFormLabel, CBadge, CRow, CCol, CFormInput } from '@coreui/react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
+import { CCard, CSpinner, CButton, CFormLabel, CBadge } from '@coreui/react'
 import {
   FileChartColumn,
   ArrowDownUp,
   Filter,
-  FolderKanban,
   FileCog,
   Settings2,
-  Layers,
   Info,
   SlidersHorizontal,
-  ArrowRight,
-  CheckCircle2,
   AlertCircle,
-  Columns3,
-  Eye,
   X,
   Plus,
   FileSpreadsheet,
   Download,
   LoaderCircle,
+  ChevronRight,
 } from 'lucide-react'
 import Select from 'react-select'
 import { IoMdArrowDropright } from 'react-icons/io'
 import LoadingForm from '@/components/LoadingForm'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
-import { tableSelectStyles, selectStyles } from '@/components/StyleManagementCollection'
-import { useSelector, useDispatch } from 'react-redux'
+import { selectStyles } from '@/components/StyleManagementCollection'
+import { useSelector } from 'react-redux'
 import ReportColumnsModal from '@/components/ReportColumnsModal'
 import DatePicker, { registerLocale } from 'react-datepicker'
 import { es } from 'date-fns/locale/es'
 import 'react-datepicker/dist/react-datepicker.css'
-import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
+import { thStyle } from '@/components/StyleManagementCollection'
+import get from 'lodash/get'
 
 registerLocale('es', es)
 
@@ -46,6 +42,7 @@ export const Show = ({
   errors,
   findReport,
   report,
+  setReport,
   statusses,
   models,
   generateReport,
@@ -57,10 +54,10 @@ export const Show = ({
   data_fields,
   setDataFields,
 }) => {
+  console.log(statusses)
   const user_active = useSelector((state) => state.user)
 
   const [catalogsData, setCatalogsData] = useState({})
-  const [modelsLoaded, setModalsLoaded] = useState({})
 
   const [selectedReport, setSelectedReport] = useState(null)
   const [selectedFields, setSelectedFields] = useState([])
@@ -69,6 +66,9 @@ export const Show = ({
   const [availableFields, setAvailableFields] = useState({})
   const [visibleFilterKeys, setVisibleFilterKeys] = useState([])
   const [openFilterMenu, setOpenFilterMenu] = useState(false)
+  const [context, setContext] = useState(null)
+  const [contextSelections, setContextSelections] = useState([])
+  const [contextLevel, setContextLevel] = useState(0)
 
   const filterMenuRef = useRef(null)
 
@@ -289,6 +289,16 @@ export const Show = ({
     try {
       const payload = {
         model: report?.settings?.model ?? null,
+        ...(report?.settings?.context
+          ? {
+              model_type:
+                contextSelections?.[currentLevel]?.model_type ??
+                contextSelections?.[currentLevel]?.pivot?.model_type ??
+                null,
+
+              model_id: contextSelections?.[currentLevel]?.id ?? null,
+            }
+          : {}),
         fields: [...selectedFields]
           .sort((a, b) => a.order - b.order)
           .map((field) => {
@@ -314,6 +324,11 @@ export const Show = ({
 
             if (type === 'boolean') {
               result.format = display
+            }
+
+            if (field.groupKey === 'context') {
+              result.label = field.label
+              result.key = field.key
             }
 
             if (field.relations) {
@@ -366,9 +381,20 @@ export const Show = ({
     try {
       const payload = {
         model: report?.settings?.model ?? null,
+        ...(report?.settings?.context
+          ? {
+              model_type:
+                contextSelections?.[currentLevel]?.model_type ??
+                contextSelections?.[currentLevel]?.pivot?.model_type ??
+                null,
+
+              model_id: contextSelections?.[currentLevel]?.id ?? null,
+            }
+          : {}),
         fields: [...selectedFields]
           .sort((a, b) => a.order - b.order)
           .map((field) => {
+            console.log(field)
             const display = field.displayValue ?? field.display?.default
             const type = field.display?.type
 
@@ -390,6 +416,11 @@ export const Show = ({
 
             if (type === 'boolean') {
               result.format = display
+            }
+
+            if (field.groupKey === 'context') {
+              result.label = field.label
+              result.key = field.key
             }
 
             if (field.relations) {
@@ -474,6 +505,61 @@ export const Show = ({
       delete next[key]
       return next
     })
+  }
+
+  const hierarchy = report?.settings?.context?.hierarchy ?? []
+
+  const currentLevel = contextLevel ?? 0
+
+  const getContextOptions = (level) => {
+    const hierarchyItem = hierarchy[level]
+
+    if (!hierarchyItem) return []
+
+    if (level === 0) {
+      return context?.[hierarchyItem.data] ?? []
+    }
+
+    const parent = contextSelections[level - 1]
+
+    return parent?.[hierarchyItem.data] ?? []
+  }
+
+  const getSelectedContext = (level) => {
+    return contextSelections[level] ?? null
+  }
+
+  const handleContextChange = (level, option) => {
+    if (!option) {
+      setContextSelections((prev) => prev.slice(0, level))
+      setContextLevel(Math.max(level - 1, 0))
+      return
+    }
+
+    selectedFields.forEach((item) => console.log(item.groupKey))
+    console.log(hierarchy?.[currentLevel]?.label)
+
+    setSelectedFields((prev) =>
+      prev.filter((item) => item.groupLabel !== hierarchy?.[currentLevel]?.label),
+    )
+
+    setData([])
+    setDataFields()
+
+    setContextSelections((prev) => {
+      const updated = prev.slice(0, level)
+      updated[level] = option.data
+
+      return updated
+    })
+
+    setContextLevel(level)
+  }
+
+  console.log(contextSelections, contextLevel)
+
+  const goToContextLevel = (level) => {
+    setContextLevel(level)
   }
 
   useEffect(() => {
@@ -605,6 +691,90 @@ export const Show = ({
   }, [report])
 
   useEffect(() => {
+    if (!report) return
+
+    const formatLabel = (value) => {
+      if (!value) return ''
+
+      const text = value.toLocaleLowerCase('es-ES')
+
+      return text.charAt(0).toLocaleUpperCase('es-ES') + text.slice(1)
+    }
+
+    const contextGroup = report?.settings?.fields?.context
+
+    if (!contextGroup) return
+
+    const selectedContext = contextSelections?.[currentLevel]
+
+    if (!selectedContext) {
+      setAvailableFields((prev) => ({
+        ...prev,
+        context: {
+          ...contextGroup,
+          fields: {},
+        },
+      }))
+
+      return
+    }
+
+    const source = contextGroup?.source
+
+    console.log(source, source?.fields, source?.values)
+
+    if (!source?.fields) {
+      return
+    }
+
+    const dynamicFields = get(selectedContext, source.fields, [])
+
+    const contextLabel = hierarchy?.[currentLevel]?.label || 'Contexto'
+
+    const fields = dynamicFields.reduce((acc, item) => {
+      acc[item.field] = {
+        ...item,
+        label: formatLabel(item.label),
+        type: 'context',
+        key: item.field,
+        data_key: source?.values ? `${source.values}.${item.field}` : item.field,
+      }
+
+      return acc
+    }, {})
+
+    setAvailableFields((prev) => ({
+      ...prev,
+      context: {
+        ...contextGroup,
+        label: contextLabel,
+        fields,
+      },
+    }))
+  }, [report, contextSelections, currentLevel, hierarchy])
+
+  useEffect(() => {
+    if (!report?.settings?.context) return
+
+    const loadContext = async () => {
+      try {
+        const context = report.settings.context
+
+        const response = await api.get(context.url, {
+          ...getConfig(),
+          params: context.params || {},
+        })
+
+        setContext(response.data.data || [])
+      } catch (error) {
+        console.error('Error cargando context:', error)
+      }
+    }
+
+    loadContext()
+  }, [report])
+
+  useEffect(() => {
     if (!selectedReport) return
     findReport(selectedReport.value)
   }, [selectedReport])
@@ -696,11 +866,16 @@ export const Show = ({
       return false
     }
     setSelectedReport(null)
+    setReport(null)
     setSelectedFields([])
     setSelectedFilters({})
     setData()
     setDataFields()
   }
+
+  console.log(context)
+  console.log(availableFields)
+  console.log(contextSelections[contextLevel])
 
   return (
     <>
@@ -871,7 +1046,6 @@ export const Show = ({
                         ) : (
                           <Download size={14} />
                         )}
-
                         <span>{loading_export ? 'Generando Excel...' : 'Descargar Excel'}</span>
                       </CButton>
                     </>
@@ -882,6 +1056,7 @@ export const Show = ({
                   style={{ width: '4px', backgroundColor: '#24247f' }}
                 />
               </div>
+
               <div
                 className={`p-3 rounded-2 bg-white position-relative  ${
                   errors?.fields || errors?.filters ? 'report-config-error' : ''
@@ -891,6 +1066,225 @@ export const Show = ({
                   backgroundColor: '#F8FAFC',
                 }}
               >
+                {report?.settings?.context && hierarchy.length > 0 && (
+                  <>
+                    <div>
+                      <div className="d-flex align-items-center justify-content-between mb-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <span
+                            className="font-inter fw-semibold text-secondary"
+                            style={{ fontSize: '0.75rem' }}
+                          >
+                            ORIGEN DE LA INFORMACIÓN
+                          </span>
+
+                          {getSelectedContext(currentLevel) && (
+                            <CBadge
+                              color="primary"
+                              shape="rounded-pill"
+                              className="px-2 py-1 font-inter"
+                            >
+                              {hierarchy[currentLevel]?.label}:{' '}
+                              {getSelectedContext(currentLevel).name}
+                            </CBadge>
+                          )}
+
+                          {errors?.fields && (
+                            <div className="d-flex align-items-center gap-1 text-danger error-message">
+                              <AlertCircle size={14} />
+                              <span
+                                className="font-inter fw-semibold"
+                                style={{ fontSize: '0.7rem' }}
+                              >
+                                {errors.fields}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div
+                        className="d-flex align-items-center flex-wrap"
+                        style={{
+                          gap: '8px',
+                        }}
+                      >
+                        {Array.from({
+                          length: Math.min(currentLevel + 1, hierarchy.length),
+                        }).map((_, level) => {
+                          const hierarchyItem = hierarchy[level]
+                          const options = getContextOptions(level)
+                          const selected = getSelectedContext(level)
+
+                          const hasNextLevel = level < hierarchy.length - 1
+                          const nextLevel = hierarchy[level + 1]
+
+                          const hasChildren =
+                            selected &&
+                            nextLevel &&
+                            Array.isArray(selected[nextLevel.data]) &&
+                            selected[nextLevel.data].length > 0
+
+                          return (
+                            <React.Fragment key={hierarchyItem.key}>
+                              <div
+                                className="col-12 col-md-auto flex-grow-1"
+                                style={{ minWidth: '200px' }}
+                              >
+                                <div
+                                  className="font-inter mb-1"
+                                  style={{
+                                    fontSize: '0.68rem',
+                                    color: '#94A3B8',
+                                    fontWeight: 600,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.04em',
+                                  }}
+                                >
+                                  {hierarchyItem.label}
+                                </div>
+
+                                <Select
+                                  className="font-inter"
+                                  options={options.map((item) => ({
+                                    value: item.id,
+                                    label: item.name,
+                                    data: item,
+                                  }))}
+                                  value={
+                                    selected
+                                      ? {
+                                          value: selected.id,
+                                          label: selected.name,
+                                        }
+                                      : null
+                                  }
+                                  onChange={(option) => handleContextChange(level, option)}
+                                  placeholder={`Seleccionar...`}
+                                  isSearchable
+                                  isClearable
+                                  menuPortalTarget={document.body}
+                                  menuPosition="fixed"
+                                  styles={{
+                                    control: (base, state) => ({
+                                      ...base,
+                                      minHeight: '36px',
+                                      height: '36px',
+                                      fontSize: '0.78rem',
+                                      borderColor:
+                                        level === currentLevel && state.hasValue
+                                          ? '#24247F'
+                                          : '#DBDFE6',
+                                      boxShadow: 'none',
+                                      borderRadius: '7px',
+                                      backgroundColor: '#FFFFFF',
+                                      '&:hover': {
+                                        borderColor: '#1857b6',
+                                        boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                                      },
+                                    }),
+
+                                    valueContainer: (base) => ({
+                                      ...base,
+                                      height: '36px',
+                                      padding: '0 9px',
+                                    }),
+
+                                    indicatorsContainer: (base) => ({
+                                      ...base,
+                                      height: '36px',
+                                    }),
+
+                                    singleValue: (base) => ({
+                                      ...base,
+                                      color: '#334155',
+                                      fontWeight: 600,
+                                    }),
+
+                                    placeholder: (base) => ({
+                                      ...base,
+                                      color: '#94A3B8',
+                                      fontWeight: 500,
+                                    }),
+
+                                    menuPortal: (base) => ({
+                                      ...base,
+                                      zIndex: 99999,
+                                    }),
+
+                                    menu: (base) => ({
+                                      ...base,
+                                      zIndex: 99999,
+                                      fontSize: '0.78rem',
+                                      border: '1px solid #E2E8F0',
+                                      boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12)',
+                                      borderRadius: '7px',
+                                      overflow: 'hidden',
+                                      fontFamily: 'Inter',
+                                    }),
+
+                                    menuList: (base) => ({
+                                      ...base,
+                                      padding: '4px',
+                                    }),
+
+                                    option: (base, state) => ({
+                                      ...base,
+                                      fontSize: '0.78rem',
+                                      borderRadius: '5px',
+                                      cursor: 'pointer',
+                                      backgroundColor: state.isFocused ? '#F1F5F9' : '#FFFFFF',
+                                      color: '#334155',
+                                    }),
+                                  }}
+                                />
+                              </div>
+
+                              {/* FLECHA */}
+                              {hasNextLevel && hasChildren && (
+                                <button
+                                  type="button"
+                                  className="border-0 d-flex align-items-center justify-content-center flex-shrink-0"
+                                  style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    padding: 0,
+                                    marginTop: '19px',
+                                    borderRadius: '6px',
+                                    backgroundColor: '#F8FAFC',
+                                    border: '1px solid #E2E8F0',
+                                    color: '#24247F',
+                                    cursor: 'pointer',
+                                    transition: 'all .2s ease',
+                                  }}
+                                  title={`Seleccionar ${nextLevel.label.toLowerCase()}`}
+                                  onClick={() => goToContextLevel(level + 1)}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#EEF2FF'
+                                    e.currentTarget.style.borderColor = '#C7D2FE'
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#F8FAFC'
+                                    e.currentTarget.style.borderColor = '#E2E8F0'
+                                  }}
+                                >
+                                  <ChevronRight size={15} />
+                                </button>
+                              )}
+                            </React.Fragment>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    <div
+                      className="my-3"
+                      style={{
+                        borderTop: '1px solid #E2E8F0',
+                      }}
+                    />
+                  </>
+                )}
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <div className="d-flex align-items-center gap-2">
@@ -924,11 +1318,11 @@ export const Show = ({
                         </div>
                       )}
                     </div>
-
                     <CButton
                       size="sm"
                       className="report-config-button d-flex align-items-center gap-2 px-3 py-1"
                       onClick={() => setOpenColumnsModal(true)}
+                      disabled={!!report?.settings?.context && !contextSelections?.[currentLevel]}
                     >
                       <Settings2 size={15} />
                       Configurar Columnas
@@ -939,7 +1333,9 @@ export const Show = ({
                     {selectedFields?.length > 0 ? (
                       selectedFields.map((field) => {
                         const isNew = newFieldLabels.has(field.label) && !!data_fields
-
+                        console.log(selectedFields)
+                        console.log(newFieldLabels)
+                        console.log(data_fields)
                         return (
                           <div
                             key={field.data_key}
@@ -1036,6 +1432,7 @@ export const Show = ({
                         size="sm"
                         className="report-config-button d-flex align-items-center gap-2 px-3 py-1"
                         onClick={() => setOpenFilterMenu((prev) => !prev)}
+                        disabled={!!report?.settings?.context && !contextSelections?.[currentLevel]}
                       >
                         <SlidersHorizontal size={15} />
                         Configurar Filtros
@@ -1216,6 +1613,9 @@ export const Show = ({
                                 onChange={(selectedOptions) =>
                                   handleFilterChange(key, selectedOptions)
                                 }
+                                isDisabled={
+                                  !!report?.settings?.context && !contextSelections?.[currentLevel]
+                                }
                                 placeholder="Seleccione..."
                                 isMulti
                                 isClearable
@@ -1384,6 +1784,9 @@ export const Show = ({
                                 value={getSelectedOptions(item, key)}
                                 onChange={(selectedOptions) =>
                                   handleFilterChange(key, selectedOptions)
+                                }
+                                isDisabled={
+                                  !!report?.settings?.context && !contextSelections?.[currentLevel]
                                 }
                                 placeholder="Seleccione..."
                                 isMulti

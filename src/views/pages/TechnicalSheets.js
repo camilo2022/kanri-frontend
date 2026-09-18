@@ -21,10 +21,12 @@ import EmployeesService from '../../services/employees.service'
 import TechnicalSheetDetailService from '../../services/technical_sheet_detail.service'
 import Create from './technicalSheets/Create'
 import Edit from './technicalSheets/Edit'
+import EditProcess from './technicalSheets/processes/Edit'
 import Products from './Products'
 import CreateTransformation from './technicalSheets/productionOrder/transformations/Create'
 
-const TechnicalSheet = ({ product_id, action }) => {
+const TechnicalSheet = ({ product_id, action, process_id = null }) => {
+  console.log(process_id)
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: action })
   const [product, setProduct] = useState(null)
@@ -39,6 +41,7 @@ const TechnicalSheet = ({ product_id, action }) => {
   const [waistbandTypes, setWaistbandTypes] = useState(null)
   const [employees, setEmployees] = useState(null)
   const [processes, setProcesses] = useState(null)
+  const [process, setProcess] = useState(null)
   const [supplyTypes, setSupplyTypes] = useState(null)
   const [supplies, setSupplies] = useState(null)
   const [models, setModels] = useState(null)
@@ -58,6 +61,12 @@ const TechnicalSheet = ({ product_id, action }) => {
     fetchProcesses({ in_technical_sheet: true })
     if (view.name === 'edit_technical_sheet') {
       findTechnicalSheet({ product_id })
+      fetchSupplyTypes()
+    }
+    console.log(view.name, process_id, view.name === 'edit_process' && process_id !== null)
+    if (view.name === 'edit_process' && process_id !== null) {
+      findTechnicalSheet({ product_id })
+      findProcess(process_id)
       fetchSupplyTypes()
     }
     if (view.name === 'create_technical_sheet') {
@@ -492,6 +501,19 @@ const TechnicalSheet = ({ product_id, action }) => {
     }
   }
 
+  const findProcess = async (process_id) => {
+    try {
+      const response = await ProcessesService.find(process_id)
+      setProcess(response.data.process)
+      console.log(response)
+      setErrors({})
+      return response
+    } catch (error) {
+      setErrors(error.errors)
+      throw error
+    }
+  }
+
   const renderView = () => {
     switch (view.name) {
       case 'create_technical_sheet':
@@ -565,6 +587,22 @@ const TechnicalSheet = ({ product_id, action }) => {
             save={saveTechnicalSheetDetails}
             statusCollection={statusCollection}
             statusTechnical={statusTechnical}
+          />
+        )
+
+      case 'edit_process':
+        return (
+          <EditProcess
+            product={product}
+            technical_sheet={technicalSheet}
+            processes={processes}
+            supplies={supplies}
+            onChangeView={changeView}
+            edit={editTechnicalSheet}
+            errors={errors}
+            models={models}
+            statusCollection={statusCollection}
+            process={process}
           />
         )
 

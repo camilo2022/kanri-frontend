@@ -1092,9 +1092,8 @@ json-container pre {
 .sticky-actions {
   position: sticky;
   left: 0;
-  z-index: 10;
-  background: white;
-  border-bottom: 1px solid #dee2e6;
+  z-index: 2;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
 th.sticky-actions {
@@ -1445,6 +1444,7 @@ th.sticky-actions-products {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
   z-index: 9999;
   overflow: hidden;
+  padding: 6px;
 }
 
 .transfor-menu {
@@ -2645,7 +2645,6 @@ input[type='number']::-webkit-inner-spin-button {
   padding: 8px 10px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-left: 4px solid #1417db;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2655,8 +2654,7 @@ input[type='number']::-webkit-inner-spin-button {
 .production-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px -2px rgba(79, 70, 229, 0.12);
-  border-color: #c7d2fe;
-  border-left-color: #4338ca;
+  border-left-color: var(--hover-color);
 }
 
 .production-card-main {
@@ -3329,4 +3327,72 @@ input[type='number']::-webkit-inner-spin-button {
 .react-datepicker__navigation-icon::before {
   border-color: #64748b !important;
   border-width: 2px 2px 0 0 !important;
+}
+
+.process-submenu {
+  width: 180px;
+  max-height: 350px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.edit-menu-item,
+.process-submenu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.edit-menu-item:hover,
+.process-submenu-item:hover {
+  background-color: #f1f5f9;
+}
+
+.process-number {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: #f1f5f9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #24247f;
+}
+
+.process-submenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.process-submenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.process-submenu::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.process-submenu::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

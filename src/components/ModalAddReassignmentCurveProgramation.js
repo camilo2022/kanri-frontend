@@ -409,7 +409,6 @@ const ModalAddReassignmentCurveProgramation = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          console.log(selectedReference)
 
           const updatedOriginCurve = dataOrigin.map((row) => {
             const updatedSizes = {}

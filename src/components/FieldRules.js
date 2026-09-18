@@ -530,7 +530,6 @@ function FieldRules({
               }}
             >
               <option value="">Seleccione una columna</option>
-              {console.log(Object.values(structure?.body))}
               {Object.values(structure?.body)
                 .filter((val) => val.field !== element?.field)
                 .map((value) => (

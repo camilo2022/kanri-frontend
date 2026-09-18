@@ -313,7 +313,7 @@ const Show = ({
               <Pencil size={18} strokeWidth={1.5} />
             </button>
           </CTooltip>
-          {setting.deleted_at === null ? (
+          {!setting.deleted_at || setting.deleted_at === null ? (
             <CTooltip content="Desactivar" placement="top">
               <button className="action-btn delete-btn" onClick={() => handleSubmitDelete(setting)}>
                 <Trash2 size={18} strokeWidth={1.5} />

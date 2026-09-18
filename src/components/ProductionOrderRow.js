@@ -351,8 +351,6 @@ const ProductionOrderRow = ({
     return value
   }
 
-  console.log(suppliers)
-
   const handleDeleteReassignment = async () => {
     const result = await Swal.fire({
       title: 'Eliminar Reasignacion',
@@ -726,8 +724,6 @@ const ProductionOrderRow = ({
     setOpenModalChangePlace(false)
   }
 
-  console.log(formData)
-
   const getProcessLine = (startProcess) => {
     const processIds = new Set()
 
@@ -944,27 +940,19 @@ const ProductionOrderRow = ({
 
     visitBless(blessStartProcess)
 
-    console.log(exclusiveProcessIds)
-
     return exclusiveProcessIds
   }
 
   const getSatelliteStatus = (details) => {
     const exclusiveProcessIds = getBlessExclusiveProcessIds()
 
-    console.log(exclusiveProcessIds)
-
     if (exclusiveProcessIds.size === 0) {
       return 'Pendiente'
     }
 
-    console.log(details)
-
     const statuses = [...exclusiveProcessIds].map(
       (processId) => details?.find((item) => item.model_id === processId)?.status || 'Pendiente',
     )
-
-    console.log(statuses)
 
     if (statuses.some((status) => status === 'Pendiente')) {
       return 'Pendiente'

@@ -95,6 +95,25 @@ const ManagementCollectionTechnicalSheetRow = ({
         if (item !== '') {
           aux[item][field] = value
         } else {
+          if (field === 'status') {
+            const isNewSheet = String(sheetId).startsWith('temp-')
+
+            if (!isNewSheet && sheet.status !== 'Pendiente' && value === 'Pendiente') {
+              return prev
+            }
+
+            if (value !== 'Pendiente') {
+              if (!aux.code && aux.product?.code) {
+                aux.code = aux.product.code
+                aux.product.code = ''
+              }
+            } else {
+              if (aux.code) {
+                aux.product.code = aux.code
+                aux.code = ''
+              }
+            }
+          }
           aux[field] = value
         }
 
@@ -246,28 +265,40 @@ const ManagementCollectionTechnicalSheetRow = ({
 
         const details = sheetData.technical_sheet_details
 
-        const updatePreviousProcesses = (currentProcess) => {
-          if (details[currentProcess.id].status !== 'Aprobado') {
-            details[currentProcess.id] ??= {
-              model_id: currentProcess.id,
-              model_type: 'App\\Models\\Process',
-              status: '',
-              settings: currentProcess.settings?.schema || null,
-            }
+        const statusLevel = {
+          Pendiente: 0,
+          'En revision': 1,
+          Aprobado: 2,
+        }
 
+        const updatePreviousProcesses = (currentProcess, isMainProcess = false) => {
+          details[currentProcess.id] ??= {
+            model_id: currentProcess.id,
+            model_type: 'App\\Models\\Process',
+            status: '',
+            settings: currentProcess.settings?.schema || null,
+          }
+
+          const currentStatus = details[currentProcess.id].status
+
+          if (isMainProcess) {
             details[currentProcess.id].status = value
+          } else {
+            if (!currentStatus || statusLevel[value] > statusLevel[currentStatus]) {
+              details[currentProcess.id].status = value
+            }
           }
 
           currentProcess.before_processes?.forEach((previousProcess) => {
-            const detail_previus = processes.find((item) => item.id === previousProcess.id)
+            const detailPrevious = processes.find((item) => item.id === previousProcess.id)
 
-            if (detail_previus) {
-              updatePreviousProcesses(detail_previus)
+            if (detailPrevious) {
+              updatePreviousProcesses(detailPrevious)
             }
           })
         }
 
-        updatePreviousProcesses(process)
+        updatePreviousProcesses(process, true)
 
         const statuses = Object.values(details)
           .map((detail) => detail?.status)
@@ -463,28 +494,15 @@ const ManagementCollectionTechnicalSheetRow = ({
       </td>
       <td className={getCellClass('code')}>
         <div className="d-flex align-items-center gap-2">
-          {editingField === 'code' ? (
-            <CFormInput
-              ref={(el) => (inputRefs.current.code = el)}
-              disabled={isLocked || sheet?.status === 'En Revision'}
-              type="text"
-              value={sheet?.code || ''}
-              placeholder={sheet?.code === '' ? 'Ingresar...' : ''}
-              onChange={(e) => updateSheetField('code', e.target.value.toUpperCase())}
-              className="table-input border-0 shadow-none px-2 py-1 font-inter"
-              disabled={true}
-            />
-          ) : (
-            <div
-              className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100 h-100"
-              onClick={() => {
-                if (isLocked || sheet?.status === 'En Revision') return
-                setEditingField('code')
-              }}
-            >
-              {sheet?.code || 'Ingresar...'}
-            </div>
-          )}
+          <div
+            className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100 h-100"
+            onClick={() => {
+              if (isLocked || sheet?.status === 'En Revision') return
+              setEditingField('code')
+            }}
+          >
+            {sheet?.code || '-'}
+          </div>
           {getFieldErrors('code').length > 0 && (
             <div style={{ position: 'relative' }}>
               <span
@@ -1278,9 +1296,13 @@ const ManagementCollectionTechnicalSheetRow = ({
                 ref={(el) => (inputRefs.current.status = el)}
                 isDisabled={sheet?.status === 'Aprobado' || sheet?.status === 'En revisión'}
                 options={
-                  sheet?.status != 'Cancelado'
+                  String(sheetId).startsWith('temp-')
                     ? optionsStatus
-                    : [{ value: 'Pendiente', label: 'PENDIENTE' }]
+                    : sheet?.status === 'Cancelado'
+                      ? []
+                      : sheet?.status === 'Pendiente'
+                        ? optionsStatus
+                        : optionsStatus.filter((option) => option.value !== 'Pendiente')
                 }
                 value={optionsStatus.find((opt) => opt.value === sheet?.status)}
                 onChange={(selected) => {

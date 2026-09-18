@@ -48,26 +48,54 @@ const update = async (id, data) => {
   try {
     const formData = new FormData()
 
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        if (typeof value === 'object' && !(value instanceof File)) {
-          Object.entries(value).forEach(([subKey, subValue]) => {
-            formData.append(`${key}[${subKey}]`, subValue)
-          })
-        } else {
-          formData.append(key, value)
-        }
+    const appendFormData = (formData, value, key) => {
+      if (value === null || value === undefined) {
+        return
       }
+
+      if (value instanceof File) {
+        formData.append(key, value)
+        return
+      }
+
+      if (value instanceof FileList) {
+        Array.from(value).forEach((file, index) => {
+          formData.append(`${key}[${index}]`, file)
+        })
+        return
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          appendFormData(formData, item, `${key}[${index}]`)
+        })
+        return
+      }
+
+      if (typeof value === 'object') {
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          appendFormData(formData, subValue, `${key}[${subKey}]`)
+        })
+        return
+      }
+
+      formData.append(key, value)
+    }
+
+    Object.entries(data).forEach(([key, value]) => {
+      appendFormData(formData, value, key)
     })
 
     formData.append('_method', 'PUT')
 
     const response = await api.post(`/trademarks/update/${id}`, formData, getConfig())
+
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
       throw error.response.data
     }
+
     throw { message: 'Error desconocido' }
   }
 }

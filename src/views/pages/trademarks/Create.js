@@ -43,18 +43,19 @@ const Create = ({ onChangeView, onSubmit, errors, groups }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await onSubmit(formData)
+          const response = await onSubmit({
+            ...formData,
+            settings: {
+              code: formData.code,
+            },
+          })
           setValidated(true)
           Toast.fire({
             icon: 'success',
             title: response.message,
           })
           setTimeout(() => {
-            setFormData({
-              group_id: '',
-              name: '',
-              description: '',
-            })
+            setFormData({})
             onChangeView({ name: 'list', title: 'Listar Marcas' })
           }, 2510)
         } catch (error) {
@@ -118,7 +119,7 @@ const Create = ({ onChangeView, onSubmit, errors, groups }) => {
             <div
               className="position-relative rounded-3 d-flex align-items-center justify-content-center bg-light overflow-hidden shadow-sm shadow-hover"
               style={{
-                height: '320px',
+                height: '400px',
                 backgroundColor: '#f8f9fa',
                 border: isInvalidCover
                   ? '0.5px solid #dc3545'
@@ -325,7 +326,6 @@ const Create = ({ onChangeView, onSubmit, errors, groups }) => {
                   </div>
                 </CFormFeedback>
               </div>
-
               <div className="w-100">
                 <CFormLabel className="d-flex gap-2 font-inter align-items-center">
                   <TextInitial size={15} /> Grupo
@@ -410,6 +410,35 @@ const Create = ({ onChangeView, onSubmit, errors, groups }) => {
                   ))}
                 </CFormFeedback>
                 <CFormFeedback valid className={isValid ? 'd-block' : 'd-none'}>
+                  <div className="d-flex align-items-center gap-1">
+                    <BadgeCheck size={13} />
+                    <small className="font-inter">Dato Válido</small>
+                  </div>
+                </CFormFeedback>
+              </div>
+              <div className="w-100">
+                <CFormLabel className="d-flex gap-2 font-inter align-items-center">
+                  <TextInitial size={15} /> Código
+                  <span style={{ color: 'red', marginLeft: '-5px' }}>*</span>
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleChange}
+                  invalid={!!errors?.code}
+                  valid={!errors?.code && formData.code !== '' && validated}
+                  className="font-montserrat input-custom"
+                />
+                <CFormFeedback invalid>
+                  {errors?.code?.map((error, index) => (
+                    <div key={index} className="d-flex align-items-center gap-1">
+                      <BadgeAlert size={13} />
+                      <small className="font-inter">{error}</small>
+                    </div>
+                  ))}
+                </CFormFeedback>
+                <CFormFeedback valid>
                   <div className="d-flex align-items-center gap-1">
                     <BadgeCheck size={13} />
                     <small className="font-inter">Dato Válido</small>

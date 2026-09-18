@@ -108,7 +108,6 @@ const SortableField = ({ field, index, onRemove, onDisplayChange }) => {
               ) ?? null
             }
             onChange={(option) => {
-              console.log(option)
               onDisplayChange(field.data_key, option?.value ?? '')
             }}
             options={field.display.options}
@@ -236,8 +235,6 @@ const ReportColumnsModal = ({
   const [fields, setFields] = useState(selectedFields)
   const [activeGroup, setActiveGroup] = useState([])
 
-  console.log(availableFields)
-
   const toggleGroup = (groupKey) => {
     setActiveGroup((prev) => {
       if (prev.includes(groupKey)) {
@@ -294,14 +291,11 @@ const ReportColumnsModal = ({
   }
 
   const handleAddField = (field, groupKey, groupLabel) => {
-    console.log(field, groupKey, groupLabel)
     const exists = fields.some((item) => item.data_key === field.data_key)
 
     if (exists) {
       return
     }
-
-    console.log(field, groupKey, groupLabel)
 
     setFields((prev) => [
       ...prev,
@@ -317,7 +311,6 @@ const ReportColumnsModal = ({
   }
 
   const handleToggleGroupFields = (groupFields, groupKey) => {
-    console.log(groupFields, groupKey)
     const groupItems = Object.values(groupFields.fields || {})
 
     const groupKeys = new Set(groupItems.map((field) => field.data_key))
@@ -345,7 +338,6 @@ const ReportColumnsModal = ({
       const newFields = groupItems
         .filter((field) => !existingKeys.has(field.data_key))
         .map((field, index) => {
-          console.log(field)
 
           return {
             ...field,
@@ -412,8 +404,6 @@ const ReportColumnsModal = ({
       ),
     )
   }
-
-  console.log(fields)
 
   return (
     <CModal

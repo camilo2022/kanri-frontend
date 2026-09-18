@@ -16,7 +16,7 @@ const Reports = () => {
   const [statusses, setStatusses] = useState()
   const [statussesProcess, setStatussesProcess] = useState()
   const [destinations, setDestinations] = useState()
-  const [data, setData] = useState()
+  const [data, setData] = useState([])
   const [dataFields, setDataFields] = useState()
 
   useEffect(() => {
@@ -47,9 +47,14 @@ const Reports = () => {
 
       console.log(response)
 
+      const statuses =
+        response.data.statusses?.[response.data.report.settings.model] ??
+        response.data.statusses?.['App\\Models\\TechnicalSheet'] ??
+        []
+
       setStatusses(
-        Array.isArray(response.data.statusses[response.data.report.settings.model])
-          ? response.data.statusses[response.data.report.settings.model].map((item) => ({
+        Array.isArray(statuses)
+          ? statuses.map((item) => ({
               label: item.toUpperCase(),
               value: item,
             }))
@@ -121,6 +126,7 @@ const Reports = () => {
             errors={errors}
             findReport={findReport}
             report={report}
+            setReport={setReport}
             statusses={statusses}
             statusses_process={statussesProcess}
             destinations={destinations}
