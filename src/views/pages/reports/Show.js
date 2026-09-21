@@ -54,7 +54,6 @@ export const Show = ({
   data_fields,
   setDataFields,
 }) => {
-  console.log(statusses)
   const user_active = useSelector((state) => state.user)
 
   const [catalogsData, setCatalogsData] = useState({})
@@ -302,7 +301,6 @@ export const Show = ({
         fields: [...selectedFields]
           .sort((a, b) => a.order - b.order)
           .map((field) => {
-            console.log(field)
             const display = field.displayValue ?? field.display?.default
             const type = field.display?.type
 
@@ -359,8 +357,6 @@ export const Show = ({
         }, {}),
       }
 
-      console.log(payload)
-
       await generateReport(selectedReport.value, payload)
 
       Toast.fire({
@@ -394,7 +390,6 @@ export const Show = ({
         fields: [...selectedFields]
           .sort((a, b) => a.order - b.order)
           .map((field) => {
-            console.log(field)
             const display = field.displayValue ?? field.display?.default
             const type = field.display?.type
 
@@ -536,12 +531,11 @@ export const Show = ({
       return
     }
 
-    selectedFields.forEach((item) => console.log(item.groupKey))
-    console.log(hierarchy?.[currentLevel]?.label)
+    setSelectedFields((prev) => {
+      const labelsToRemove = hierarchy?.slice(0, level + 1)?.map((item) => item.label)
 
-    setSelectedFields((prev) =>
-      prev.filter((item) => item.groupLabel !== hierarchy?.[currentLevel]?.label),
-    )
+      return prev.filter((item) => !labelsToRemove.includes(item.groupLabel))
+    })
 
     setData([])
     setDataFields()
@@ -555,8 +549,6 @@ export const Show = ({
 
     setContextLevel(level)
   }
-
-  console.log(contextSelections, contextLevel)
 
   const goToContextLevel = (level) => {
     setContextLevel(level)
@@ -660,8 +652,6 @@ export const Show = ({
 
           const data = response.data?.data?.[groupKey] ?? response.data?.[groupKey] ?? []
 
-          console.log(data)
-
           const fields = data.reduce((acc, item) => {
             acc[item.id] = {
               label: formatLabel(item.name),
@@ -721,27 +711,55 @@ export const Show = ({
 
     const source = contextGroup?.source
 
-    console.log(source, source?.fields, source?.values)
-
     if (!source?.fields) {
       return
     }
 
-    const dynamicFields = get(selectedContext, source.fields, [])
+    const sourceFields = get(selectedContext, source.fields, [])
 
     const contextLabel = hierarchy?.[currentLevel]?.label || 'Contexto'
 
-    const fields = dynamicFields.reduce((acc, item) => {
-      acc[item.field] = {
-        ...item,
-        label: formatLabel(item.label),
-        type: 'context',
-        key: item.field,
-        data_key: source?.values ? `${source.values}.${item.field}` : item.field,
-      }
+    let fields = {}
 
-      return acc
-    }, {})
+    if (Array.isArray(sourceFields) && sourceFields.length > 0) {
+      fields = sourceFields.reduce((acc, item) => {
+        acc[item.field] = {
+          ...item,
+          label: formatLabel(item.label),
+          type: 'context',
+          key: item.field,
+          data_key: source?.values ? `${source.values}.${item.field}` : item.field,
+        }
+
+        return acc
+      }, {})
+    }
+
+    if (Array.isArray(sourceFields) && Array.isArray(sourceFields[0])) {
+      fields = {}
+
+      sourceFields.forEach((row) => {
+        row.forEach((cell, index) => {
+          if (cell.cell !== 'td' || !cell.field) {
+            return
+          }
+
+          const header = row[index - 1]
+
+          if (header?.cell !== 'th') {
+            return
+          }
+
+          fields[cell.field] = {
+            ...cell,
+            label: formatLabel(header.label),
+            type: 'context',
+            key: cell.field,
+            data_key: cell.field,
+          }
+        })
+      })
+    }
 
     setAvailableFields((prev) => ({
       ...prev,
@@ -872,10 +890,6 @@ export const Show = ({
     setData()
     setDataFields()
   }
-
-  console.log(context)
-  console.log(availableFields)
-  console.log(contextSelections[contextLevel])
 
   return (
     <>
@@ -1333,9 +1347,6 @@ export const Show = ({
                     {selectedFields?.length > 0 ? (
                       selectedFields.map((field) => {
                         const isNew = newFieldLabels.has(field.label) && !!data_fields
-                        console.log(selectedFields)
-                        console.log(newFieldLabels)
-                        console.log(data_fields)
                         return (
                           <div
                             key={field.data_key}
@@ -2114,7 +2125,6 @@ export const Show = ({
                                   const cell = row[field] ?? {}
                                   const value = cell.value ?? '-'
                                   const styles = cell.style ?? {}
-                                  console.log(field, styles)
 
                                   const selectedField = selectedFields.find(
                                     (item) => item.label === field,
