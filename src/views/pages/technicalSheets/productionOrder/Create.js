@@ -1,5 +1,4 @@
 import api from '../../../../API/api'
-import { getConfig } from '../../../../axiosConfig'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import {
@@ -21,7 +20,6 @@ import {
   CTableBody,
   CTableDataCell,
   CFormInput,
-  CTooltip,
   CPagination,
   CPaginationItem,
   CFormCheck,
@@ -31,17 +29,11 @@ import { useEffect } from 'react'
 import {
   ArrowLeftCircle,
   Save,
-  Trash2,
-  Plus,
-  Clipboard,
   ChevronDown,
   ChevronUp,
   FileText,
   ChevronsLeft,
   ChevronLeft,
-  Pencil,
-  RotateCcw,
-  CirclePlus,
   ChevronsRight,
   ChevronRight,
   Ruler,
@@ -49,14 +41,12 @@ import {
   LayoutGrid,
 } from 'lucide-react'
 import LoadingForm from '@/components/LoadingForm'
-import { useRef } from 'react'
 import InformationProductionOrder from '@/components/InformationProductionOrder'
 import TablePieces from '@/components/TablePieces'
 import TableRolls from '@/components/TableRolls'
 import TableCurveSpecifications from '@/components/TableCurveSpecifications'
 import TableCurveGroupings from '@/components/TableCurveGroupings'
 import TableLengthCurveGroup from '@/components/TableLengthCurveGroup'
-import TechnicalSheetDetailAux from '@/components/TechnicalSheetDetailAux'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
 import no_data from '../../../../assets/images/no-data.png'
@@ -90,6 +80,7 @@ export const Create = ({
   edit,
   piecesCutA,
   strokesCutA,
+  suppliers,
 }) => {
   const getAlphabetConsecutive = (index) => {
     let consecutive = ''
@@ -108,6 +99,8 @@ export const Create = ({
   const [formData, setFormData] = useState({
     technical_sheet_id: technical_sheet?.id || '',
     cut: getAlphabetConsecutive(total) || '',
+    production_place: 'BLESS',
+    supplier_id: '',
   })
   const [rows, setRows] = useState([])
   const [aux, setAux] = useState([])
@@ -125,6 +118,7 @@ export const Create = ({
   const [selectedRolls, setSelectedRolls] = useState({})
   const [data, setData] = useState(null)
   const [reasigned, setReasigned] = useState(false)
+  const [hasReassignment, setHasReassignment] = useState(false)
   const [selectedReference, setSelectedReference] = useState('')
   const [dataNew, setDataNew] = useState(null)
   const [trazosFile, setTrazosFile] = useState(null)
@@ -133,6 +127,7 @@ export const Create = ({
     (acc, item) => acc + (Number(item.large) || 0) * (Number(item.quantity) || 0),
     0,
   )
+
   const totalUnidades = aux.reduce(
     (acc, item) => acc + (Number(item.quantity) || 0) * (item.sizes?.length || 0),
     0,
@@ -163,66 +158,45 @@ export const Create = ({
   }
 
   const { pages, start, end } = getPages()
-  const dataGet = (path, data, defaultValue = undefined, separator = ' ') => {
-    const getSingleValue = (singlePath) => {
-      if (!singlePath) return undefined
 
-      return singlePath
-        .replace(/\[(\w+)\]/g, '.$1')
-        .replace(/^\./, '')
-        .split('.')
-        .reduce((acc, key) => {
-          if (acc === null || acc === undefined) {
-            return undefined
-          }
-
-          return acc[key]
-        }, data)
-    }
-
-    if (Array.isArray(path)) {
-      const values = path
-        .map((p) => getSingleValue(p))
-        .filter((value) => value !== undefined && value !== null && value !== '')
-      return values.length ? values.join(separator) : defaultValue
-    }
-
-    return getSingleValue(path) ?? defaultValue
-  }
   const formattedData = rolls?.supplies
-    .filter((item) => item.supply_id.id === formData.fabric_id)
+    .filter((item) => item.supply_id?.id === formData.fabric_id)
     .filter((item) => !Object.keys(rollsAux || {}).includes(String(item.id)))
     .map((supply) => {
       const dynamicFields =
         supply_type?.settings?.form
           ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
           ?.reduce((acc, item) => {
-            const value =
-              item.cardinality === 'single'
-                ? dataGet(item.path, supply[item.field], '')
-                : supply.settings?.values?.[item.field]
-
-            acc[item.field] = value || '-'
-
+            const value = supply[item.field] ?? supply.settings?.values?.[item.field]
+            acc[item.field] = value ?? '-'
             return acc
           }, {}) ?? {}
 
-      const used_aux = supply.production_orders.reduce((acc, item) => {
-        return acc + item.pivot.quantity
-      }, 0)
+      console.log(supply)
+      console.log(supply.production_order_details)
+
+      const used_aux = supply.production_order_details.reduce(
+        (acc, item) => acc + item.settings.quantity,
+        0,
+      )
 
       return {
         ...supply,
         available: dynamicFields.meters - used_aux,
         used: used_aux,
-        roll:
-          supply.name && supply.description ? `${supply.name} - ${supply.description}` : '-',
+        roll: supply.name && supply.description ? `${supply.name} - ${supply.description}` : '-',
         ...dynamicFields,
       }
     })
+
   const dynamicColumns =
     supply_type?.settings?.form
-      ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
+      ?.filter(
+        (item) =>
+          item.type !== 'selectdinamic' ||
+          item.cardinality === 'single' ||
+          item.field !== 'supplier_id',
+      )
       ?.map((item) => ({
         key: item.field,
         label: (
@@ -233,6 +207,7 @@ export const Create = ({
           </div>
         ),
       })) ?? []
+
   const columns = [
     {
       key: 'id',
@@ -250,16 +225,6 @@ export const Create = ({
         <div className="sortable-header text-center" onClick={() => handleSort('name')}>
           NOMBRE{' '}
           {paramsRolls.column === 'name' &&
-            (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
-    },
-    {
-      key: 'description',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
-          DESCRIPCIÓN{' '}
-          {paramsRolls.column === 'description' &&
             (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </div>
       ),
@@ -405,13 +370,13 @@ export const Create = ({
 
         if (existingKey !== undefined) {
           aux[existingKey] = {
-            piece: row.id,
-            quantity: row.pivot.quantity,
+            piece: row.model_id,
+            quantity: row.settings.quantity,
           }
         } else {
           aux[nextId] = {
-            piece: row.id,
-            quantity: row.pivot.quantity,
+            piece: row.model_id,
+            quantity: row.settings.quantity,
           }
           nextId++
         }
@@ -458,6 +423,32 @@ export const Create = ({
     )
   }
 
+  const renderCellValue = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return <span className="text-muted italic small">-</span>
+    }
+
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        return value.join(', ')
+      }
+
+      if (value === 'supply_id') {
+        if (value.name && value.description) {
+          return `${value.name} - ${value.description}`
+        }
+      }
+
+      if (value.name) {
+        return value.name
+      }
+
+      return JSON.stringify(value)
+    }
+
+    return value
+  }
+
   const handleSelectRow = (item) => {
     if (Object.keys(selectedRolls).includes(String(item.id))) {
       setSelectedRolls((prev) => {
@@ -473,6 +464,7 @@ export const Create = ({
   }
 
   const handleInsertRolls = (new_rolls) => {
+    console.log(new_rolls)
     setRollsAux((prev) => ({
       ...prev,
       ...new_rolls,
@@ -497,66 +489,22 @@ export const Create = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          if (reasigned) {
-            const response = await edit(selectedReference.production_order_id, {
-              ...selectedReference.production_order,
-              fabric_id: selectedReference.production_order.fabric.model_id,
-              color_id: selectedReference.production_order.color[0].id,
-              reasigned_curve: false,
-              production_order_id: null,
-              production_order_details: [
-                {
-                  model_id: selectedReference.production_order.production_order_details.find(
-                    (item) => item.model_type === 'App\\Models\\Supply',
-                  ).model_id,
-                  model_type: 'App\\Models\\Supply',
-                  destination: null,
-                  rows: [
-                    {
-                      sizes: selectedReference.production_order.production_order_details
-                        .find((item) => item.model_type === 'App\\Models\\Supply')
-                        .production_order_detail_quantities.map((size) => ({
-                          id: size.id,
-                          size_id: size.size_id,
-                          quantity: size.quantity,
-                        })),
-                    },
-                  ],
-                },
-                ...dataNew
-                  .filter((item) => item.product_id !== null)
-                  .map((item) => ({
-                    destination: item.location,
-                    model_id: item.product_id,
-                    model_type: 'App\\Models\\Product',
-                    sizes: Object.values(item.sizes)
-                      .filter((size) => size.id !== null)
-                      .map((size) => ({
-                        id: size.id,
-                        size_id: size.size_id,
-                        quantity: size.quantity,
-                      })),
-                  })),
-              ],
-            })
-          }
-          console.log('Ingreso Aca', {
+          const productionOrderData = {
             ...formData,
-            strokes_file: strokesCutA
-              ? {
-                  strokes_file_id: formData.trazos_file,
-                }
-              : {
-                  file: formData.trazos_file,
-                  photo_type_id: 3,
-                  photo_subtype_id: 13,
-                },
+
+            strokes_file: {
+              file: formData.trazos_file,
+              photo_type_id: 3,
+              photo_subtype_id: 13,
+            },
+
             settings: aux.map((item) => ({
               large: item.large,
               quantity: item.quantity,
             })),
-            reasigned_curve: reasigned,
-            production_order_id: selectedReference.production_order_id,
+
+            reasigned_curve: hasReassignment,
+
             production_order_details: [
               {
                 model_id: formData.fabric_id,
@@ -575,69 +523,7 @@ export const Create = ({
                       })),
                   })),
               },
-              ...data
-                .filter((item) => item.product_id !== null)
-                .map((item) => ({
-                  destination: item.location,
-                  model_id: item.product_id,
-                  model_type: 'App\\Models\\Product',
-                  sizes: Object.values(item.sizes)
-                    .filter((size) => size.quantity !== 0)
-                    .map((size) => ({
-                      id: size.id,
-                      size_id: size.size_id,
-                      quantity: size.quantity,
-                    })),
-                })),
-            ],
-            pieces: Object.values(piecesAux).reduce((acc, item) => {
-              acc[item.piece] = {
-                quantity: Number(item.quantity),
-              }
-              return acc
-            }, {}),
-            rolls: Object.values(rollsAux).reduce((acc, item) => {
-              acc[item.id] = {
-                quantity: Number(item.utilized),
-              }
-              return acc
-            }, {}),
-          })
-          const response = await create({
-            ...formData,
-            strokes_file: strokesCutA
-              ? {
-                  strokes_file_id: formData.trazos_file,
-                }
-              : {
-                  file: formData.trazos_file,
-                  photo_type_id: 3,
-                  photo_subtype_id: 13,
-                },
-            settings: aux.map((item) => ({
-              large: item.large,
-              quantity: item.quantity,
-            })),
-            reasigned_curve: reasigned,
-            production_order_id: selectedReference.production_order_id,
-            production_order_details: [
-              {
-                model_id: formData.fabric_id,
-                model_type: 'App\\Models\\Supply',
-                destination: null,
-                rows: rows
-                  .filter((row) => Object.values(row.sizes).some((size) => size.quantity > 0))
-                  .map((item) => ({
-                    id: item.id,
-                    sizes: Object.values(item.sizes)
-                      .filter((size) => size.quantity > 0)
-                      .map((size) => ({
-                        id: size.id,
-                        size_id: size.size_id,
-                        quantity: size.quantity,
-                      })),
-                  })),
-              },
+
               ...data
                 .filter((item) => item.product_id !== null)
                 .map((item) => ({
@@ -652,31 +538,53 @@ export const Create = ({
                       quantity: size.quantity,
                     })),
                 })),
+
+              ...(piecesAux &&
+                Object.values(piecesAux).map((item) => ({
+                  model_id: item.piece,
+                  model_type: 'App\\Models\\Piece',
+                  destination: null,
+                  settings: {
+                    quantity: Number(item.quantity),
+                  },
+                }))),
+
+              ...(rollsAux &&
+                Object.values(rollsAux).map((item) => ({
+                  model_id: item.id,
+                  model_type: 'App\\Models\\Supply',
+                  destination: null,
+                  settings: {
+                    quantity: Number(item.utilized),
+                  },
+                }))),
             ],
-            pieces: Object.values(piecesAux).reduce((acc, item) => {
-              acc[item.piece] = {
-                quantity: Number(item.quantity),
-              }
-              return acc
-            }, {}),
-            rolls: Object.values(rollsAux).reduce((acc, item) => {
-              acc[item.id] = {
-                quantity: Number(item.utilized),
-              }
-              return acc
-            }, {}),
-          })
+
+            reassigned_origins: hasReassignment
+              ? dataNew?.map((item) => ({
+                  production_order_id: item.production_order_id,
+                  reassigned_details: item.reassigned_details,
+                  selected_rows: item.selected_rows,
+                })) || []
+              : [],
+          }
+
+          console.log('PAYLOAD FINAL:', productionOrderData)
+
+          const response = await create(productionOrderData)
+
           setValidated(true)
           Toast.fire({
             icon: 'success',
             title: response.message,
           })
+          /*
           setTimeout(() => {
             onChangeView({
               name: 'list_production_orders',
               title: 'Listar Ordenes de Producción',
             })
-          }, 2510)
+          }, 2510)*/
         } catch (error) {
           setValidated(true)
         }
@@ -688,6 +596,9 @@ export const Create = ({
       }
     })
   }
+
+  console.log(formattedData)
+  console.log(piecesAux)
 
   return (
     <CCard className="mb-3 p-4 shadow-sm border-0 animate-fade-in">
@@ -732,6 +643,7 @@ export const Create = ({
         trazosFile={trazosFile}
         setTrazosFile={setTrazosFile}
         strokesCutA={strokesCutA}
+        suppliers={suppliers}
       />
       <TablePieces
         pieces={pieces}
@@ -796,7 +708,10 @@ export const Create = ({
         setReasigned={setReasigned}
         selectedReference={selectedReference}
         setSelectedReference={setSelectedReference}
+        dataNew={dataNew}
         setDataNew={setDataNew}
+        hasReassignment={hasReassignment}
+        setHasReassignment={setHasReassignment}
       />
       <TableCurveGroupings
         sizes={sizes}
@@ -812,9 +727,9 @@ export const Create = ({
           formData?.color
             ? `${formData.color.settings?.code} - ${formData.color.name}`
             : !!fabrics && formData.fabric_id && formData.color_id
-              ? `${fabrics?.[formData?.fabric_id]?.data?.color.find((item) => item.id === formData?.color_id)?.settings?.code}
+              ? `${fabrics?.[formData?.fabric_id]?.data?.color_id.find((item) => item.id === formData?.color_id)?.settings?.code}
                        - ${
-                         fabrics?.[formData?.fabric_id]?.data?.color.find(
+                         fabrics?.[formData?.fabric_id]?.data?.color_id.find(
                            (item) => item.id === formData?.color_id,
                          )?.name
                        }`
@@ -1177,6 +1092,7 @@ export const Create = ({
                 ) : formattedData?.length > 0 ? (
                   formattedData.map((item, index) => {
                     const isChecked = Object.keys(selectedRolls).includes(String(item.id))
+                    console.log(item)
                     return (
                       <CTableRow
                         key={index}
@@ -1194,7 +1110,7 @@ export const Create = ({
                         </CTableDataCell>
                         {columns.map((col) => (
                           <CTableDataCell className="p-3 text-secondary" key={col.key}>
-                            {item[col.key] || <span className="text-muted italic small">-</span>}
+                            {renderCellValue(item[col.key])}
                           </CTableDataCell>
                         ))}
                         <CTableDataCell className="p-3 text-dark fw-medium">

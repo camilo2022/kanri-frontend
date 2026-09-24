@@ -89,9 +89,8 @@ export const Edit = ({
   errors_create,
   edit,
   piecesCutA,
+  suppliers,
 }) => {
-  console.log(production_order)
-
   const getAlphabetConsecutive = (index) => {
     let consecutive = ''
     while (index >= 0) {
@@ -127,9 +126,207 @@ export const Edit = ({
   const [selectedRolls, setSelectedRolls] = useState({})
   const [data, setData] = useState(null)
   const [reasigned, setReasigned] = useState(false)
+  const [hasReassignment, setHasReassignment] = useState(false)
   const [selectedReference, setSelectedReference] = useState('')
   const [dataNew, setDataNew] = useState(null)
   const [trazosFile, setTrazosFile] = useState(null)
+
+  const metrosReales =
+    Math.round(
+      aux.reduce((acc, item) => acc + (Number(item.large) || 0) * (Number(item.quantity) || 0), 0) *
+        1000,
+    ) / 1000
+
+  const totalUnidades = aux.reduce(
+    (acc, item) => acc + (Number(item.quantity) || 0) * (item.sizes?.length || 0),
+    0,
+  )
+  const promedio = totalUnidades > 0 ? Number((metrosReales / totalUnidades).toFixed(3)) : 0
+  const cantidadCm2 = (Math.floor((formData?.width || 0) * promedio * 10000 * 100) / 100).toFixed(2)
+  const excedente = cantidadCm2 > 15000
+  const totalPages = rolls?.meta?.pagination?.total_pages || 1
+  const currentPage = paramsRolls.page
+
+  const getPages = () => {
+    const pages = []
+    const maxVisible = 5
+
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+    let end = start + maxVisible - 1
+
+    if (end > totalPages) {
+      end = totalPages
+      start = Math.max(1, end - maxVisible + 1)
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+
+    return { pages, start, end }
+  }
+
+  const { pages, start, end } = getPages()
+
+  const formattedData = rolls?.supplies
+    .filter((item) => item.supply_id?.id === formData.fabric_id)
+    .filter((item) => !Object.keys(rollsAux || {}).includes(String(item.id)))
+    .map((supply) => {
+      const dynamicFields =
+        supply_type?.settings?.form
+          ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
+          ?.reduce((acc, item) => {
+            const value = supply[item.field] ?? supply.settings?.values?.[item.field]
+            acc[item.field] = value ?? '-'
+            return acc
+          }, {}) ?? {}
+
+      console.log(supply)
+      console.log(supply.production_order_details)
+
+      const used_aux =
+        supply.production_order_details?.reduce((acc, item) => {
+          return acc + Number(item.settings?.quantity ?? 0)
+        }, 0) ?? 0
+
+      return {
+        ...supply,
+        available: Number(dynamicFields.meters ?? 0) - used_aux,
+        used: used_aux,
+        roll: supply.name && supply.description ? `${supply.name} - ${supply.description}` : '-',
+        ...dynamicFields,
+      }
+    })
+
+  const dynamicColumns =
+    supply_type?.settings?.form
+      ?.filter(
+        (item) =>
+          item.type !== 'selectdinamic' ||
+          item.cardinality === 'single' ||
+          item.field !== 'supplier_id',
+      )
+      ?.map((item) => ({
+        key: item.field,
+        label: (
+          <div className="sortable-header text-center" onClick={() => handleSort(item.field)}>
+            {item.label?.toUpperCase()}
+            {paramsRolls.column === item.field &&
+              (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+          </div>
+        ),
+      })) ?? []
+
+  const columns = [
+    {
+      key: 'id',
+      label: (
+        <div className="sortable-header text-center" onClick={() => handleSort('id')}>
+          #{' '}
+          {paramsRolls.column === 'id' &&
+            (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+        </div>
+      ),
+    },
+    {
+      key: 'name',
+      label: (
+        <div className="sortable-header text-center" onClick={() => handleSort('name')}>
+          NOMBRE{' '}
+          {paramsRolls.column === 'name' &&
+            (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+        </div>
+      ),
+    },
+    ...dynamicColumns,
+  ]
+
+  const handleSort = (column) => {
+    setParams((prev) => ({
+      ...prev,
+      column: column,
+      dir: prev.column === column && prev.dir === 'asc' ? 'desc' : 'asc',
+    }))
+  }
+
+  const handlePasteChange = (e) => {
+    const text = e.target.value
+    setPasteData(text)
+
+    if (!text.trim()) {
+      setPreviewRows([])
+      return
+    }
+
+    const lines = text.split(/\r?\n/)
+    const parsed = lines
+      .map((line) => {
+        if (!line.trim()) return null
+        const columns = line.split('\t')
+        return {
+          piece: columns[0] || '',
+          quantity: columns[1] || '1',
+        }
+      })
+      .filter(Boolean)
+
+    setPreviewRows(parsed)
+  }
+
+  const handleInsert = () => {
+    if (previewRows.length === 0) {
+      Toast.fire({ icon: 'warning', title: 'No hay datos válidos para insertar' })
+      return
+    }
+
+    const filter_preview = previewRows
+      .filter((item) =>
+        Object.values(pieces).some(
+          (aux) => aux.label?.trim().toLowerCase() === item.piece?.trim().toLowerCase(),
+        ),
+      )
+      .map((item) => ({
+        piece: Object.values(pieces).find(
+          (aux) => aux.label?.trim().toLowerCase() === item.piece?.trim().toLowerCase(),
+        )?.value,
+        quantity: item.quantity,
+      }))
+
+    setPiecesAux((prev) => {
+      const aux = { ...prev }
+
+      let ids = Object.keys(aux).map(Number)
+      let nextId = ids.length === 0 ? 1 : Math.max(...ids) + 1
+
+      filter_preview.forEach((row) => {
+        const existingKey = Object.keys(aux).find((key) => aux[key].piece === row.piece)
+
+        if (existingKey !== undefined) {
+          aux[existingKey] = {
+            piece: row.piece,
+            quantity: row.quantity,
+          }
+        } else {
+          aux[nextId] = {
+            piece: row.piece,
+            quantity: row.quantity,
+          }
+          nextId++
+        }
+      })
+
+      return aux
+    })
+
+    setModalPaste(false)
+    setPasteData('')
+    setPreviewRows([])
+
+    Toast.fire({
+      icon: 'success',
+      title: `Se agregaron ${previewRows.length} filas correctamente`,
+    })
+  }
 
   const larges = useMemo(() => {
     const settings = Array.isArray(production_order?.settings) ? production_order.settings : []
@@ -145,30 +342,6 @@ export const Edit = ({
 
   useEffect(() => {
     if (!production_order || !sizes) return
-
-    console.log(
-      production_order.production_order_details
-        .filter((item) => item.model_type === 'App\\Models\\Product')
-        .map((item) => ({
-          location: item.destination,
-          reference: item.model.code,
-          product_id: item.model_id,
-          sizes: sizes.reduce((acc, size) => {
-            const quantity = item.production_order_detail_quantities.find(
-              (aux) => aux.size_id === size.id,
-            )
-
-            acc[size.id] = {
-              id: quantity?.id ?? null,
-              size_id: size.id,
-              name: size.name,
-              quantity: quantity?.quantity ?? 0,
-            }
-
-            return acc
-          }, {}),
-        })),
-    )
 
     const data = production_order.production_order_details
       .filter((item) => item.model_type === 'App\\Models\\Product')
@@ -260,6 +433,9 @@ export const Edit = ({
     setPiecesAux((prev) => {
       const aux = { ...prev }
 
+      console.log(production_order.pieces)
+      console.log(prev)
+
       let ids = Object.keys(aux).map(Number)
       let nextId = ids.length === 0 ? 1 : Math.max(...ids) + 1
 
@@ -268,13 +444,13 @@ export const Edit = ({
 
         if (existingKey !== undefined) {
           aux[existingKey] = {
-            piece: row.id,
-            quantity: row.pivot.quantity,
+            piece: row.model_id,
+            quantity: row.settings.quantity,
           }
         } else {
           aux[nextId] = {
-            piece: row.id,
-            quantity: row.pivot.quantity,
+            piece: row.model_id,
+            quantity: row.settings.quantity,
           }
           nextId++
         }
@@ -285,51 +461,26 @@ export const Edit = ({
   }, [production_order?.pieces])
 
   useEffect(() => {
-    if (!piecesCutA) return
-
-    setPiecesAux((prev) => {
-      const aux = { ...prev }
-
-      let ids = Object.keys(aux).map(Number)
-      let nextId = ids.length === 0 ? 1 : Math.max(...ids) + 1
-
-      piecesCutA.forEach((row) => {
-        const existingKey = Object.keys(aux).find((key) => aux[key].piece === row.id)
-
-        if (existingKey !== undefined) {
-          aux[existingKey] = {
-            piece: row.id,
-            quantity: row.pivot.quantity,
-          }
-        } else {
-          aux[nextId] = {
-            piece: row.id,
-            quantity: row.pivot.quantity,
-          }
-          nextId++
-        }
-      })
-
-      return aux
-    })
-  }, [piecesCutA])
-
-  useEffect(() => {
     if (!production_order?.rolls) return
 
-    const aux = production_order.rolls.reduce((acc, row) => {
-      const used_aux = row.production_orders.reduce((acc, item) => {
-        return acc + item.pivot.quantity
-      }, 0)
+    console.log(production_order.rolls)
 
-      acc[row.id] = {
-        id: row.id,
-        supply: row.supply,
-        width: row.settings.values.width,
-        meters: row.settings.values.meters,
-        utilized: row.pivot.quantity,
-        available: row.settings.values.meters + row.pivot.quantity - used_aux,
-        name: row.name,
+    const aux = production_order.rolls.reduce((acc, row) => {
+      const used_aux =
+        row.model?.production_order_details
+          ?.filter((item) => item.production_order_id !== production_order.id)
+          .reduce((total, item) => {
+            return total + Number(item.settings?.quantity ?? 0)
+          }, 0) ?? 0
+
+      acc[row.model_id] = {
+        id: row.model_id,
+        supply_id: row.supply_id,
+        width: row.model?.settings?.values?.width ?? 0,
+        meters: row.model?.settings?.values?.meters ?? 0,
+        utilized: Number(row.settings?.quantity ?? 0),
+        available: Number(row.model?.settings?.values?.meters ?? 0) - used_aux,
+        name: row.model?.name ?? '',
       }
 
       return acc
@@ -369,85 +520,6 @@ export const Edit = ({
     return () => clearTimeout(handler)
   }, [searchInputRolls])
 
-  const handlePasteChange = (e) => {
-    const text = e.target.value
-    setPasteData(text)
-
-    if (!text.trim()) {
-      setPreviewRows([])
-      return
-    }
-
-    const lines = text.split(/\r?\n/)
-    const parsed = lines
-      .map((line) => {
-        if (!line.trim()) return null
-        const columns = line.split('\t')
-        return {
-          piece: columns[0] || '',
-          quantity: columns[1] || '1',
-        }
-      })
-      .filter(Boolean)
-
-    setPreviewRows(parsed)
-  }
-
-  const handleInsert = () => {
-    if (previewRows.length === 0) {
-      Toast.fire({ icon: 'warning', title: 'No hay datos válidos para insertar' })
-      return
-    }
-
-    const filter_preview = previewRows
-      .filter((item) =>
-        Object.values(pieces).some(
-          (aux) => aux.label?.trim().toLowerCase() === item.piece?.trim().toLowerCase(),
-        ),
-      )
-      .map((item) => ({
-        piece: Object.values(pieces).find(
-          (aux) => aux.label?.trim().toLowerCase() === item.piece?.trim().toLowerCase(),
-        )?.value,
-        quantity: item.quantity,
-      }))
-
-    setPiecesAux((prev) => {
-      const aux = { ...prev }
-
-      let ids = Object.keys(aux).map(Number)
-      let nextId = ids.length === 0 ? 1 : Math.max(...ids) + 1
-
-      filter_preview.forEach((row) => {
-        const existingKey = Object.keys(aux).find((key) => aux[key].piece === row.piece)
-
-        if (existingKey !== undefined) {
-          aux[existingKey] = {
-            piece: row.piece,
-            quantity: row.quantity,
-          }
-        } else {
-          aux[nextId] = {
-            piece: row.piece,
-            quantity: row.quantity,
-          }
-          nextId++
-        }
-      })
-
-      return aux
-    })
-
-    setModalPaste(false)
-    setPasteData('')
-    setPreviewRows([])
-
-    Toast.fire({
-      icon: 'success',
-      title: `Se agregaron ${previewRows.length} filas correctamente`,
-    })
-  }
-
   const dataGet = (path, data, defaultValue = undefined, separator = ' ') => {
     const getSingleValue = (singlePath) => {
       if (!singlePath) return undefined
@@ -474,118 +546,6 @@ export const Edit = ({
 
     return getSingleValue(path) ?? defaultValue
   }
-
-  const formattedData = rolls?.supplies
-    .filter((item) => item.supply_id.id === formData.fabric_id)
-    .filter((item) => !Object.keys(rollsAux || {}).includes(String(item.id)))
-    .map((supply) => {
-      const dynamicFields =
-        supply_type?.settings?.form
-          ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
-          ?.reduce((acc, item) => {
-            const value =
-              item.cardinality === 'single'
-                ? dataGet(item.path, supply[item.field], '')
-                : supply.settings?.values?.[item.field]
-
-            acc[item.field] = value || '-'
-
-            return acc
-          }, {}) ?? {}
-
-      const used_aux = supply.production_orders.reduce((acc, item) => {
-        return acc + item.pivot.quantity
-      }, 0)
-
-      return {
-        ...supply,
-        available: dynamicFields.meters - used_aux,
-        used: used_aux,
-        roll:
-          supply.name && supply.description ? `${supply.name} - ${supply.description}` : '-',
-        ...dynamicFields,
-      }
-    })
-
-  const handleSort = (column) => {
-    setParams((prev) => ({
-      ...prev,
-      column: column,
-      dir: prev.column === column && prev.dir === 'asc' ? 'desc' : 'asc',
-    }))
-  }
-
-  const dynamicColumns =
-    supply_type?.settings?.form
-      ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
-      ?.map((item) => ({
-        key: item.field,
-        label: (
-          <div className="sortable-header text-center" onClick={() => handleSort(item.field)}>
-            {item.label?.toUpperCase()}
-            {paramsRolls.column === item.field &&
-              (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-          </div>
-        ),
-      })) ?? []
-
-  const columns = [
-    {
-      key: 'id',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('id')}>
-          #{' '}
-          {paramsRolls.column === 'id' &&
-            (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
-    },
-    {
-      key: 'name',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('name')}>
-          NOMBRE{' '}
-          {paramsRolls.column === 'name' &&
-            (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
-    },
-    {
-      key: 'description',
-      label: (
-        <div className="sortable-header text-center" onClick={() => handleSort('description')}>
-          DESCRIPCIÓN{' '}
-          {paramsRolls.column === 'description' &&
-            (paramsRolls.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-        </div>
-      ),
-    },
-    ...dynamicColumns,
-  ]
-
-  const totalPages = rolls?.meta?.pagination?.total_pages || 1
-  const currentPage = paramsRolls.page
-
-  const getPages = () => {
-    const pages = []
-    const maxVisible = 5
-
-    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
-    let end = start + maxVisible - 1
-
-    if (end > totalPages) {
-      end = totalPages
-      start = Math.max(1, end - maxVisible + 1)
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i)
-    }
-
-    return { pages, start, end }
-  }
-
-  const { pages, start, end } = getPages()
 
   if (!supply_type || !sizes || !product || !production_order) {
     return (
@@ -620,21 +580,6 @@ export const Edit = ({
     setSelectedRolls([])
   }
 
-  const metrosReales =
-    Math.round(
-      aux.reduce((acc, item) => acc + (Number(item.large) || 0) * (Number(item.quantity) || 0), 0) *
-        1000,
-    ) / 1000
-
-  const totalUnidades = aux.reduce(
-    (acc, item) => acc + (Number(item.quantity) || 0) * (item.sizes?.length || 0),
-    0,
-  )
-  const promedio = totalUnidades > 0 ? Number((metrosReales / totalUnidades).toFixed(3)) : 0
-  const cantidadCm2 = (Math.floor((formData?.width || 0) * promedio * 10000 * 100) / 100).toFixed(2)
-
-  const excedente = cantidadCm2 > 15000
-
   const handleSubmit = async () => {
     Swal.fire({
       title: 'Editar Orden de Producción',
@@ -651,8 +596,9 @@ export const Edit = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          console.log({
+          const productionOrderData = {
             ...formData,
+
             strokes_file: formData.trazos_file
               ? {
                   file: formData.trazos_file,
@@ -664,8 +610,9 @@ export const Edit = ({
               large: item.large,
               quantity: item.quantity,
             })),
-            reasigned_curve: reasigned,
-            production_order_id: selectedReference.production_order_id,
+
+            reasigned_curve: hasReassignment,
+
             production_order_details: [
               {
                 model_id: formData.fabric_id,
@@ -684,11 +631,6 @@ export const Edit = ({
                       })),
                   })),
               },
-              {
-                model_id: formData.color_id,
-                model_type: 'App\\Models\\Color',
-                destination: null,
-              },
               ...data
                 .filter((item) => item.product_id !== null)
                 .map((item) => ({
@@ -703,124 +645,37 @@ export const Edit = ({
                       quantity: size.quantity,
                     })),
                 })),
-            ],
-            pieces: Object.values(piecesAux).reduce((acc, item) => {
-              acc[item.piece] = {
-                quantity: Number(item.quantity),
-              }
-              return acc
-            }, {}),
-            rolls: Object.values(rollsAux).reduce((acc, item) => {
-              acc[item.id] = {
-                quantity: Number(item.utilized),
-              }
-              return acc
-            }, {}),
-          })
-          if (reasigned) {
-            const response = await edit(selectedReference.production_order_id, {
-              ...selectedReference.production_order,
-              fabric_id: selectedReference.production_order.fabric.model_id,
-              color_id: selectedReference.production_order.color[0].id,
-              reasigned_curve: false,
-              production_order_id: null,
-              production_order_details: [
-                {
-                  model_id: selectedReference.production_order.production_order_details.find(
-                    (item) => item.model_type === 'App\\Models\\Supply',
-                  ).model_id,
+              ...(piecesAux &&
+                Object.values(piecesAux).map((item) => ({
+                  model_id: item.piece,
+                  model_type: 'App\\Models\\Piece',
+                  destination: null,
+                  settings: {
+                    quantity: Number(item.quantity),
+                  },
+                }))),
+              ...(rollsAux &&
+                Object.values(rollsAux).map((item) => ({
+                  model_id: item.id,
                   model_type: 'App\\Models\\Supply',
                   destination: null,
-                  rows: [
-                    {
-                      sizes: selectedReference.production_order.production_order_details
-                        .find((item) => item.model_type === 'App\\Models\\Supply')
-                        .production_order_detail_quantities.map((size) => ({
-                          id: size.id,
-                          size_id: size.size_id,
-                          quantity: size.quantity,
-                        })),
-                    },
-                  ],
-                },
-                ...dataNew
-                  .filter((item) => item.product_id !== null)
-                  .map((item) => ({
-                    destination: item.location,
-                    model_id: item.product_id,
-                    model_type: 'App\\Models\\Product',
-                    sizes: Object.values(item.sizes)
-                      .filter((size) => size.id !== null)
-                      .map((size) => ({
-                        id: size.id,
-                        size_id: size.size_id,
-                        quantity: size.quantity,
-                      })),
-                  })),
-              ],
-            })
-          }
-          const response = await edit(production_order.id, {
-            ...formData,
-            strokes_file: formData.trazos_file
-              ? {
-                  file: formData.trazos_file,
-                  photo_type_id: 3,
-                  photo_subtype_id: 13,
-                }
-              : null,
-            settings: aux.map((item) => ({
-              large: item.large,
-              quantity: item.quantity,
-            })),
-            reasigned_curve: reasigned,
-            production_order_id: selectedReference.production_order_id,
-            production_order_details: [
-              {
-                model_id: formData.fabric_id,
-                model_type: 'App\\Models\\Supply',
-                destination: null,
-                rows: rows
-                  .filter((row) => Object.values(row.sizes).some((size) => size.quantity > 0))
-                  .map((item) => ({
-                    id: item.id,
-                    sizes: Object.values(item.sizes)
-                      .filter((size) => size.quantity > 0)
-                      .map((size) => ({
-                        id: size.id,
-                        size_id: size.size_id,
-                        quantity: size.quantity,
-                      })),
-                  })),
-              },
-              ...data
-                .filter((item) => item.product_id !== null)
-                .map((item) => ({
-                  destination: item.location,
-                  model_id: item.product_id,
-                  model_type: 'App\\Models\\Product',
-                  sizes: Object.values(item.sizes)
-                    .filter((size) => size.quantity !== 0)
-                    .map((size) => ({
-                      id: size.id,
-                      size_id: size.size_id,
-                      quantity: size.quantity,
-                    })),
-                })),
+                  settings: {
+                    quantity: Number(item.utilized),
+                  },
+                }))),
             ],
-            pieces: Object.values(piecesAux).reduce((acc, item) => {
-              acc[item.piece] = {
-                quantity: Number(item.quantity),
-              }
-              return acc
-            }, {}),
-            rolls: Object.values(rollsAux).reduce((acc, item) => {
-              acc[item.id] = {
-                quantity: Number(item.utilized),
-              }
-              return acc
-            }, {}),
-          })
+
+            reassigned_origins: hasReassignment
+              ? dataNew?.map((item) => ({
+                  production_order_id: item.production_order_id,
+                  reassigned_details: item.reassigned_details,
+                  selected_rows: item.selected_rows,
+                })) || []
+              : [],
+          }
+
+          const response = await edit(production_order.id, productionOrderData)
+
           setValidated(true)
           Toast.fire({
             icon: 'success',
@@ -842,6 +697,32 @@ export const Edit = ({
         })
       }
     })
+  }
+
+  const renderCellValue = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return <span className="text-muted italic small">-</span>
+    }
+
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        return value.join(', ')
+      }
+
+      if (value === 'supply_id') {
+        if (value.name && value.description) {
+          return `${value.name} - ${value.description}`
+        }
+      }
+
+      if (value.name) {
+        return value.name
+      }
+
+      return JSON.stringify(value)
+    }
+
+    return value
   }
 
   return (
@@ -887,6 +768,7 @@ export const Edit = ({
         setRollsAux={setRollsAux}
         trazosFile={trazosFile}
         setTrazosFile={setTrazosFile}
+        suppliers={suppliers}
       />
       <TablePieces
         pieces={pieces}
@@ -953,7 +835,9 @@ export const Edit = ({
         setSelectedReference={setSelectedReference}
         production_order={production_order}
         setDataNew={setDataNew}
-        is_reasigned={!!production_order.model_id && !!production_order.model_type}
+        hasReassignment={hasReassignment}
+        setHasReassignment={setHasReassignment}
+        is_reasigned={production_order.reassignments.length > 0}
       />
       <TableCurveGroupings
         sizes={sizes}
@@ -1352,7 +1236,7 @@ export const Edit = ({
                         </CTableDataCell>
                         {columns.map((col) => (
                           <CTableDataCell className="p-3 text-secondary" key={col.key}>
-                            {item[col.key] || <span className="text-muted italic small">-</span>}
+                            {renderCellValue(item[col.key])}
                           </CTableDataCell>
                         ))}
                         <CTableDataCell className="p-3 text-dark fw-medium">

@@ -239,7 +239,7 @@ const Create = ({
             value={formData.settings?.code}
             onChange={(e) => handleChange(e, 'settings')}
             invalid={!!errors['settings.code']}
-            valid={!errors['settings.code'] && formData.settings.code !== '' && validated}
+            valid={!errors['settings.code'] && formData.settings?.code !== '' && validated}
             className="font-montserrat custom-input"
           />
           <CFormFeedback invalid>

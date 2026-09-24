@@ -7,8 +7,10 @@ const all = async (supply_type_id, params) => {
       ...getConfig(),
       params: params,
     })
+    console.log(response)
     return response.data
   } catch (error) {
+    console.log(error)
     if (error.response && error.response.data) {
       throw error.response.data
     }

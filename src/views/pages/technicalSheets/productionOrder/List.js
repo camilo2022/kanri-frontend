@@ -56,6 +56,7 @@ export const List = ({
 
   useEffect(() => {
     if (!technical_sheet) return
+    console.log(technical_sheet)
     const handler = setTimeout(() => {
       const currentParams = { ...params, search: searchInput }
       technical_sheet && fetchProductionOrders(technical_sheet?.id, currentParams)

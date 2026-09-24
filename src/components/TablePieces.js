@@ -21,6 +21,8 @@ const TablePieces = ({
   const [openPopover, setOpenPopover] = useState({
     id: null,
   })
+  console.log(pieces)
+  console.log(piecesAux)
 
   const totalQuantities = Object.values(piecesAux).reduce((sum, item) => {
     const qty = parseFloat(item?.quantity)

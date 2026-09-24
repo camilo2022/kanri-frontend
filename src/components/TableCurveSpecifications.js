@@ -52,9 +52,12 @@ const TableCurveSpecifications = ({
   setReasigned,
   selectedReference,
   setSelectedReference,
+  dataNew,
   setDataNew,
   production_order,
   is_reasigned,
+  hasReassignment,
+  setHasReassignment,
 }) => {
   const [focusedInput, setFocusedInput] = useState(null)
   const [isSelectingRef, setIsSelectingRef] = useState(false)
@@ -71,6 +74,7 @@ const TableCurveSpecifications = ({
   const [optReasigned, setOptReasigned] = useState(null)
   const [dataAux, setDataAux] = useState(null)
   const [dataModal, setDataModal] = useState(null)
+  const [selectedReferences, setSelectedReferences] = useState([])
 
   const isInvalidTrademark = !!errors?.trademark_id
   const isValidTrademark = !errors?.trademark_id && formData.trademark_id !== '' && validatedAdd
@@ -130,53 +134,6 @@ const TableCurveSpecifications = ({
       }))
     }
   }, [formData.code, trademarks])
-
-  useEffect(() => {
-    if (!products || !product) return
-
-    const aux = new Map()
-
-    products?.forEach((item) => {
-      if (
-        !item.original ||
-        !item.technical_sheet ||
-        item.subcategory_id !== product.subcategory_id ||
-        item.trademark.group[0].id !== product.trademark.group[0].id
-      ) {
-        return
-      }
-
-      const trademarkSizes = item.trademark?.sizes.map((size) => size.id) ?? []
-      const referenceSizes = product.trademark?.sizes.map((size) => size.id) ?? []
-
-      if (
-        trademarkSizes.length !== referenceSizes.length ||
-        !trademarkSizes.every((id) => referenceSizes.includes(id))
-      ) {
-        return
-      }
-
-      item.technical_sheet.production_orders.forEach((production_order_item) => {
-        if (production_order && production_order_item.id === production_order.id) {
-          return
-        }
-        aux.set(production_order_item.id, {
-          label: `${item.code} - ${production_order_item.cut}`,
-          value: production_order_item.id,
-          specification_curve: production_order_item.production_order_details.filter(
-            (item) => item.model_type === 'App\\Models\\Product',
-          ),
-          sizes: item.trademark?.sizes || [],
-          production_order_id: production_order_item.id,
-          production_order: production_order_item,
-        })
-      })
-    })
-
-    setOptReasigned([...aux.values()])
-
-    const options = [...aux.values()]
-  }, [products, product])
 
   useEffect(() => {
     if (!selectedReference) return
@@ -436,99 +393,26 @@ const TableCurveSpecifications = ({
             </span>
           </div>
           <div className="d-flex align-items-center gap-2 font-inter">
-            {!isSelectingRef && selectedReference ? (
-              <div className="d-flex align-items-center gap-2 bg-light py-2 px-2 border-0 shadow-sm rounded-2 smooth-transition">
-                <span
-                  className="small font-poppins text-dark fw-medium smooth-transition"
-                  style={{ fontSize: '0.82rem' }}
-                >
-                  <span className="text-muted fw-normal me-1">Ref. reasignada:</span>
-                  <span className="text-dark fw-semibold">{selectedReference?.label}</span>
-                </span>
-                {!is_reasigned && (
-                  <>
-                    <CButton
-                      size="sm"
-                      color="primary"
-                      className="rounded-circle p-0 d-flex align-items-center justify-content-center border-0 btn-edit-ref"
-                      onClick={() => {
-                        setDataModal([...data])
-                        setModalAddSpecification(true)
-                      }}
-                    >
-                      <Edit size={12} className="text-secondary" />
-                    </CButton>
-                    <CButton
-                      size="sm"
-                      color="light"
-                      className="rounded-circle p-0 d-flex align-items-center justify-content-center border-0 btn-close-ref"
-                      onClick={() => {
-                        handleDeleteAsigned()
-                      }}
-                    >
-                      <X size={12} className="text-secondary" />
-                    </CButton>
-                  </>
-                )}
-              </div>
-            ) : isSelectingRef ? (
-              <div className="d-flex flex-column align-items-end smooth-transition position-relative">
-                <span
-                  className="text-muted font-poppins fw-medium mb-1 px-1"
-                  style={{ fontSize: '0.68rem', letterSpacing: '0.3px' }}
-                >
-                  SELECCIONE REFERENCIA PARA REASIGNAR LOTE
-                </span>
-
-                <div className="d-flex align-items-center gap-2">
-                  <Select
-                    options={optReasigned}
-                    filterOption={customFilterOption}
-                    value={selectedReference}
-                    onChange={(selected) => {
-                      setReasigned(true)
-                      setSelectedReference(selected)
-                      setIsSelectingRef(false)
-                      setDataModal([...data])
-                      setModalAddSpecification(true)
-                    }}
-                    placeholder={'Seleccione...'}
-                    styles={{
-                      ...tableSelectStyles,
-                      control: (provided, state) => ({
-                        ...provided,
-                        minHeight: '35px',
-                        borderRadius: '10px',
-                        width: '200px',
-                        border: state.isFocused ? '1px solid #24247f' : '1px solid #E2E8F0',
-                        boxShadow: state.isFocused ? '0 0 0 3px rgba(36, 36, 127, 0.12)' : 'none',
-                      }),
-                      valueContainer: (provided) => ({ ...provided, padding: '0 12px' }),
-                      indicatorsContainer: (provided) => ({ ...provided, opacity: 1 }),
-                    }}
-                  />
-                  <CButton
-                    size="sm"
-                    color="light"
-                    className="border-0 text-muted px-2 font-poppins fw-medium"
-                    style={{ fontSize: '0.8rem' }}
-                    onClick={() => setIsSelectingRef(false)}
-                  >
-                    <X size={14} />
-                  </CButton>
-                </div>
-              </div>
-            ) : (
+            {!is_reasigned && (
               <CButton
                 size="sm"
                 className="d-flex align-items-center gap-2 px-3 shadow-sm text-white fw-normal btn-reasignar-lote smooth-transition"
                 onClick={async () => {
-                  setIsSelectingRef(true)
                   await loadReferences()
+                  setModalAddSpecification(true)
                 }}
-                disabled={is_reasigned}
               >
-                <ArrowRightLeft size={14} style={{ color: '#FFFFFF' }} /> Reasignar Lote
+                {hasReassignment ? (
+                  <>
+                    <Edit size={14} style={{ color: '#FFFFFF' }} />
+                    Editar Reasignación
+                  </>
+                ) : (
+                  <>
+                    <ArrowRightLeft size={14} style={{ color: '#FFFFFF' }} />
+                    Reasignar Lote
+                  </>
+                )}
               </CButton>
             )}
           </div>
@@ -1017,9 +901,16 @@ const TableCurveSpecifications = ({
           setDataModal={setDataModal}
           sizes={sizes}
           product={product}
+          products={products}
           product_stara={product_stara}
+          data={data}
           setData={setData}
+          dataNew={dataNew}
           setDataNew={setDataNew}
+          selectedReferences={selectedReferences}
+          setSelectedReferences={setSelectedReferences}
+          hasReassignment={hasReassignment}
+          setHasReassignment={setHasReassignment}
         />
       )}
     </>

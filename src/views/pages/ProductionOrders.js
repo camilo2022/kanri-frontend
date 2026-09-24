@@ -9,6 +9,8 @@ import ProductsService from '../../services/products.service'
 import ColorsService from '../../services/colors.service'
 import Products from './Products'
 import TrademarksService from '../../services/trademarks.service'
+import SupplierTypesService from '../../services/supplier_types.service'
+import SuppliersService from '../../services/suppliers.service'
 import List from './technicalSheets/productionOrder/List'
 import Create from './technicalSheets/productionOrder/Create'
 import Edit from './technicalSheets/productionOrder/Edit'
@@ -41,6 +43,8 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
   const [loadingRolls, setLoadingRolls] = useState(false)
   const [piecesCutA, setPiecesCutA] = useState(null)
   const [strokesCutA, setStrokesCutA] = useState(null)
+  const [supplierTypes, setSupplierTypes] = useState(null)
+  const [suppliers, setSuppliers] = useState(null)
 
   useEffect(() => {
     if (!technical_sheet_id) return
@@ -48,7 +52,8 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
     setLoading(true)
     setLoadingRolls(true)
     findTechnicalSheet({ id: technical_sheet_id })
-    fetchSupplyTypes()
+    fetchSupplyTypes({ in_production_order: 'true' })
+    fetchSupplierTypes({ in_production_order: 'true' })
     fetchTrademarks()
     if (view.name === 'create') {
       fetchPieces()
@@ -60,6 +65,11 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
       findProductionOrder(view.production_order)
     }
   }, [view, technical_sheet_id])
+
+  useEffect(() => {
+    if (!supplierTypes) return
+    fetchSuppliers()
+  }, [supplierTypes])
 
   const changeView = (newView) => {
     setErrors({})
@@ -96,9 +106,10 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
     }
   }
 
-  const fetchProductionOrders = async (params) => {
+  const fetchProductionOrders = async (technical_sheet_id, params) => {
     try {
-      const response = await ProductionOrdersService.all(params)
+      console.log(params)
+      const response = await ProductionOrdersService.all(technical_sheet_id, params)
       setPiecesCutA(response.data.production_orders.find((item) => item.cut === 'A')?.pieces ?? [])
       setStrokesCutA(response.data.production_orders.find((item) => item.cut === 'A')?.strokes)
       setData(response.data)
@@ -114,7 +125,9 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
   const fetchFabrics = async () => {
     try {
       const aux = supplyTypes.find((item) => item.name === 'TELA').id || 218
+      console.log(aux)
       const response = await SuppliesService.all(aux)
+      console.log(response)
       setFabrics(
         Array.isArray(response.data.supplies)
           ? response.data.supplies.reduce((acc, supply) => {
@@ -138,6 +151,7 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
   const fetchSupplyTypes = async () => {
     try {
       const response = await SupplyTypesService.all()
+      console.log(response)
       setSupplyTypes(response.data.supply_types)
       setSupplyType(response.data.supply_types.find((item) => item.name === 'ROLLO'))
     } catch (error) {
@@ -196,6 +210,42 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
     try {
       const response = await ProductsService.all()
       setProducts(response.data.products)
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSupplierTypes = async (params) => {
+    try {
+      const response = await SupplierTypesService.all(params)
+      setSupplierTypes(response.data.supplier_types)
+    } catch (error) {
+      setErrors(error.error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSuppliers = async () => {
+    try {
+      const aux = supplierTypes.find((item) => item.settings.paragraph === 'production').id || 423
+      const response = await SuppliersService.all(aux)
+      setSuppliers(
+        Array.isArray(response.data.suppliers)
+          ? response.data.suppliers.reduce((acc, supplier) => {
+              acc[supplier.id] = {
+                label: `${supplier.settings?.code} - ${supplier.name}`,
+                value: supplier.id,
+                data: supplier,
+              }
+              return acc
+            }, {})
+          : {},
+      )
     } catch (error) {
       setErrors(error.error)
       throw error
@@ -330,6 +380,7 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
             edit={edit}
             piecesCutA={piecesCutA}
             strokesCutA={strokesCutA}
+            suppliers={suppliers}
           />
         )
 
@@ -363,6 +414,7 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
             product_stara={productStara}
             edit={edit}
             piecesCutA={piecesCutA}
+            suppliers={suppliers}
           />
         )
 

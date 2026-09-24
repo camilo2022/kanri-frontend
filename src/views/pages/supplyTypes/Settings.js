@@ -40,7 +40,9 @@ const Settings = ({
   models,
   fetchSupplyTypes,
   supply_types,
+  supplier_types,
 }) => {
+  console.log(models)
   const [catalogsData, setCatalogsData] = useState({})
   const [validated, setValidated] = useState(false)
   const [editingIndex, setEditingIndex] = useState(null)
@@ -123,7 +125,9 @@ const Settings = ({
 
   const getCatalog = async (key, params = {}) => {
     try {
+      console.log(key, params)
       const url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url
+      console.log(url)
       const response = await api.get(url, {
         ...getConfig(),
         params,
@@ -135,17 +139,7 @@ const Settings = ({
     }
   }
 
-  const loadCatalog = async (key /*, form*/) => {
-    /*const catalog = CATALOGS[field.source.name]
-
-    if (!catalog) return
-
-
-
-    if (field.depends_on) {
-      params[field.depends_on] = form[field.depends_on]
-    }
-    */
+  const loadCatalog = async (key) => {
     const params = {}
     if (catalogsData[key]) return
 
@@ -158,26 +152,16 @@ const Settings = ({
   }
 
   useEffect(() => {
-    const loadAllCatalogs = async () => {
-      const form = supply_type?.settings?.form || []
+    const loadStructureCatalogs = async () => {
+      const paramsToLoad = new Set(structure.map((field) => field?.param).filter(Boolean))
 
-      const modelsToLoad = new Set()
-
-      if (form) {
-        for (const field of form) {
-          if (field.type === 'selectdinamic' && !catalogsData[field.model]) {
-            modelsToLoad.add(field.model)
-          }
-        }
-      }
-
-      for (const model of modelsToLoad) {
-        await loadCatalog(model)
+      for (const param of paramsToLoad) {
+        await loadCatalog(param)
       }
     }
-    fetchSupplyTypes()
-    loadAllCatalogs()
-  }, [supply_type])
+
+    loadStructureCatalogs()
+  }, [structure, models])
 
   const handleSubmitEdit = async (data, message = true) => {
     if (message) {
@@ -299,11 +283,18 @@ const Settings = ({
   ]
 
   const updateRules = (index, newRules, model = '') => {
+    console.log(models, model)
     setStructure((prev) => {
       const newSchema = prev.map((item, i) =>
         i === index
           ? model !== ''
-            ? { ...item, model: models[model].model, path: models[model].path, rules: newRules }
+            ? {
+                ...item,
+                model: models[model].model,
+                path: models[model].option,
+                param: models[model].param,
+                rules: newRules,
+              }
             : { ...item, rules: newRules }
           : item,
       )
@@ -311,7 +302,8 @@ const Settings = ({
     })
   }
 
-  const updateField = (index, key, value) => {
+  const updateField = (index, key, value, is_field = false) => {
+    console.log(index, key, value)
     const newSchema = structure.map((item, i) => {
       if (i !== index) return item
 
@@ -322,10 +314,10 @@ const Settings = ({
         }
       }
 
-      if (key === 'supply_type_id') {
+      if (is_field) {
         return {
           ...item,
-          supply_type_id: value,
+          [key]: value,
         }
       }
 
@@ -370,6 +362,9 @@ const Settings = ({
 
     setStructure(newSchema)
   }
+
+  console.log(structure)
+  console.log(catalogsData)
 
   return (
     <div className="animate-fade-in">
@@ -671,7 +666,7 @@ const Settings = ({
                                             label: item.label,
                                             field: item.field,
                                             type: newType,
-                                            rules: [selected.rule || ''],
+                                            rules: selected.rule ? [selected.rule] : [],
                                           }
                                         : item,
                                     )
@@ -723,14 +718,9 @@ const Settings = ({
                                 </CFormFeedback>
                                 <CRow className="g-2">
                                   <CCol
-                                    md={
-                                      field?.model === 'App\\Models\\Supply'
-                                        ? 4
-                                        : field?.type === 'selectdinamic'
-                                          ? 8
-                                          : 12
-                                    }
+                                    md={field?.param ? 4 : field?.type === 'selectdinamic' ? 8 : 12}
                                   >
+                                    {console.log(field)}
                                     <FieldRules
                                       type={field.type}
                                       element={field}
@@ -749,28 +739,45 @@ const Settings = ({
                                       itemRequired={false}
                                     />
                                   </CCol>
-                                  {field?.model === 'App\\Models\\Supply' && (
+                                  {field?.param && (
                                     <CCol md={4}>
                                       <div className="d-flex flex-column gap-2 mt-3">
                                         <label
                                           className="text-muted fw-bold"
                                           style={{ fontSize: '9px' }}
                                         >
-                                          TIPO DE INSUMO ASOCIADO
+                                          {Object.values(models)
+                                            .find((item) => item.model === field?.param)
+                                            ?.label?.toUpperCase()}{' '}
+                                          ASOCIADO
                                         </label>
                                         <CFormSelect
                                           size="sm"
                                           className="font-inter shadow-sm custom-input"
                                           style={{ fontSize: '12px' }}
-                                          value={field.supply_type_id || ''}
+                                          value={
+                                            field[
+                                              Object.values(models).find(
+                                                (item) => item.model === field?.param,
+                                              )?.field
+                                            ] || ''
+                                          }
                                           onChange={(e) => {
-                                            updateField(index, 'supply_type_id', e.target.value)
+                                            updateField(
+                                              index,
+                                              Object.values(models).find(
+                                                (item) => item.model === field?.param,
+                                              )?.field,
+                                              e.target.value,
+                                              true,
+                                            )
                                           }}
                                         >
                                           <option value="">Seleccione una opción</option>
-                                          {supply_types.map((item) => (
-                                            <option value={item.id}>{item.name}</option>
-                                          ))}
+                                          {catalogsData[field.param] &&
+                                            catalogsData[field.param].map((item) => (
+                                              <option value={item.id}>{item.name}</option>
+                                            ))}
                                         </CFormSelect>
                                       </div>
                                     </CCol>

@@ -93,7 +93,9 @@ const InformationProductionOrder = ({
   trazosFile,
   setTrazosFile,
   strokesCutA,
+  suppliers,
 }) => {
+  console.log(suppliers)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
 
@@ -106,6 +108,12 @@ const InformationProductionOrder = ({
   const isValidFabric = !errors?.fabric_id && formData?.fabric_id !== '' && validated
   const isInvalidColor = !!errors?.color_id
   const isValidColor = !errors?.color_id && formData?.color_id !== '' && validated
+  const isInvalidProductionPlace = !!errors?.production_place
+  const isValidProductionPlace =
+    !errors?.production_place && formData?.production_place !== '' && validated
+  const isInvalidSatellite = !!errors?.production_place
+  const isValidSatellite =
+    !errors?.production_place && formData?.production_place !== '' && validated
   const isInvalidStatus = !!errors?.status
   const isValidStatus = !errors?.status && formData?.status !== '' && validated
   const isInvalidPhotoD = !!errors?.['photo_d.file']
@@ -157,6 +165,8 @@ const InformationProductionOrder = ({
         width: production_order.width,
         efficiency: production_order.efficiency,
         cut: production_order.cut,
+        production_place: production_order.production_place,
+        supplier_id: production_order.supplier_id ?? null,
         observation: production_order.observation,
         trazos_file: null,
       }))
@@ -381,7 +391,7 @@ const InformationProductionOrder = ({
         </CCol>
         <CCol md={12} lg={9}>
           <CRow className={validated ? 'g-2' : 'g-3'}>
-            <CCol md={3}>
+            <CCol md={4}>
               <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Referencia</CFormLabel>
                 <span
@@ -393,7 +403,7 @@ const InformationProductionOrder = ({
                 </span>
               </div>
             </CCol>
-            <CCol md={3}>
+            <CCol md={4}>
               <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Marca</CFormLabel>
                 <span
@@ -403,7 +413,7 @@ const InformationProductionOrder = ({
                 </span>
               </div>
             </CCol>
-            <CCol md={3}>
+            <CCol md={4}>
               <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Grupo</CFormLabel>
                 <span
@@ -415,7 +425,7 @@ const InformationProductionOrder = ({
                 </span>
               </div>
             </CCol>
-            <CCol md={3}>
+            <CCol md={4}>
               <div className="d-flex flex-column gap-1">
                 <CFormLabel className="font-inter mb-0">Tipo de Prenda</CFormLabel>
                 <span
@@ -447,40 +457,7 @@ const InformationProductionOrder = ({
                 </span>
               </div>
             </CCol>
-            <CCol md={4}>
-              <EditableField
-                label={'Fecha'}
-                editing={editingField === 'date'}
-                error={errors?.date}
-                valid={formData?.date !== '' && validated}
-                validated={validated}
-                editor={
-                  <CFormInput
-                    ref={(el) => (inputRefs.current.date = el)}
-                    type="date"
-                    name="date"
-                    value={formData?.date}
-                    onChange={(e) => handleChange('date', e.target.value)}
-                    invalid={!!errors?.date}
-                    valid={!errors?.date && formData?.date !== '' && validated}
-                    className="font-montserrat input-custom"
-                    placeholder="Seleccione una fecha"
-                    onBlur={() => setEditingField(null)}
-                  />
-                }
-                display={
-                  <span
-                    className={`editable-field input-custom ${
-                      !formData?.date ? 'placeholder' : ''
-                    } ${validated ? (errors?.date ? 'is-invalid' : 'is-valid') : ''}`}
-                    onClick={() => setEditingField('date')}
-                  >
-                    {formData?.date || 'Seleccione una fecha'}
-                  </span>
-                }
-              />
-            </CCol>
-            <CCol md={8}>
+            <CCol md={formData.production_place === 'SATELITE' ? 4 : 8}>
               <div className="d-flex flex-column gap-2">
                 <CFormLabel className="font-inter mb-0">Colección</CFormLabel>
                 <span
@@ -494,94 +471,135 @@ const InformationProductionOrder = ({
             </CCol>
             <CCol md={4}>
               <EditableField
-                label={'Estado'}
-                editing={editingField === 'status'}
-                error={errors?.status}
-                valid={formData?.status !== '' && validated}
+                label={'Lugar de Producción'}
+                editing={editingField === 'production_place'}
+                error={errors?.production_place}
+                valid={formData?.production_place !== '' && validated}
                 validated={validated}
                 editor={
                   <Select
-                    ref={(el) => (inputRefs.current.status = el)}
-                    name="status"
-                    value={status_orders?.find((option) => option.value === formData?.status)}
-                    onChange={(selected) => handleChange('status', selected?.value)}
-                    invalid={!!errors?.status}
-                    valid={!errors?.status && formData?.status !== '' && validated}
-                    options={status_orders}
-                    isDisabled={!status_orders}
+                    ref={(el) => (inputRefs.current.production_place = el)}
+                    name="production_place"
+                    value={
+                      formData?.production_place
+                        ? {
+                            label: formData.production_place === 'BLESS' ? 'BLESS' : 'SATÉLITE',
+                            value: formData.production_place,
+                          }
+                        : null
+                    }
+                    onChange={(option) => {
+                      const productionPlace = option?.value ?? ''
+                      setFormData((prev) => ({
+                        ...prev,
+                        production_place: productionPlace,
+                        supplier_id: productionPlace === 'BLESS' ? '' : prev.supplier_id,
+                      }))
+                    }}
+                    invalid={!!errors?.production_place}
+                    valid={
+                      !errors?.production_place && formData?.production_place !== '' && validated
+                    }
+                    options={[
+                      {
+                        label: 'BLESS',
+                        value: 'BLESS',
+                      },
+                      {
+                        label: 'SATÉLITE',
+                        value: 'SATELITE',
+                      },
+                    ]}
                     isSearchable
                     filterOption={customFilterOption}
                     className="w-100 font-montserrat"
-                    placeholder={'Seleccione estado'}
+                    placeholder={'Seleccione una color'}
                     menuPortalTarget={document.body}
                     menuPosition="fixed"
                     styles={getSelectStyles({
-                      isInvalid: isInvalidStatus,
-                      isValid: isValidStatus,
+                      isInvalid: isInvalidProductionPlace,
+                      isValid: isValidProductionPlace,
                     })}
                     onBlur={() => setEditingField(null)}
                   />
                 }
-                display={(() => {
-                  const currentStatus = formData?.status || production_order?.status
-                  const badgeClass = STATUS_BADGE_STYLES[currentStatus] || ''
-
-                  return (
-                    <span
-                      className={`editable-field input-custom ${badgeClass} ${
-                        !currentStatus ? 'placeholder' : ''
-                      } ${validated ? (errors?.status ? 'is-invalid' : 'is-valid') : ''}`}
-                      onClick={() => setEditingField('status')}
-                    >
-                      {!!status_orders && formData?.status
-                        ? status_orders?.find((stat) => stat.value === formData?.status).label
-                        : production_order?.status || 'Seleccione un estado'}
-                    </span>
-                  )
-                })()}
+                display={
+                  <span
+                    className={`editable-field input-custom ${
+                      !formData?.production_place ? 'placeholder' : ''
+                    } ${validated ? (errors?.production_place ? 'is-invalid' : 'is-valid') : ''}`}
+                    onClick={() => {
+                      setEditingField('production_place')
+                    }}
+                  >
+                    {formData?.production_place === 'BLESS'
+                      ? 'BLESS'
+                      : formData?.production_place === 'SATELITE'
+                        ? 'SATÉLITE'
+                        : 'Seleccione un lugar de producción'}
+                  </span>
+                }
               />
             </CCol>
-            <CCol md={4}>
-              <div className="d-flex flex-column gap-2">
-                <CFormLabel className="font-inter mb-0">¿Tela Bolsillo?</CFormLabel>
-                <div
-                  className={`editable-field input-custom ${validated && (errors?.pocket_fabric ? 'is-invalid' : 'is-valid')} ${!formData?.pocket_fabric && 'placeholder'}`}
-                >
-                  <div className="d-flex align-items-center justify-content-between w-100">
-                    <CFormCheck
-                      id="pocket_fabric"
-                      label="¿Tela bolsillo?"
-                      checked={!!formData?.pocket_fabric}
-                      onChange={(e) => handleChange('pocket_fabric', e.target.checked)}
+            {formData.production_place === 'SATELITE' && (
+              <CCol md={4}>
+                <EditableField
+                  label={'Satélite'}
+                  editing={editingField === 'supplier_id'}
+                  error={errors?.supplier_id}
+                  valid={formData?.supplier_id !== '' && validated}
+                  validated={validated}
+                  editor={
+                    <Select
+                      ref={(el) => (inputRefs.current.supplier_id = el)}
+                      name="supplier_id"
+                      value={
+                        Object.values(suppliers ?? {}).find(
+                          (item) => item.value === formData?.supplier_id,
+                        ) ?? null
+                      }
+                      onChange={(option) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          supplier_id: option?.value ?? '',
+                        }))
+                      }}
+                      options={Object.values(suppliers ?? {}).map((item) => ({
+                        label: item.label,
+                        value: item.value,
+                      }))}
+                      isSearchable
+                      filterOption={customFilterOption}
+                      className="w-100 font-montserrat"
+                      placeholder={'Seleccione un proveedor'}
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      styles={getSelectStyles({
+                        isInvalid: isInvalidSatellite,
+                        isValid: isValidSatellite,
+                      })}
+                      onBlur={() => setEditingField(null)}
                     />
-
-                    {!errors?.pocket_fabric && validated && (
-                      <Check size={16} strokeWidth={5} color="#198754" />
-                    )}
-                  </div>
-                </div>
-                {errors?.pocket_fabric && (
-                  <div className="invalid-feedback d-block" style={{ marginTop: '0.1rem' }}>
-                    {errors?.pocket_fabric.map((message, index) => (
-                      <div key={index} className="d-flex align-items-center gap-1">
-                        <BadgeAlert size={13} />
-                        <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
-                          {message}
-                        </small>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {!errors?.pocket_fabric && validated && (
-                  <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
-                    <div className="d-flex align-items-center gap-1">
-                      <BadgeCheck size={13} />
-                      <small className="font-inter">Dato válido</small>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CCol>
+                  }
+                  display={
+                    <span
+                      className={`editable-field input-custom ${
+                        !formData?.supplier_id ? 'placeholder' : ''
+                      } ${validated ? (errors?.supplier_id ? 'is-invalid' : 'is-valid') : ''}`}
+                      onClick={() => {
+                        setEditingField('supplier_id')
+                      }}
+                    >
+                      {formData?.supplier_id
+                        ? Object.values(suppliers || {})?.find(
+                            (item) => item.value === formData.supplier_id,
+                          )?.label
+                        : 'Seleccione un proveedor'}
+                    </span>
+                  }
+                />
+              </CCol>
+            )}
             <CCol md={4}>
               <EditableField
                 label={'Eficiencia'}
@@ -652,7 +670,97 @@ const InformationProductionOrder = ({
                 }
               />
             </CCol>
-            <CCol md={8}>
+            <CCol md={4}>
+              <EditableField
+                label={'Estado'}
+                editing={editingField === 'status'}
+                error={errors?.status}
+                valid={formData?.status !== '' && validated}
+                validated={validated}
+                editor={
+                  <Select
+                    ref={(el) => (inputRefs.current.status = el)}
+                    name="status"
+                    value={status_orders?.find((option) => option.value === formData?.status)}
+                    onChange={(selected) => handleChange('status', selected?.value)}
+                    invalid={!!errors?.status}
+                    valid={!errors?.status && formData?.status !== '' && validated}
+                    options={status_orders}
+                    isDisabled={!status_orders}
+                    isSearchable
+                    filterOption={customFilterOption}
+                    className="w-100 font-montserrat"
+                    placeholder={'Seleccione estado'}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={getSelectStyles({
+                      isInvalid: isInvalidStatus,
+                      isValid: isValidStatus,
+                    })}
+                    onBlur={() => setEditingField(null)}
+                  />
+                }
+                display={(() => {
+                  const currentStatus = formData?.status || production_order?.status
+                  const badgeClass = STATUS_BADGE_STYLES[currentStatus] || ''
+
+                  return (
+                    <span
+                      className={`editable-field input-custom ${badgeClass} ${
+                        !currentStatus ? 'placeholder' : ''
+                      } ${validated ? (errors?.status ? 'is-invalid' : 'is-valid') : ''}`}
+                      onClick={() => setEditingField('status')}
+                    >
+                      {!!status_orders && formData?.status
+                        ? status_orders?.find((stat) => stat.value === formData?.status).label
+                        : production_order?.status || 'Seleccione un estado'}
+                    </span>
+                  )
+                })()}
+              />
+            </CCol>
+            <CCol md={3}>
+              <div className="d-flex flex-column gap-2">
+                <CFormLabel className="font-inter mb-0">¿Tela Bolsillo?</CFormLabel>
+                <div
+                  className={`editable-field input-custom ${validated && (errors?.pocket_fabric ? 'is-invalid' : 'is-valid')} ${!formData?.pocket_fabric && 'placeholder'}`}
+                >
+                  <div className="d-flex align-items-center justify-content-between w-100">
+                    <CFormCheck
+                      id="pocket_fabric"
+                      label="¿Tela bolsillo?"
+                      checked={!!formData?.pocket_fabric}
+                      onChange={(e) => handleChange('pocket_fabric', e.target.checked)}
+                    />
+
+                    {!errors?.pocket_fabric && validated && (
+                      <Check size={16} strokeWidth={5} color="#198754" />
+                    )}
+                  </div>
+                </div>
+                {errors?.pocket_fabric && (
+                  <div className="invalid-feedback d-block" style={{ marginTop: '0.1rem' }}>
+                    {errors?.pocket_fabric.map((message, index) => (
+                      <div key={index} className="d-flex align-items-center gap-1">
+                        <BadgeAlert size={13} />
+                        <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
+                          {message}
+                        </small>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!errors?.pocket_fabric && validated && (
+                  <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
+                    <div className="d-flex align-items-center gap-1">
+                      <BadgeCheck size={13} />
+                      <small className="font-inter">Dato válido</small>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CCol>
+            <CCol md={5}>
               <EditableField
                 label={'Tela'}
                 editing={editingField === 'fabric'}
@@ -715,7 +823,7 @@ const InformationProductionOrder = ({
                     name="color_id"
                     value={
                       fabrics && formData?.fabric_id
-                        ? (fabrics[formData.fabric_id].data.color
+                        ? (fabrics[formData.fabric_id].data.color_id
                             ?.map((item) => ({
                               label: `${item.settings?.code ?? ''} - ${item.name}`,
                               value: item.id,
@@ -728,7 +836,7 @@ const InformationProductionOrder = ({
                     valid={!errors?.color_id && formData?.color_id !== '' && validated}
                     options={
                       fabrics && formData?.fabric_id
-                        ? fabrics?.[formData?.fabric_id]?.data?.color?.map((item) => ({
+                        ? fabrics?.[formData?.fabric_id]?.data?.color_id?.map((item) => ({
                             label: `${item.settings.code} - ${item.name}`,
                             value: item.id,
                           }))
@@ -760,9 +868,9 @@ const InformationProductionOrder = ({
                     {formData?.color
                       ? `${formData.color.settings?.code} - ${formData.color.name}`
                       : !!fabrics && formData.fabric_id && formData.color_id
-                        ? `${fabrics?.[formData?.fabric_id]?.data?.color.find((item) => item.id === formData?.color_id)?.settings?.code}
+                        ? `${fabrics?.[formData?.fabric_id]?.data?.color_id.find((item) => item.id === formData?.color_id)?.settings?.code}
                        - ${
-                         fabrics?.[formData?.fabric_id]?.data?.color.find(
+                         fabrics?.[formData?.fabric_id]?.data?.color_id.find(
                            (item) => item.id === formData?.color_id,
                          )?.name
                        }`
@@ -837,16 +945,15 @@ const InformationProductionOrder = ({
                           </span>
                         </div>
                       </div>
-                      {formData?.cut === 'A' && (
-                        <button
-                          type="button"
-                          className="btn p-1 rounded-circle hover-bg-gray d-flex align-items-center justify-content-center"
-                          style={{ width: '32px', height: '32px', transition: 'all 0.2s' }}
-                          onClick={removeTrazosFile}
-                        >
-                          <X size={18} className="text-secondary" />
-                        </button>
-                      )}
+
+                      <button
+                        type="button"
+                        className="btn p-1 rounded-circle hover-bg-gray d-flex align-items-center justify-content-center"
+                        style={{ width: '32px', height: '32px', transition: 'all 0.2s' }}
+                        onClick={removeTrazosFile}
+                      >
+                        <X size={18} className="text-secondary" />
+                      </button>
                     </div>
                   ) : (
                     <label
@@ -864,7 +971,6 @@ const InformationProductionOrder = ({
                         accept=".pdf"
                         hidden
                         onChange={handleTrazosChange}
-                        disabled={formData?.cut !== 'A'}
                       />
                       <UploadCloud size={28} className="text-muted mb-2" />
                       <span
@@ -876,9 +982,9 @@ const InformationProductionOrder = ({
                     </label>
                   )}
                 </div>
-                {errors?.observation && (
+                {errors?.strokes && (
                   <div className="invalid-feedback d-block" style={{ marginTop: '0.1rem' }}>
-                    {errors?.observation.map((message, index) => (
+                    {errors?.strokes.map((message, index) => (
                       <div key={index} className="d-flex align-items-center gap-1">
                         <BadgeAlert size={13} />
                         <small className="font-inter" style={{ whiteSpace: 'pre-line' }}>
@@ -888,7 +994,7 @@ const InformationProductionOrder = ({
                     ))}
                   </div>
                 )}
-                {!errors?.observation && validated && (
+                {!errors?.strokes && validated && (
                   <div className="valid-feedback d-block" style={{ marginTop: '0.1rem' }}>
                     <div className="d-flex align-items-center gap-1">
                       <BadgeCheck size={13} />

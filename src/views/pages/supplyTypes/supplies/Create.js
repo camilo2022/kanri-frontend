@@ -28,22 +28,15 @@ const Create = ({ supply_type, onChangeView, onSubmit, errors, models }) => {
       const settings = supply_type?.settings || []
 
       for (const field of settings?.form) {
-        if (
-          field.type === 'selectdinamic' &&
-          field.model !== 'App\\Models\\Supply' &&
-          !catalogsData[field.model]
-        ) {
+        if (field.type === 'selectdinamic' && !field.param && !catalogsData[field.model]) {
           modelsToLoad.add(field.model)
         }
 
-        if (
-          field.type === 'selectdinamic' &&
-          field.model === 'App\\Models\\Supply' &&
-          !catalogsData[field.model]
-        ) {
+        if (field.type === 'selectdinamic' && field.param && !catalogsData[field.model]) {
+          const aux = Object.values(models).find((item) => item.model === field.param)
           dependentFieldsAux.push({
             model: field.model,
-            param: field.supply_type_id,
+            dependency: { model: field.param, param: field[aux.field] },
           })
         }
       }
@@ -53,7 +46,7 @@ const Create = ({ supply_type, onChangeView, onSubmit, errors, models }) => {
       }
 
       for (const depent of dependentFieldsAux) {
-        await loadCatalog(depent.model, depent.param)
+        await loadCatalog(depent.model, depent.dependency)
       }
     }
 
@@ -64,8 +57,9 @@ const Create = ({ supply_type, onChangeView, onSubmit, errors, models }) => {
     try {
       let url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url
 
-      if (key === 'App\\Models\\Supply') {
-        url = url.replace(`{supply_type_id}`, dependencyValue)
+      if (dependencyValue) {
+        const aux = Object.values(models).find((value) => value.model === dependencyValue.model)
+        url = url.replace(`{${aux.field}}`, dependencyValue.param)
       }
 
       const response = await api.get(url, {
@@ -79,7 +73,7 @@ const Create = ({ supply_type, onChangeView, onSubmit, errors, models }) => {
   }
 
   const loadCatalog = async (key, dependencyValue = null) => {
-    const cacheKey = dependencyValue ? `${key}_${dependencyValue}` : key
+    const cacheKey = dependencyValue ? `${dependencyValue.model}_${dependencyValue.value}` : key
     if (catalogsData[cacheKey]) return
     const res = await getCatalog(key, dependencyValue)
     const aux = Array.isArray(
