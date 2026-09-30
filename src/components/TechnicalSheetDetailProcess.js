@@ -57,7 +57,6 @@ export const TechnicalSheetDetailProcess = ({
   process_edit = null,
   process,
 }) => {
-  console.log(process_edit)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
   const [openPopover, setOpenPopover] = useState({ process: null, type: null })

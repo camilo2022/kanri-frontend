@@ -137,10 +137,6 @@ const Edit = ({
     if (personTypeId) {
       loadDocumentTypes(personTypeId)
     }
-
-    console.log('Supplier:', supplier)
-    console.log('Person:', person)
-    console.log('Bank Account:', bankAccount)
   }, [supplier_type, supplier])
 
   const handleSubmit = async (event) => {
@@ -160,7 +156,6 @@ const Edit = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          console.log(formData)
           const response = await onSubmit(supplier.id, { ...formData })
           setValidated(true)
           Toast.fire({
@@ -234,8 +229,6 @@ const Edit = ({
       />
     )
   }
-
-  console.log(formData)
 
   return (
     <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">

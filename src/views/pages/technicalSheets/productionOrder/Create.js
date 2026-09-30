@@ -172,9 +172,6 @@ export const Create = ({
             return acc
           }, {}) ?? {}
 
-      console.log(supply)
-      console.log(supply.production_order_details)
-
       const used_aux = supply.production_order_details.reduce(
         (acc, item) => acc + item.settings.quantity,
         0,
@@ -464,7 +461,6 @@ export const Create = ({
   }
 
   const handleInsertRolls = (new_rolls) => {
-    console.log(new_rolls)
     setRollsAux((prev) => ({
       ...prev,
       ...new_rolls,
@@ -569,8 +565,6 @@ export const Create = ({
               : [],
           }
 
-          console.log('PAYLOAD FINAL:', productionOrderData)
-
           const response = await create(productionOrderData)
 
           setValidated(true)
@@ -596,9 +590,6 @@ export const Create = ({
       }
     })
   }
-
-  console.log(formattedData)
-  console.log(piecesAux)
 
   return (
     <CCard className="mb-3 p-4 shadow-sm border-0 animate-fade-in">
@@ -1092,7 +1083,6 @@ export const Create = ({
                 ) : formattedData?.length > 0 ? (
                   formattedData.map((item, index) => {
                     const isChecked = Object.keys(selectedRolls).includes(String(item.id))
-                    console.log(item)
                     return (
                       <CTableRow
                         key={index}

@@ -463,8 +463,6 @@ export const Edit = ({
     )
   }
 
-  console.log(catalogsData)
-
   return (
     <CCard className="mb-4 p-4 shadow-sm border-0 animate-fade-in">
       <div className="d-flex align-items-center justify-content-between">

@@ -23,8 +23,6 @@ const Settings = ({ process, onChangeView, errors, setting, models }) => {
   const [catalogsData, setCatalogsData] = useState({})
   const [validated, setValidated] = useState({})
 
-  console.log(models)
-
   const getCatalog = async (key, params = {}) => {
     try {
       const url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url

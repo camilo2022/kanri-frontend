@@ -56,7 +56,6 @@ export const CollectionManagement = ({
   auxSubcategories,
   save,
 }) => {
-  console.log(processes)
   const dispath = useDispatch()
   const technicalSheets = useSelector((state) => state.technicalSheetsModified)
   const [data, setData] = useState({})
@@ -288,8 +287,6 @@ export const CollectionManagement = ({
                 supplies: suppliesBySupplyType,
                 technical_sheet_details: processesByDetails,
               }
-
-              console.log(newData)
 
               return newData
             })

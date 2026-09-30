@@ -6,6 +6,8 @@ import { Plus } from 'lucide-react'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
 
+const EMPTY_OBJECT = Object.freeze({})
+
 const ManagementProductionTechnicalSheetRow = ({
   technical_sheet,
   editingOrderId,
@@ -22,6 +24,7 @@ const ManagementProductionTechnicalSheetRow = ({
   onReassignmentsChange,
   aux_trademarks,
   production_changes,
+  production_changes_all,
   production_reassignments,
   errors_create,
   createProduct,
@@ -33,6 +36,11 @@ const ManagementProductionTechnicalSheetRow = ({
   opt_status,
   builders,
   processes,
+  hasReassignment,
+  setHasReassignment,
+  priority_checks,
+  priority_levels,
+  priority_rules,
 }) => {
   const lastOriginalCut = useMemo(() => {
     const productionOrders = technical_sheet.production_orders ?? []
@@ -200,7 +208,7 @@ const ManagementProductionTechnicalSheetRow = ({
   return (
     <>
       <tr className="technical-sheet-reference-row">
-        <td colSpan={sizes.length + processes.length + 17}>
+        <td colSpan={sizes.length + processes.length + 18}>
           <div className="technical-sheet-reference-content">
             <span className="reference-code">{technical_sheet.product.code}</span>
           </div>
@@ -224,6 +232,10 @@ const ManagementProductionTechnicalSheetRow = ({
             technical_sheet={technical_sheet}
             details={technical_sheet.technical_sheet_details}
             production_order={production_order}
+            has_references_reasigned={
+              Array.isArray(production_order.reassignments) &&
+              production_order.reassignments.length > 0
+            }
             technicalSheetRowSpan={auxProductionOrders.length * 4}
             showTechnicalSheetData={index === 0}
             isEditing={editingOrderId === production_order.id_orden_produccion}
@@ -242,15 +254,24 @@ const ManagementProductionTechnicalSheetRow = ({
             errors_create={errors_create}
             createProduct={createProduct}
             is_reference_reasigned={
-              !!productionOriginReassignments[production_order.id] ? true : false
+              productionOriginReassignments[production_order.id] ? true : false
             }
-            production_changes={production_changes.orders?.[production_order.id] ?? {}}
-            production_reassignments={production_reassignments.orders?.[production_order.id] ?? {}}
+            production_changes={production_changes.orders?.[production_order.id] ?? EMPTY_OBJECT}
+            production_reassignments={
+              production_reassignments.orders?.[production_order.id] ?? EMPTY_OBJECT
+            }
             getCurveActualized={getCurveActualized}
             validated={validated?.[production_order.id]}
             errors={errors?.[production_order.id]}
             opt_status={opt_status}
             processes={processes}
+            hasReassignment={hasReassignment}
+            setHasReassignment={setHasReassignment}
+            production_changes_all={production_changes_all}
+            production_changes_technical_sheet={production_changes}
+            priority_checks={priority_checks}
+            priority_levels={priority_levels}
+            priority_rules={priority_rules}
           />
         ))
       ) : (

@@ -161,9 +161,7 @@ const Setting = ({ document_type, onChangeView, errors, loading, settings }) => 
               ),
             },
           }
-          console.log(updatedDocumentType)
           const response = await settings(document_type.id, updatedDocumentType)
-          console.log(response)
           setValidated(true)
           document_type.settings.validations.find((v) => v.id === rule.id).regex = rule.regex
           Toast.fire({

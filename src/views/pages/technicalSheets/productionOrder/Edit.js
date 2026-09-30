@@ -181,9 +181,6 @@ export const Edit = ({
             return acc
           }, {}) ?? {}
 
-      console.log(supply)
-      console.log(supply.production_order_details)
-
       const used_aux =
         supply.production_order_details?.reduce((acc, item) => {
           return acc + Number(item.settings?.quantity ?? 0)
@@ -433,9 +430,6 @@ export const Edit = ({
     setPiecesAux((prev) => {
       const aux = { ...prev }
 
-      console.log(production_order.pieces)
-      console.log(prev)
-
       let ids = Object.keys(aux).map(Number)
       let nextId = ids.length === 0 ? 1 : Math.max(...ids) + 1
 
@@ -462,9 +456,7 @@ export const Edit = ({
 
   useEffect(() => {
     if (!production_order?.rolls) return
-
-    console.log(production_order.rolls)
-
+    
     const aux = production_order.rolls.reduce((acc, row) => {
       const used_aux =
         row.model?.production_order_details

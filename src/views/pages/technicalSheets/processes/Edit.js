@@ -24,7 +24,6 @@ export const EditProcess = ({
   statusCollection,
   process,
 }) => {
-  console.log(!product, !technical_sheet, !processes, !product || !technical_sheet || !processes)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
   const [formData, setFormData] = useState({

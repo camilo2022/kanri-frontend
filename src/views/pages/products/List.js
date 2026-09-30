@@ -360,7 +360,6 @@ export const List = ({ data, processes, loading, fetchProducts, onChangeView, er
                       }}
                     >
                       <span className="process-number">{index + 1}</span>
-                      {console.log(process)}
                       <span>{process.label}</span>
                     </button>
                   ))}

@@ -29,7 +29,6 @@ const Products = () => {
   useEffect(() => {
     setLoading(true)
     setProduct('')
-    console.log(view)
     if (view.name === 'edit' && view.product?.id) {
       findProduct(view.product.id)
     }
@@ -182,7 +181,6 @@ const Products = () => {
   const findProcess = async (process_id) => {
     try {
       const response = await ProcessesService.find(process_id)
-      console.log(response)
       setProcess(response.data.process)
       return response
     } catch (error) {

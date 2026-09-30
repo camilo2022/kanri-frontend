@@ -1,6 +1,18 @@
 import api from '../API/api'
 import { getConfig } from '../axiosConfig'
 
+const find = async (id) => {
+  try {
+    const response = await api.get(`/management/production/find/${id}`, getConfig())
+    return response.data
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw error.response.data
+    }
+    throw { message: 'Error desconocido' }
+  }
+}
+
 const save = async (data) => {
   try {
     const response = await api.post(`/management/production/save`, data, getConfig())
@@ -17,6 +29,7 @@ const save = async (data) => {
 }
 
 const ProductionManagementService = {
+  find,
   save,
 }
 

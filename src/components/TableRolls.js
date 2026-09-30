@@ -19,7 +19,6 @@ const TableRolls = ({
   supply_type,
   fabric_id,
 }) => {
-  console.log(rolls)
   const [editing, setEditing] = useState({})
   const [rows, setRows] = useState([])
   const [openPopover, setOpenPopover] = useState({
@@ -69,8 +68,6 @@ const TableRolls = ({
     }
   }
 
-  console.log(rolls)
-
   if (!supply_type) {
     return (
       <LoadingForm
@@ -97,8 +94,6 @@ const TableRolls = ({
     const val = parseFloat(item?.utilized)
     return !isNaN(val) ? sum + val : sum
   }, 0)
-
-  console.log(rollsAux)
 
   return (
     <>

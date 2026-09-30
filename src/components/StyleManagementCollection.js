@@ -65,7 +65,7 @@ export const tableSelectStyles = {
     ...provided,
     minHeight: '32px',
     height: '32px',
-    with: '100px',
+    width: '137px',
     backgroundColor: 'transparent',
     border: state.isFocused ? '1px solid #CBD5E1' : '1px solid transparent',
     boxShadow: 'none',

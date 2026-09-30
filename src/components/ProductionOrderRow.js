@@ -3,7 +3,6 @@ import {
   CFormInput,
   CTooltip,
   CButton,
-  CFormSelect,
   CModal,
   CModalHeader,
   CModalTitle,
@@ -14,7 +13,6 @@ import {
   CFormLabel,
   CFormFeedback,
   CPopover,
-  CFormCheck,
 } from '@coreui/react'
 import { createPortal } from 'react-dom'
 import {
@@ -29,22 +27,19 @@ import {
   BadgeAlert,
   Edit,
   CircleX,
-  Factory,
-  Map,
   Package,
-  Boxes,
+  OctagonAlert,
 } from 'lucide-react'
 import Select from 'react-select'
 import {
   getSelectStylesInsertUniq,
   tableSelectStyles,
-  getStatusClass,
   getStatusBadgeClass,
 } from '@/components/StyleManagementCollection'
 import ModalAddReassignmentCurveProgramation from './ModalAddReassignmentCurveProgramation'
+import ModalDefinePriority from './ModalDefinePriority'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
-import { toast } from 'react-toastify'
 
 const selectStylesWithPortal = {
   ...tableSelectStyles,
@@ -62,9 +57,6 @@ const ProductionOrderRow = ({
   rowSpan,
   technicalSheetRowSpan,
   showTechnicalSheetData,
-  isEditing,
-  onEdit,
-  onCancelEdit,
   sizes,
   fabrics,
   suppliers,
@@ -78,12 +70,20 @@ const ProductionOrderRow = ({
   errors_create,
   createProduct,
   production_changes,
+  production_changes_all,
+  production_changes_technical_sheet,
   production_reassignments,
   getCurveActualized,
   is_reference_reasigned,
   errors,
   opt_status,
   processes,
+  hasReassignment,
+  setHasReassignment,
+  has_references_reasigned,
+  priority_checks,
+  priority_levels,
+  priority_rules,
 }) => {
   const curveDestinations = ['NACIONAL', 'MEDELLIN', 'STARA']
   const errorIconRef = useRef(null)
@@ -94,8 +94,9 @@ const ProductionOrderRow = ({
   const [validatedAdd, setValidatedAdd] = useState(null)
   const [openModalReasigned, setOpenModalReasigned] = useState(false)
   const [openModalChangePlace, setOpenModalChangePlace] = useState(false)
+  const [openModalPriority, setOpenModalPriority] = useState(false)
   const [dataModal, setDataModal] = useState(null)
-  const [selectedReference, setSelectedReference] = useState(null)
+  const [selectedReferences, setSelectedReferences] = useState([])
   const [modalAddProductStara, setModalAddProductStara] = useState(false)
   const [builderTotal, setBuilderTotal] = useState('')
   const [builderTotals, setBuilderTotals] = useState({})
@@ -106,6 +107,7 @@ const ProductionOrderRow = ({
       production_changes.production_place ?? production_order.production_place ?? null,
     supplier_id: production_changes.supplier_id ?? production_order.supplier_id ?? null,
     status: production_changes.status ?? production_order.status ?? null,
+    priority: production_changes.priority ?? production_order.priority ?? 0,
   })
   const [formDataStara, setFormDataStara] = useState({
     reference_relation: true,
@@ -139,6 +141,7 @@ const ProductionOrderRow = ({
       return {
         id: detail?.id ?? null,
         destination,
+        reference_code: detail?.model?.code ?? null,
         reference_id: detail?.model?.id ?? null,
         quantities: sizes.map((size) => {
           const detail_quantity = detail?.production_order_detail_quantities?.find(
@@ -182,6 +185,16 @@ const ProductionOrderRow = ({
       return acc
     }, {})
   })
+
+  const priorityOptions = [
+    { value: 1, label: 'Muy baja', color: '#16A34A', background: '#DCFCE7' },
+    { value: 2, label: 'Baja', color: '#65A30D', background: '#ECFCCB' },
+    { value: 3, label: 'Media', color: '#CA8A04', background: '#FEF9C3' },
+    { value: 4, label: 'Alta', color: '#EA580C', background: '#FFEDD5' },
+    { value: 5, label: 'Muy alta', color: '#DC2626', background: '#FEE2E2' },
+  ]
+
+  const currentPriority = Number(formData.priority) || 0
 
   const handleOpenChangePlace = () => {
     setChangePlaceData({
@@ -255,13 +268,14 @@ const ProductionOrderRow = ({
     return matches.length === 1 ? matches[0] : null
   }
 
-  const handleChangeReference = (destination, referenceId) => {
+  const handleChangeReference = (destination, referenceId, referenceLabel) => {
     setCurve((prev) => {
       const updatedCurve = prev.map((row) =>
         row.destination === destination
           ? {
               ...row,
               reference_id: referenceId,
+              reference_code: referenceLabel,
             }
           : row,
       )
@@ -370,126 +384,134 @@ const ProductionOrderRow = ({
       return
     }
 
-    const originalTechnicalSheetId =
-      production_reassignments.selected_reference?.production_order?.technical_sheet_id
+    const selectedReferences = production_reassignments?.selected_references ?? []
 
-    const originalOrderId = production_reassignments.selected_reference?.production_order?.id
+    for (const selectedReference of selectedReferences) {
+      const originalCurve = getCurveActualized?.(
+        selectedReference?.production_order?.technical_sheet_id,
+        selectedReference?.production_order?.id,
+      )
 
-    if (!originalTechnicalSheetId || !originalOrderId) {
-      return
-    }
+      const selectedOriginalLocations = curveDestinations.filter(
+        (location) => selectedReference?.selectedRows?.[location],
+      )
 
-    const originalCurve = getCurveActualized?.(originalTechnicalSheetId, originalOrderId)
-
-    if (!originalCurve) {
-      console.error('No se encontró la curva original')
-      return
-    }
-
-    const selectedOriginalLocations = ['NACIONAL', 'MEDELLIN', 'STARA'].filter(
-      (location) => production_reassignments.selected_reference?.selectedRows?.[location],
-    )
-
-    const reassignedBySize = {}
-
-    sizes.forEach((size) => {
-      reassignedBySize[size.id] = curve.reduce((total, row) => {
-        const quantity = row.quantities?.find((item) => item.size_id === size.id)
-
-        return total + Number(quantity?.quantity ?? 0)
-      }, 0)
-    })
-
-    const specificationCurve =
-      production_reassignments.selected_reference?.specification_curve ?? []
-
-    const originalLimits = {}
-
-    specificationCurve.forEach((item) => {
-      const destination = item.destination
-
-      if (!destination) return
-
-      originalLimits[destination] = {}
-      ;(item.production_order_detail_quantities ?? []).forEach((quantity) => {
-        originalLimits[destination][quantity.size_id] = Number(quantity.quantity ?? 0)
-      })
-    })
-
-    const restoredCurve = originalCurve.map((row) => ({
-      ...row,
-
-      quantities: row.quantities.map((quantity) => ({
-        ...quantity,
-        quantity: Number(quantity.quantity ?? 0),
-      })),
-    }))
-
-    selectedOriginalLocations.forEach((location) => {
-      const currentRow = restoredCurve.find((row) => row.destination === location)
-
-      if (!currentRow) return
-
-      const originalLimitRow = originalLimits[location]
-
-      if (!originalLimitRow) return
+      const reassignedBySize = {}
 
       sizes.forEach((size) => {
-        const sizeId = size.id
+        reassignedBySize[size.id] = curve.reduce((total, row) => {
+          const quantity = row.quantities?.find((item) => item.size_id === size.id)
 
-        const amountToReturn = reassignedBySize[sizeId] ?? 0
-
-        if (amountToReturn <= 0) return
-
-        const currentQuantity = currentRow.quantities.find((item) => item.size_id === sizeId)
-
-        if (!currentQuantity) return
-
-        // Máximo histórico de esta talla en este destino
-        const originalMaximum = Number(originalLimitRow[sizeId] ?? 0)
-
-        // Cantidad actual
-        const currentAmount = Number(currentQuantity.quantity ?? 0)
-
-        // Espacio disponible hasta llegar al máximo
-        const availableSpace = Math.max(originalMaximum - currentAmount, 0)
-
-        // Nunca superar el máximo original
-        const amountToRestore = Math.min(amountToReturn, availableSpace)
-
-        if (amountToRestore <= 0) return
-
-        currentQuantity.quantity = currentAmount + amountToRestore
-
-        // Descontamos lo que ya devolvimos
-        reassignedBySize[sizeId] = amountToReturn - amountToRestore
+          return total + Number(quantity?.quantity ?? 0)
+        }, 0)
       })
-    })
 
-    onOrderChange?.(
-      originalTechnicalSheetId,
-      production_reassignments.selected_reference?.production_order,
-      'curve',
-      restoredCurve,
-    )
+      const specificationCurve = selectedReference?.specification_curve ?? []
+
+      const originalLimits = {}
+
+      specificationCurve.forEach((item) => {
+        const destination = item.destination
+
+        if (!destination) return
+
+        originalLimits[destination] = {}
+        ;(item.production_order_detail_quantities ?? []).forEach((quantity) => {
+          originalLimits[destination][quantity.size_id] = Number(quantity.quantity ?? 0)
+        })
+      })
+
+      const restoredCurve = originalCurve.map((row) => ({
+        ...row,
+        quantities: (row.quantities ?? []).map((quantity) => ({
+          ...quantity,
+          quantity: Number(quantity.quantity ?? 0),
+        })),
+      }))
+
+      selectedOriginalLocations.forEach((location) => {
+        const currentRow = restoredCurve.find((row) => row.destination === location)
+
+        if (!currentRow) return
+
+        if (!originalLimits[location]) return
+
+        sizes.forEach((size) => {
+          const sizeId = size.id
+
+          const amountToReturn = reassignedBySize[sizeId] ?? 0
+
+          if (amountToReturn <= 0) return
+
+          const currentQuantity = currentRow.quantities.find((item) => item.size_id === sizeId)
+
+          if (!currentQuantity) return
+
+          const originalMaximum = Number(originalLimits[location][sizeId] ?? 0)
+
+          const currentAmount = Number(currentQuantity.quantity ?? 0)
+
+          const availableSpace = Math.max(originalMaximum - currentAmount, 0)
+
+          const amountToRestore = Math.min(amountToReturn, availableSpace)
+
+          if (amountToRestore <= 0) return
+
+          currentQuantity.quantity = currentAmount + amountToRestore
+
+          reassignedBySize[sizeId] = amountToReturn - amountToRestore
+        })
+      })
+
+      onOrderChange?.(
+        selectedReference?.production_order?.technical_sheet_id,
+        selectedReference.production_order,
+        'curve',
+        restoredCurve,
+      )
+    }
+
+    if (production_reassignments?.curve_original?.length) {
+      const restoredDestinationCurve = production_reassignments?.curve_original.map((row) => ({
+        ...row,
+        location: row.destination,
+        quantities: (row.quantities ?? []).map((quantity) => ({
+          ...quantity,
+          quantity: Number(quantity.quantity ?? 0),
+        })),
+      }))
+
+      onOrderChange?.(technical_sheet.id, production_order, 'curve', restoredDestinationCurve)
+
+      setCurve(restoredDestinationCurve)
+    } else {
+      const emptyCurve = curveDestinations.map((destination) => ({
+        destination,
+        reference_id: null,
+        reference_code: null,
+        quantities: sizes.map((size) => ({
+          id: null,
+          size_id: size.id,
+          quantity: 0,
+        })),
+      }))
+
+      onOrderChange?.(technical_sheet.id, production_order, 'curve', emptyCurve)
+
+      setCurve(emptyCurve)
+    }
 
     onDeleteReassignment?.(technical_sheet.id, production_order.id)
 
-    const emptyCurve = curveDestinations.map((destination) => ({
-      destination,
-      reference_id: null,
-      quantities: sizes.map((size) => ({
-        id: null,
-        size_id: size.id,
-        quantity: 0,
-      })),
-    }))
-
-    setCurve(emptyCurve)
+    setHasReassignment((prev) => {
+      const updated = { ...prev }
+      delete updated[production_order.id]
+      return updated
+    })
 
     setOpenModalReasigned(false)
     setDataModal(null)
-    setSelectedReference(null)
+    setSelectedReferences([])
 
     Toast.fire({
       icon: 'success',
@@ -512,30 +534,6 @@ const ProductionOrderRow = ({
       border: '#F59E0B',
       background: 'rgba(255, 251, 235, 0.9)',
     },
-  }
-
-  const STATUS_SELECT_STYLES = {
-    Pendiente: {
-      backgroundColor: '#fff7e6',
-      color: '#b26a00',
-      borderColor: '#ffd591',
-    },
-    Aprobado: {
-      backgroundColor: '#f6ffed',
-      color: '#389e0d',
-      borderColor: '#b7eb8f',
-    },
-    Cancelado: {
-      backgroundColor: '#fff1f0',
-      color: '#cf1322',
-      borderColor: '#ffa39e',
-    },
-  }
-
-  const statusStyle = STATUS_SELECT_STYLES[formData?.status] ?? {
-    backgroundColor: '#f8fafc',
-    color: '#64748b',
-    borderColor: '#cbd5e1',
   }
 
   const CUT_COLORS = [
@@ -817,42 +815,6 @@ const ProductionOrderRow = ({
     return processes.find((item) => item?.settings?.paragraph === 'production')
   }
 
-  const getBlessBranch = () => {
-    const productionProcess = getProductionProcess()
-
-    if (!productionProcess) {
-      return []
-    }
-
-    const corteRelation = productionProcess.before_processes?.[0]
-
-    if (!corteRelation) {
-      return []
-    }
-
-    const corteProcess = processes.find((item) => item.id === corteRelation.id)
-
-    if (!corteProcess) {
-      return []
-    }
-
-    const preparationRelation = corteProcess.after_processes?.find(
-      (afterProcess) => afterProcess.id !== productionProcess.id,
-    )
-
-    if (!preparationRelation) {
-      return []
-    }
-
-    const preparationProcess = processes.find((item) => item.id === preparationRelation.id)
-
-    if (!preparationProcess) {
-      return []
-    }
-
-    return [preparationProcess]
-  }
-
   const getBlessExclusiveProcessIds = () => {
     const productionProcess = getProductionProcess()
 
@@ -983,10 +945,6 @@ const ProductionOrderRow = ({
   return (
     <>
       {curveDestinations.map((destination, index) => {
-        const detail = production_order.production_order_details?.find(
-          (item) => item.destination === destination,
-        )
-
         const curveRow = curve.find((item) => item.destination === destination)
         const destinationStyle = destinationStyles[destination]
         const curveCellStyle = {
@@ -1008,11 +966,11 @@ const ProductionOrderRow = ({
                       value: product.id,
                       label: product.code,
                     }))
-                  : production_changes?.product_stara
+                  : production_changes_technical_sheet?.product_stara
                     ? [
                         {
-                          value: production_changes.product_stara.id,
-                          label: production_changes.product_stara.code,
+                          value: production_changes_technical_sheet.product_stara.id,
+                          label: production_changes_technical_sheet.product_stara.code,
                         },
                       ]
                     : []
@@ -1171,6 +1129,7 @@ const ProductionOrderRow = ({
                       options={Object.values(fabrics)}
                       onChange={(selected) => handleChange('fabric_id', selected.value)}
                       isSearchable
+                      isDisabled={is_reference_reasigned}
                       className="font-inter w-100"
                       placeholder="Seleccione tela..."
                       menuPortalTarget={document.body}
@@ -1258,7 +1217,7 @@ const ProductionOrderRow = ({
                     <Select
                       value={
                         fabrics && formData?.fabric_id
-                          ? (fabrics[formData.fabric_id].data.color
+                          ? (fabrics[formData.fabric_id].data.color_id
                               ?.map((item) => ({
                                 label: `${item.settings?.code ?? ''} - ${item.name}`,
                                 value: item.id,
@@ -1268,7 +1227,7 @@ const ProductionOrderRow = ({
                       }
                       options={
                         fabrics && formData?.fabric_id
-                          ? fabrics?.[formData?.fabric_id]?.data?.color?.map((item) => ({
+                          ? fabrics?.[formData?.fabric_id]?.data?.color_id?.map((item) => ({
                               label: `${item.settings.code} - ${item.name}`,
                               value: item.id,
                             }))
@@ -1276,6 +1235,7 @@ const ProductionOrderRow = ({
                       }
                       onChange={(selected) => handleChange('color_id', selected.value)}
                       isSearchable
+                      isDisabled={is_reference_reasigned}
                       className="font-inter w-100"
                       placeholder="Seleccione color..."
                       menuPortalTarget={document.body}
@@ -1531,23 +1491,34 @@ const ProductionOrderRow = ({
                   value={options.find((option) => option.value === curveRow?.reference_id) ?? null}
                   options={options}
                   onChange={(selected) =>
-                    handleChangeReference(destination, selected?.value ?? null)
+                    handleChangeReference(
+                      destination,
+                      selected?.value ?? null,
+                      selected?.label ?? null,
+                    )
                   }
                   isSearchable
                   className="font-inter w-100"
                   placeholder="Seleccione..."
                   menuPortalTarget={document.body}
                   menuPosition="fixed"
+                  isDisabled={is_reference_reasigned}
                   styles={getSelectStylesInsertUniq()}
                 />
-              ) : technical_sheet?.products?.length > 0 || !!production_changes?.product_stara ? (
+              ) : technical_sheet?.products?.length > 0 ||
+                !!production_changes_technical_sheet?.product_stara ? (
                 <Select
                   value={options.find((option) => option.value === curveRow?.reference_id) ?? null}
                   options={options}
                   onChange={(selected) =>
-                    handleChangeReference(destination, selected?.value ?? null)
+                    handleChangeReference(
+                      destination,
+                      selected?.value ?? null,
+                      selected?.label ?? null,
+                    )
                   }
                   isSearchable
+                  isDisabled={is_reference_reasigned}
                   className="font-inter w-100"
                   placeholder="Seleccione..."
                   menuPortalTarget={document.body}
@@ -1565,6 +1536,7 @@ const ProductionOrderRow = ({
                     fontWeight: '500',
                     borderStyle: 'dashed',
                   }}
+                  disabled={is_reference_reasigned}
                   onClick={() => {
                     setModalAddProductStara(true)
                   }}
@@ -1626,7 +1598,7 @@ const ProductionOrderRow = ({
                         handleQuantityChange(destination, size.id, value)
                       }
                     }}
-                    disabled={!curveRow?.reference_id}
+                    disabled={!curveRow?.reference_id || is_reference_reasigned}
                   />
                 </td>
               )
@@ -1669,7 +1641,7 @@ const ProductionOrderRow = ({
                     <td
                       key={process.id}
                       rowSpan={4}
-                      className="table-cell text-center align-middle"
+                      className={`table-cell text-center align-middle ${errors?.[`production_order_details.${process.id}.settings.date`] ? 'table-cell-error' : ''}`}
                     >
                       <div
                         className={`gap-2 w-100 ${
@@ -1713,20 +1685,27 @@ const ProductionOrderRow = ({
                               fontSize: '14px',
                               color: '#334155',
                             }}
-                            disabled={!formData.production_place}
+                            disabled={!formData.production_place || is_reference_reasigned}
                           />
                         )}
 
-                        {errors?.['date']?.length > 0 && (
+                        {errors?.[`production_order_details.${process.id}.settings.date`]?.length >
+                          0 && (
                           <div style={{ position: 'relative' }}>
                             <span
                               style={{ cursor: 'pointer', color: '#ef4444' }}
-                              onClick={() => setOpenPopover(openPopover === 'date' ? null : 'date')}
+                              onClick={() =>
+                                setOpenPopover(
+                                  openPopover === `date_${process.id}`
+                                    ? null
+                                    : `date_${process.id}`,
+                                )
+                              }
                             >
                               <BadgeAlert size={16} />
                             </span>
                             <CPopover
-                              visible={openPopover === 'date'}
+                              visible={openPopover === `date_${process.id}`}
                               placement="top"
                               onHide={() => setOpenPopover(null)}
                               title={
@@ -1750,7 +1729,9 @@ const ProductionOrderRow = ({
                                     fontSize: '0.82rem',
                                   }}
                                 >
-                                  {errors?.['date'].map((err, i) => (
+                                  {errors?.[
+                                    `production_order_details.${process.id}.settings.date`
+                                  ].map((err, i) => (
                                     <div
                                       key={i}
                                       className="d-flex align-items-start gap-2 p-1 rounded-2"
@@ -1783,16 +1764,139 @@ const ProductionOrderRow = ({
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
                       styles={selectStylesWithPortal}
+                      isDisabled={is_reference_reasigned}
                     />
                   </div>
                 </td>
+
+                <td rowSpan={4} className="table-cell text-center align-middle">
+                  <div className="d-flex flex-column align-items-center justify-content-center gap-1">
+                    <div className="d-flex align-items-center justify-content-center px-2 py-2 gap-1">
+                      {priority_levels.map((level) => {
+                        const isActive = level.value <= currentPriority
+                        const isExactCurrent = level.value === currentPriority
+
+                        const currentLevel = priority_levels.find(
+                          (item) => item.value === currentPriority,
+                        )
+
+                        const unifiedColor = currentLevel?.color || '#F59E0B'
+
+                        const starColor = isExactCurrent
+                          ? unifiedColor
+                          : isActive
+                            ? `${unifiedColor}77`
+                            : '#CBD5E1'
+
+                        return (
+                          <button
+                            key={level.value}
+                            type="button"
+                            onClick={() => handleChange('priority', level.value)}
+                            disabled={is_reference_reasigned}
+                            title={`Prioridad ${level.value}`}
+                            aria-label={`Asignar prioridad ${level.value} de 5`}
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              padding: '2px',
+                              cursor: is_reference_reasigned ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              filter: isExactCurrent
+                                ? `drop-shadow(0 0 5px ${unifiedColor}88)`
+                                : isActive
+                                  ? `drop-shadow(0 0 2px ${unifiedColor}44)`
+                                  : 'none',
+                              transform: isExactCurrent
+                                ? 'scale(1.15) translateY(-1px)'
+                                : isActive
+                                  ? 'scale(1.06)'
+                                  : 'scale(1)',
+                              transition:
+                                'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease',
+                              opacity: is_reference_reasigned ? 0.6 : 1,
+                            }}
+                          >
+                            <span
+                              className="star-wrapper"
+                              style={{
+                                position: 'relative',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '26px',
+                                height: '24px',
+                              }}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 36 34"
+                                width={isExactCurrent ? 28 : 24}
+                                height={isExactCurrent ? 26 : 22}
+                                aria-hidden="true"
+                                style={{
+                                  display: 'block',
+                                  overflow: 'visible',
+                                }}
+                              >
+                                <path
+                                  fill={starColor}
+                                  d="M19.6859343,0.861782958 L24.8136328,8.05088572 C25.0669318,8.40601432 25.4299179,8.6717536 25.8489524,8.80883508 L34.592052,11.6690221 C35.6704701,12.021812 36.2532905,13.1657829 35.8938178,14.2241526 C35.8056709,14.4836775 35.6647294,14.7229267 35.4795411,14.9273903 L29.901129,21.0864353 C29.5299163,21.4962859 29.3444371,22.0366367 29.3872912,22.5833831 L30.1116131,31.8245163 C30.1987981,32.9368499 29.3506698,33.9079379 28.2172657,33.993502 C27.9437428,34.0141511 27.6687738,33.9809301 27.4085205,33.8957918 L18.6506147,31.0307612 C18.2281197,30.8925477 17.7713439,30.8925477 17.3488489,31.0307612 L8.59094317,33.8957918 C7.51252508,34.2485817 6.34688429,33.6765963 5.98741159,32.6182265 C5.90066055,32.3628499 5.86681029,32.0929542 5.88785051,31.8245163 L6.61217242,22.5833831 C6.65502653,22.0366367 6.46954737,21.4962859 6.09833466,21.0864353 L0.519922484,14.9273903 C-0.235294755,14.0935658 -0.158766688,12.8167745 0.690852706,12.0755971 C0.899189467,11.8938511 1.14297067,11.7555303 1.40741159,11.6690221 L10.1505113,8.80883508 C10.5695458,8.6717536 10.9325319,8.40601432 11.1858308,8.05088572 L16.3135293,0.861782958 C16.9654141,-0.0521682813 18.2488096,-0.274439442 19.1800736,0.365326425 C19.3769294,0.500563797 19.5481352,0.668586713 19.6859343,0.861782958 Z"
+                                />
+                              </svg>
+
+                              {isExactCurrent && (
+                                <span
+                                  style={{
+                                    position: 'absolute',
+                                    top: '55%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -52%)',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    color: '#FFFFFF',
+                                    pointerEvents: 'none',
+                                    textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                                  }}
+                                >
+                                  {level.value}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    <span
+                      className="font-inter"
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color:
+                          currentPriority > 0
+                            ? priorityOptions.find((o) => o.value === currentPriority)?.color ||
+                              '#475569'
+                            : '#94A3B8',
+                      }}
+                    >
+                      {currentPriority > 0
+                        ? `Nivel ${currentPriority} - ${priorityOptions.find((o) => o.value === currentPriority)?.label || ''}`
+                        : 'Sin prioridad'}
+                    </span>
+                  </div>
+                </td>
+
                 <td rowSpan={4} className="table-cell text-center align-middle">
                   <div className="d-flex align-items-center justify-content-center gap-2">
                     <CTooltip content="Cambiar lugar de producción" placement="top">
                       <button
                         type="button"
-                        className="td-button-refresh"
+                        className="action-btn edit-btn"
                         onClick={handleOpenChangePlace}
+                        disabled={is_reference_reasigned}
                       >
                         <div className="position-relative d-inline-flex">
                           <Package size={16} />
@@ -1809,33 +1913,26 @@ const ProductionOrderRow = ({
                         </div>
                       </button>
                     </CTooltip>
-                    {String(production_order.id).startsWith('new') ? (
-                      production_reassignments &&
-                      Object.keys(production_reassignments).length > 0 ? (
+
+                    <CTooltip content="Definir de Prioridad" placement="top">
+                      <button
+                        type="button"
+                        className="action-btn restore-btn"
+                        onClick={() => setOpenModalPriority(true)}
+                      >
+                        <div className="position-relative d-inline-flex">
+                          <OctagonAlert size={16} />
+                        </div>
+                      </button>
+                    </CTooltip>
+
+                    {!has_references_reasigned &&
+                      (hasReassignment[production_order.id] ? (
                         <>
                           <CTooltip content="Editar Reasignación" placement="top">
                             <button
                               className="td-button-reasigned-edit"
                               onClick={() => {
-                                setDataModal(
-                                  production_changes.curve.map((item) => ({
-                                    location: item.destination,
-                                    product_id: item.reference_id,
-                                    sizes: item.quantities.reduce((acc, aux) => {
-                                      acc[aux.size_id] = {
-                                        quantity: aux.quantity,
-                                        size_id: aux.size_id,
-                                      }
-
-                                      return acc
-                                    }, {}),
-                                  })),
-                                )
-
-                                setSelectedReference({
-                                  ...production_reassignments.selected_reference,
-                                })
-
                                 setOpenModalReasigned(true)
                               }}
                             >
@@ -1855,34 +1952,24 @@ const ProductionOrderRow = ({
                             <button
                               className="td-button-reasigned"
                               onClick={() => setOpenModalReasigned(true)}
+                              disabled={is_reference_reasigned}
                             >
                               <ArrowRightLeft size={16} />
                             </button>
                           </CTooltip>
 
-                          <CTooltip content="Eliminar" placement="top">
-                            <button
-                              className="td-button-delete"
-                              onClick={() => onDeleteOrder?.(production_order.id)}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </CTooltip>
+                          {String(production_order.id).startsWith('new') && (
+                            <CTooltip content="Eliminar" placement="top">
+                              <button
+                                className="td-button-delete"
+                                onClick={() => onDeleteOrder?.(production_order.id)}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </CTooltip>
+                          )}
                         </>
-                      )
-                    ) : (
-                      production_order.model === null && (
-                        <CTooltip content="Reasignar" placement="top">
-                          <button
-                            disabled={is_reference_reasigned}
-                            className="td-button-reasigned"
-                            onClick={() => setOpenModalReasigned(true)}
-                          >
-                            <ArrowRightLeft size={16} />
-                          </button>
-                        </CTooltip>
-                      )
-                    )}
+                      ))}
                   </div>
                 </td>
               </>
@@ -1935,19 +2022,12 @@ const ProductionOrderRow = ({
           openModalReasigned={openModalReasigned}
           setOpenModalReasigned={setOpenModalReasigned}
           products={products}
-          /*setModalAddProduct={setModalAddProduct}
-        product={product}
-        product_stara={product_stara}
-        setData={setData}
-        setDataNew={setDataNew}
-        setDataAux={setDataAux}
-        dataModal={dataModal}
-        setDataModal={setDataModal}*/
           sizes={sizes}
           production_order={production_order}
           fetchProducts={fetchProducts}
           product={technical_sheet.product ?? null}
           product_stara={technical_sheet.products?.[0] ?? null}
+          product_stara_aux={production_changes_technical_sheet?.product_stara ?? null}
           sizes_data={technical_sheet.product.trademark.sizes ?? null}
           curve={curve}
           setCurve={setCurve}
@@ -1956,11 +2036,26 @@ const ProductionOrderRow = ({
           technical_sheet={technical_sheet}
           dataModal={dataModal}
           setDataModal={setDataModal}
-          selectedReference={selectedReference}
-          setSelectedReference={setSelectedReference}
-          curve={curve}
-          production_changes={production_changes}
+          production_changes={production_changes_all}
+          production_reassignments={production_reassignments}
           getCurveActualized={getCurveActualized}
+          selectedReferences={selectedReferences}
+          setSelectedReferences={setSelectedReferences}
+          hasReassignment={hasReassignment}
+          setHasReassignment={setHasReassignment}
+        />
+      )}
+
+      {openModalPriority && (
+        <ModalDefinePriority
+          openModalPriority={openModalPriority}
+          setOpenModalPriority={setOpenModalPriority}
+          production_order={production_order}
+          production_changes={production_changes}
+          priority_checks={priority_checks}
+          priority_levels={priority_levels}
+          priority_rules={priority_rules}
+          changeFormData={handleChange}
         />
       )}
 
@@ -2152,7 +2247,7 @@ const ProductionOrderRow = ({
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    name="trademark_id"
+                    name="subcategory_id"
                     value={
                       technical_sheet?.product?.subcategory?.name
                         ? technical_sheet?.product?.subcategory?.name

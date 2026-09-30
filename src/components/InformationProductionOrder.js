@@ -95,7 +95,6 @@ const InformationProductionOrder = ({
   strokesCutA,
   suppliers,
 }) => {
-  console.log(suppliers)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
 

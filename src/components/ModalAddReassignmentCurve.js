@@ -43,8 +43,6 @@ const ModalAddReassignmentCurve = ({
   hasReassignment,
   setHasReassignment,
 }) => {
-  console.log(sizes)
-  console.log(data, dataNew)
   const [focusedInput, setFocusedInput] = useState(null)
   const [openPopover, setOpenPopover] = useState({
     id: null,
@@ -146,8 +144,6 @@ const ModalAddReassignmentCurve = ({
 
       destinations[reference.value] = buildDestinationDataFromExisting(reference, reassignment)
 
-      console.log(reassignment?.selected_rows)
-
       selectedRows[reference.value] = reassignment?.selected_rows?.reduce(
         (acc, item) => {
           acc[item] = true
@@ -164,8 +160,6 @@ const ModalAddReassignmentCurve = ({
         STARA: true,
       }
     })
-
-    console.log(selectedRows)
 
     setCurvesByReference(curves)
     setDestinationDataByReference(destinations)
@@ -226,107 +220,6 @@ const ModalAddReassignmentCurve = ({
       })
 
       return updated
-    })
-  }
-
-  console.log(destinationDataByReference)
-
-  const buildReassignmentPayload = () => {
-    const originCurves = selectedReferences.map((reference) => {
-      const referenceId = reference.value
-
-      const originalCurve = curvesByReference[referenceId]?.data || []
-
-      const reassignedDetails = destinationDataByReference[referenceId] || []
-
-      const selectedRows = Object.entries(selectedRowsByReference[referenceId] || {})
-        .filter(([, selected]) => selected)
-        .map(([location]) => location)
-
-      const updatedCurve = originalCurve.map((originRow) => {
-        const reassignedRow = reassignedDetails.find((row) => row.location === originRow.location)
-
-        const updatedSizes = {}
-
-        sizes.forEach((size) => {
-          const originalQuantity = Number(originRow.sizes?.[size.id]?.quantity || 0)
-
-          const quantityReassigned = Number(reassignedRow?.sizes?.[size.id]?.quantity || 0)
-
-          updatedSizes[size.id] = {
-            ...originRow.sizes?.[size.id],
-            size_id: size.id,
-            quantity: Math.max(0, originalQuantity - quantityReassigned),
-          }
-        })
-
-        return {
-          ...originRow,
-          sizes: updatedSizes,
-        }
-      })
-
-      return {
-        production_order_id: referenceId,
-
-        curve: updatedCurve,
-
-        reassigned_details: reassignedDetails,
-
-        selected_rows: selectedRows,
-      }
-    })
-
-    return {
-      production_order_id: product_stara?.production_order_id ?? null,
-
-      origin_curves: originCurves,
-
-      destination_curve: totalDestinationData,
-    }
-  }
-
-  const buildUpdatedOriginCurves = () => {
-    return selectedReferences.map((reference) => {
-      const referenceId = reference.value
-
-      const originalCurve = curvesByReference[referenceId]?.data || []
-      const reassignedCurve = destinationDataByReference[referenceId] || []
-
-      const updatedCurve = originalCurve.map((originRow) => {
-        const reassignedRow = reassignedCurve.find((row) => row.location === originRow.location)
-
-        const updatedSizes = {}
-
-        sizes.forEach((size) => {
-          const originalQuantity = Number(originRow.sizes?.[size.id]?.quantity || 0)
-
-          const reassignedQuantity = Number(reassignedRow?.sizes?.[size.id]?.quantity || 0)
-
-          updatedSizes[size.id] = {
-            ...originRow.sizes?.[size.id],
-            size_id: size.id,
-            quantity: Math.max(0, originalQuantity - reassignedQuantity),
-          }
-        })
-
-        return {
-          ...originRow,
-          sizes: updatedSizes,
-        }
-      })
-
-      return {
-        production_order_id: referenceId,
-        reference: reference.label,
-        curve: updatedCurve,
-        reassigned_details: reassignedCurve,
-        selected_rows: selectedRowsByReference[referenceId] || {
-          NACIONAL: true,
-          MEDELLIN: true,
-          STARA: true,
-        },
-      }
     })
   }
 
@@ -393,9 +286,6 @@ const ModalAddReassignmentCurve = ({
           setDataNew(originCurves)
           setData(totalDestinationData)
           setHasReassignment(true)
-
-          console.log('ORDENES ORIGEN:', originCurves)
-          console.log('CURVA NUEVA ORDEN:', totalDestinationData)
 
           setModalAddSpecification(false)
         } catch (error) {
@@ -738,11 +628,6 @@ const ModalAddReassignmentCurve = ({
       setActiveReferenceId(null)
     }
   }
-
-  console.log(optReasigned)
-  console.log(activeDataModal)
-  console.log(activeSelectedRows)
-  console.log(selectedRowsByReference)
 
   const hasSizeInActiveReference = (sizeId) => {
     return activeReference?.sizes?.some((size) => size.id === sizeId) ?? false
@@ -1450,7 +1335,6 @@ const ModalAddReassignmentCurve = ({
                                 </CButton>
                               )}
                             </td>
-                            {console.log(row.sizes)}
                             {sizes.map((size) => {
                               const isSizeAvailable = hasSizeInActiveReference(size.id)
                               return (

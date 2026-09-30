@@ -42,7 +42,6 @@ const Settings = ({
   supply_types,
   supplier_types,
 }) => {
-  console.log(models)
   const [catalogsData, setCatalogsData] = useState({})
   const [validated, setValidated] = useState(false)
   const [editingIndex, setEditingIndex] = useState(null)
@@ -125,9 +124,7 @@ const Settings = ({
 
   const getCatalog = async (key, params = {}) => {
     try {
-      console.log(key, params)
       const url = Object.entries(models).find(([_, value]) => value.model === key)?.[1]?.url
-      console.log(url)
       const response = await api.get(url, {
         ...getConfig(),
         params,
@@ -283,7 +280,6 @@ const Settings = ({
   ]
 
   const updateRules = (index, newRules, model = '') => {
-    console.log(models, model)
     setStructure((prev) => {
       const newSchema = prev.map((item, i) =>
         i === index
@@ -303,7 +299,6 @@ const Settings = ({
   }
 
   const updateField = (index, key, value, is_field = false) => {
-    console.log(index, key, value)
     const newSchema = structure.map((item, i) => {
       if (i !== index) return item
 
@@ -362,9 +357,6 @@ const Settings = ({
 
     setStructure(newSchema)
   }
-
-  console.log(structure)
-  console.log(catalogsData)
 
   return (
     <div className="animate-fade-in">
@@ -720,7 +712,6 @@ const Settings = ({
                                   <CCol
                                     md={field?.param ? 4 : field?.type === 'selectdinamic' ? 8 : 12}
                                   >
-                                    {console.log(field)}
                                     <FieldRules
                                       type={field.type}
                                       element={field}

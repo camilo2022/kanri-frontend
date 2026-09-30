@@ -26,7 +26,6 @@ import Products from './Products'
 import CreateTransformation from './technicalSheets/productionOrder/transformations/Create'
 
 const TechnicalSheet = ({ product_id, action, process_id = null }) => {
-  console.log(process_id)
   const dispatch = useDispatch()
   const [view, setView] = useState({ name: action })
   const [product, setProduct] = useState(null)
@@ -63,7 +62,6 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
       findTechnicalSheet({ product_id })
       fetchSupplyTypes()
     }
-    console.log(view.name, process_id, view.name === 'edit_process' && process_id !== null)
     if (view.name === 'edit_process' && process_id !== null) {
       findTechnicalSheet({ product_id })
       findProcess(process_id)
@@ -89,7 +87,6 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
   const findProduct = async (id) => {
     try {
       const response = await ProductsService.find(id)
-      console.log(response)
       setProduct(response.data.product)
       setModels(response.data.model_types)
       setStatusCollection(response.data.status_technical_sheet_detail)
@@ -505,7 +502,6 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
     try {
       const response = await ProcessesService.find(process_id)
       setProcess(response.data.process)
-      console.log(response)
       setErrors({})
       return response
     } catch (error) {

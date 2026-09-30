@@ -47,8 +47,6 @@ const Create = ({
   fecthDocumentTypes,
   document_types,
 }) => {
-  console.log('Tipo de Proveedor', supplier_type)
-  console.log(account_types)
   const [validated, setValidated] = useState(false)
   const [formData, setFormData] = useState({
     supplier_type_id: supplier_type.id,
@@ -71,7 +69,6 @@ const Create = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          console.log(formData)
           const response = await onSubmit({
             ...formData,
           })

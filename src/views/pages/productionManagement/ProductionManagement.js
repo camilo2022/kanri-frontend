@@ -1,28 +1,12 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import {
-  CCard,
-  CSpinner,
-  CNav,
-  CNavItem,
-  CNavLink,
-  CButton,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CTooltip,
-} from '@coreui/react'
+import { CCard, CSpinner, CNav, CNavItem, CNavLink, CButton } from '@coreui/react'
 import {
   FolderKanban,
   Bookmark,
   Folder,
   FolderOpen,
   ArrowDownUp,
-  Plus,
   Save,
-  RefreshCcw,
-  BadgeAlert,
   Settings2,
 } from 'lucide-react'
 import Select from 'react-select'
@@ -30,13 +14,10 @@ import { IoMdArrowDropright } from 'react-icons/io'
 import LoadingForm from '@/components/LoadingForm'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
-import { tableSelectStyles, selectStyles } from '@/components/StyleManagementCollection'
-import CollectionManagementService from '../../../services/collection_management.service'
-import ManagementCollectionTechnicalSheet from '@/components/ManegementCollectionTechnicalSheet'
-import { useSelector, useDispatch } from 'react-redux'
-import ManagementProduction from '../ManagementProduction'
+import { selectStyles } from '@/components/StyleManagementCollection'
 import ManagementProductionOrders from '@/components/ManagementProductionOrders'
 import ModalBuilderCurveProgramationManagement from '@/components/ModalBuilderCurveProgramationManagement'
+import HorizontalScrollTable from '@/components/HorizontalScrollTable'
 
 export const ProductionManagement = ({
   collection,
@@ -62,8 +43,10 @@ export const ProductionManagement = ({
   errors_builder,
   builders,
   processes,
+  priority_checks,
+  priority_levels,
+  priority_rules,
 }) => {
-  console.log(processes)
   const [selectedCollection, setSelectedCollection] = useState(null)
   const [selectedTrademark, setSelectedTrademark] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -73,14 +56,14 @@ export const ProductionManagement = ({
   const [openModalBuilder, setOpenModalBuilder] = useState(false)
   const [loadingBuilders, setLoadingBuilders] = useState(false)
 
-  const [modified, setModified] = useState({})
   const [validated, setValidated] = useState({})
   const [errors, setErrors] = useState({})
+  const [hasReassignment, setHasReassignment] = useState({})
 
   const handleOrderChange = useCallback(
     (technical_sheet_id, production_order, field, value, product_stara = null) => {
+      console.log(technical_sheet_id, production_order, field, value, (product_stara = null))
       setProductionChanges((prev) => {
-        console.log(field, value)
         const technicalSheetChanges = prev[technical_sheet_id] ?? {}
 
         if (product_stara !== null) {
@@ -157,6 +140,20 @@ export const ProductionManagement = ({
           }
         }
 
+        if (field === 'priority') {
+          updatedProductionOrder = {
+            ...updatedProductionOrder,
+            priority: value,
+          }
+        }
+
+        if (field === 'settings') {
+          updatedProductionOrder = {
+            ...updatedProductionOrder,
+            settings: { ...updatedProductionOrder?.['settings'], ...value },
+          }
+        }
+
         if (field === 'date') {
           updatedProductionOrder = {
             ...updatedProductionOrder,
@@ -210,6 +207,7 @@ export const ProductionManagement = ({
 
           updatedProductionOrder = {
             ...updatedProductionOrder,
+            fabric_id: value || null,
             production_order_details: updatedDetails,
           }
         }
@@ -317,6 +315,34 @@ export const ProductionManagement = ({
       const orders = technicalSheetChanges.orders ?? {}
       const currentOrder = orders[order_id] ?? {}
 
+      let updatedValue
+
+      if (key === 'selected_references') {
+        const currentReferences = currentOrder.selected_references ?? []
+
+        const referenceId = String(changes.production_order_id)
+
+        const existingIndex = currentReferences.findIndex(
+          (reference) =>
+            String(reference.production_order?.id ?? reference.production_order_id) === referenceId,
+        )
+
+        if (existingIndex >= 0) {
+          updatedValue = currentReferences.map((reference, index) =>
+            index === existingIndex ? { ...reference, ...changes } : reference,
+          )
+        } else {
+          updatedValue = [...currentReferences, changes]
+        }
+      } else if (key === 'curve_original') {
+        updatedValue = changes
+      } else {
+        updatedValue = {
+          ...(currentOrder[key] ?? {}),
+          ...changes,
+        }
+      }
+
       return {
         ...prev,
         [technical_sheet_id]: {
@@ -325,10 +351,7 @@ export const ProductionManagement = ({
             ...orders,
             [order_id]: {
               ...currentOrder,
-              [key]: {
-                ...(currentOrder[key] ?? {}),
-                ...changes,
-              },
+              [key]: updatedValue,
             },
           },
         },
@@ -412,19 +435,138 @@ export const ProductionManagement = ({
     setSelectedCollection(null)
     setSelectedTrademark(null)
     setSelectedCategory(null)
-    /*setErrors({})
-    dispath({
-      type: 'DELETE_ERRORS',
-    })
-    dispath({
-      type: 'DELETE_TECHNICAL_SHEETS',
-    })
-    setModified({})*/
   }
 
   const getCurveActualized = (technical_sheet_id, production_order_id) => {
     const curve = productionChanges?.[technical_sheet_id]?.orders?.[production_order_id]?.curve
     return curve ?? null
+  }
+
+  const insertOrderInCategory = (category, technicalSheetId, savedOrder) => {
+    if (!category) return category
+
+    const subcategories = Object.fromEntries(
+      Object.entries(category.subcategories ?? {}).map(([subcategoryId, subcategory]) => {
+        const technicalSheets = (subcategory.technical_sheets ?? []).map((sheet) => {
+          if (Number(sheet.id) !== Number(technicalSheetId)) {
+            return sheet
+          }
+
+          const currentOrders = sheet.production_orders ?? []
+
+          const alreadyExists = currentOrders.some(
+            (order) => Number(order.id) === Number(savedOrder.id),
+          )
+
+          return {
+            ...sheet,
+            production_orders: alreadyExists ? currentOrders : [...currentOrders, savedOrder],
+          }
+        })
+
+        return [
+          subcategoryId,
+          {
+            ...subcategory,
+            technical_sheets: technicalSheets,
+          },
+        ]
+      }),
+    )
+
+    return {
+      ...category,
+      subcategories,
+    }
+  }
+
+  const addSavedOrderToTechnicalSheet = (technicalSheetId, savedOrder) => {
+    setSelectedTrademark((prev) => {
+      if (!prev) return prev
+
+      const updatedCategories = Object.fromEntries(
+        Object.entries(prev.categories ?? {}).map(([categoryId, category]) => [
+          categoryId,
+          insertOrderInCategory(category, technicalSheetId, savedOrder),
+        ]),
+      )
+
+      return {
+        ...prev,
+        categories: updatedCategories,
+      }
+    })
+
+    setSelectedCategory((prev) =>
+      prev ? insertOrderInCategory(prev, technicalSheetId, savedOrder) : prev,
+    )
+  }
+
+  const updateOrderInCategory = (category, technicalSheetId, updatedOrder) => {
+    if (!category) return category
+
+    const subcategories = Object.fromEntries(
+      Object.entries(category.subcategories ?? {}).map(([subcategoryId, subcategory]) => {
+        const technicalSheets = (subcategory.technical_sheets ?? []).map((sheet) => {
+          if (Number(sheet.id) !== Number(technicalSheetId)) {
+            return sheet
+          }
+
+          const currentOrders = sheet.production_orders ?? []
+
+          const updatedOrders = currentOrders.map((order) => {
+            if (Number(order.id) !== Number(updatedOrder.id)) {
+              return order
+            }
+
+            return {
+              ...order,
+              ...updatedOrder,
+            }
+          })
+
+          return {
+            ...sheet,
+            production_orders: updatedOrders,
+          }
+        })
+
+        return [
+          subcategoryId,
+          {
+            ...subcategory,
+            technical_sheets: technicalSheets,
+          },
+        ]
+      }),
+    )
+
+    return {
+      ...category,
+      subcategories,
+    }
+  }
+
+  const updateSavedOrderInTechnicalSheet = (technicalSheetId, updatedOrder) => {
+    setSelectedTrademark((prev) => {
+      if (!prev) return prev
+
+      const updatedCategories = Object.fromEntries(
+        Object.entries(prev.categories ?? {}).map(([categoryId, category]) => [
+          categoryId,
+          updateOrderInCategory(category, technicalSheetId, updatedOrder),
+        ]),
+      )
+
+      return {
+        ...prev,
+        categories: updatedCategories,
+      }
+    })
+
+    setSelectedCategory((prev) =>
+      prev ? updateOrderInCategory(prev, technicalSheetId, updatedOrder) : prev,
+    )
   }
 
   const handleSubmit = async (event) => {
@@ -444,10 +586,6 @@ export const ProductionManagement = ({
     })
 
     if (result.isConfirmed) {
-      let total = 0
-
-      console.log(productionChanges)
-
       const production_orders = Object.entries(productionChanges).flatMap(
         ([technical_sheet_id, technicalSheetData]) =>
           Object.entries(technicalSheetData.orders ?? {}).map(([production_order_id, changes]) => {
@@ -529,14 +667,21 @@ export const ProductionManagement = ({
           }),
       )
 
-      const receivingOrders = production_orders.filter((order) => order.reasigned_curve === true)
+      const givingOrderIds = new Set()
 
-      const givingOrderIds = new Set(
-        receivingOrders
-          .map((order) => order.production_order_id)
-          .filter(Boolean)
-          .map(Number),
-      )
+      Object.values(productionReassignments ?? {}).forEach((technicalSheetData) => {
+        Object.values(technicalSheetData.orders ?? {}).forEach((orderReassignment) => {
+          ;(orderReassignment.selected_references ?? []).forEach((reference) => {
+            const originOrderId = reference.production_order?.id
+
+            if (originOrderId != null) {
+              givingOrderIds.add(Number(originOrderId))
+            }
+          })
+        })
+      })
+
+      const receivingOrders = production_orders.filter((order) => hasReassignment?.[order.id])
 
       const givingOrders = production_orders.filter((order) => givingOrderIds.has(Number(order.id)))
 
@@ -577,6 +722,8 @@ export const ProductionManagement = ({
         })
       }
 
+      let savedCount = 0
+
       const saveProductionOrder = async (production_order) => {
         try {
           const result = await save({
@@ -585,7 +732,47 @@ export const ProductionManagement = ({
           })
 
           if (result.success) {
+            savedCount++
+
+            const savedOrderFromApi = result.data.production_order
+
+            const savedOrder = {
+              ...production_order,
+              ...savedOrderFromApi,
+            }
+
+            if (String(production_order.id).startsWith('new-')) {
+              addSavedOrderToTechnicalSheet(production_order.technical_sheet_id, savedOrder)
+            } else {
+              updateSavedOrderInTechnicalSheet(production_order.technical_sheet_id, savedOrder)
+            }
+
             removeProductionOrderChange(production_order)
+
+            for (const origin of production_order.reassigned_origins ?? []) {
+              const originOrder = production_orders.find(
+                (order) => Number(order.id) === Number(origin.production_order_id),
+              )
+
+              if (originOrder) {
+                removeProductionOrderChange(originOrder)
+              }
+            }
+
+            setHasReassignment((prev) => {
+              const updated = { ...prev }
+
+              delete updated[production_order.id]
+
+              if (
+                String(production_order.id).startsWith('new-') &&
+                result.data?.production_order?.id
+              ) {
+                delete updated[result.data.production_order.id]
+              }
+
+              return updated
+            })
             return true
           }
 
@@ -617,58 +804,36 @@ export const ProductionManagement = ({
         }
       }
 
-      const receivingOrdersByOrigin = receivingOrders.reduce((acc, order) => {
-        const originId = Number(order.production_order_id)
+      const ordersToSave = [...receivingOrders, ...normalOrders]
 
-        if (!acc[originId]) {
-          acc[originId] = []
-        }
+      for (const production_order of ordersToSave) {
+        const reassignmentData =
+          productionReassignments?.[production_order.technical_sheet_id]?.orders?.[
+            production_order.id
+          ]
 
-        acc[originId].push(order)
+        const isReceivingOrder = Boolean(hasReassignment?.[production_order.id])
 
-        return acc
-      }, {})
+        await saveProductionOrder({
+          ...production_order,
 
-      for (const [originId, reassignedOrders] of Object.entries(receivingOrdersByOrigin)) {
-        let allReassignmentsSaved = true
-
-        for (const production_order of reassignedOrders) {
-          const success = await saveProductionOrder(production_order)
-
-          if (!success) {
-            allReassignmentsSaved = false
-          }
-        }
-
-        if (allReassignmentsSaved) {
-          const originOrder = givingOrders.find((order) => Number(order.id) === Number(originId))
-
-          if (originOrder) {
-            await saveProductionOrder(originOrder)
-          }
-        } else {
-          console.warn(
-            `No se guardó la orden origen ${originId} porque una o más reasignaciones fallaron.`,
-          )
-        }
-      }
-
-      for (const production_order of normalOrders) {
-        await saveProductionOrder(production_order)
-      }
-      /*
-      if (total === Object.keys(technicalSheets).length) {
-        Toast.fire({
-          icon: 'success',
-          title: `Se guardaron todas las fichas técnicas modificadas`,
+          ...(isReceivingOrder
+            ? {
+                reasigned_curve: true,
+                reassigned_origins: (reassignmentData?.selected_references ?? []).map((item) => ({
+                  production_order_id: item.production_order_id,
+                  reassigned_details: item.reassigned_details,
+                  selected_rows: item.selected_rows,
+                })),
+              }
+            : {}),
         })
-        return
-      }*/
-      /*
+      }
+
       Toast.fire({
-        icon: 'warning',
-        title: `Se guardaron ${total} de ${Object.keys(technicalSheets).length} fichas técnicas`,
-      })*/
+        icon: savedCount === ordersToSave.length ? 'success' : 'warning',
+        title: `Se guardaron ${savedCount} de ${ordersToSave.length} órdenes de producción`,
+      })
     } else {
       Toast.fire({
         icon: 'error',
@@ -955,7 +1120,7 @@ export const ProductionManagement = ({
                             {Object.values(selectedCategory.subcategories).map((subcategory) => (
                               <div
                                 key={subcategory.id}
-                                className="bg-white border rounded-3 overflow-hidden"
+                                className="bg-white border rounded-3"
                                 style={{
                                   borderColor: '#E2E8F0',
                                 }}
@@ -981,11 +1146,7 @@ export const ProductionManagement = ({
                                 </div>
                                 <div className="table-responsive">
                                   <ManagementProductionOrders
-                                    technical_sheets={
-                                      subcategory.technical_sheets.filter(
-                                        (item) => item.status !== 'Pendiente',
-                                      ) || {}
-                                    }
+                                    technical_sheets={subcategory.technical_sheets}
                                     sizes={selectedTrademark.sizes}
                                     onCreateOrder={handleCreateOrder}
                                     onDeleteOrder={handleDeleteOrder}
@@ -999,7 +1160,6 @@ export const ProductionManagement = ({
                                     trademarks={trademarks}
                                     fetchProducts={fetchProducts}
                                     aux_trademarks={aux_trademarks}
-                                    fetchProducts={fetchProducts}
                                     errors_create={errors_create}
                                     createProduct={createProduct}
                                     getCurveActualized={getCurveActualized}
@@ -1010,6 +1170,11 @@ export const ProductionManagement = ({
                                     opt_status={opt_status}
                                     builders={builders}
                                     processes={processes}
+                                    hasReassignment={hasReassignment}
+                                    setHasReassignment={setHasReassignment}
+                                    priority_checks={priority_checks}
+                                    priority_levels={priority_levels}
+                                    priority_rules={priority_rules}
                                   />
                                 </div>
                               </div>

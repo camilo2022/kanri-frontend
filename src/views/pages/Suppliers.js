@@ -36,7 +36,6 @@ const Suppliers = ({ supplier_type_id }) => {
       setSupplier('')
 
       const supplierTypeAux = await findSupplierType(supplier_type_id)
-      console.log(supplierTypeAux)
 
       if (view.name === 'edit' && view.supplier?.id) {
         await findSupplier(view.supplier.id)
@@ -80,7 +79,6 @@ const Suppliers = ({ supplier_type_id }) => {
   const fetchSuppliers = async (supplier_type, params) => {
     try {
       const response = await SuppliersService.all(supplier_type, params)
-      console.log(response)
       setData(response.data)
     } catch (error) {
       setErrors(error.error)
@@ -202,7 +200,6 @@ const Suppliers = ({ supplier_type_id }) => {
   const allAccountTypes = async (params) => {
     try {
       const response = await AccountTypesService.all(params)
-      console.log(response)
       setAccountTypes(response.data.account_types)
     } catch (error) {
       setErrors(error.error)
@@ -210,8 +207,6 @@ const Suppliers = ({ supplier_type_id }) => {
       setLoading(false)
     }
   }
-
-  console.log(accountTypes)
 
   const renderView = () => {
     switch (view.name) {

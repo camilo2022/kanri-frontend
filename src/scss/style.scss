@@ -3400,3 +3400,29 @@ input[type='number']::-webkit-inner-spin-button {
 .size-unavailable {
   color: rgb(195 195 195) !important;
 }
+
+.horizontal-table-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.horizontal-table-content {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.horizontal-table-content table {
+  width: max-content !important;
+  min-width: 100% !important;
+}
+
+.horizontal-table-floating-scroll {
+  position: fixed;
+  bottom: 8px;
+  height: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  z-index: 99;
+  background: #ffffff;
+}

@@ -35,6 +35,9 @@ const ManagementProduction = () => {
   const [subcategories, setSubcategories] = useState()
   const [builders, setBuilders] = useState(null)
   const [processes, setProcesses] = useState(null)
+  const [priorityChecks, setPriorityChecks] = useState(null)
+  const [priorityLevels, setPriorityLevels] = useState(null)
+  const [priorityRules, setPriorityRules] = useState(null)
 
   useEffect(() => {
     fetchCollections()
@@ -77,7 +80,7 @@ const ManagementProduction = () => {
 
   const findCollection = async (collection_id) => {
     try {
-      const response = await CollectionsService.find(collection_id)
+      const response = await ProductionManagementService.find(collection_id)
       const collection = response.data.collection
       setCollection(collection)
       setOptStatus(
@@ -88,7 +91,9 @@ const ManagementProduction = () => {
             }))
           : [],
       )
-
+      setPriorityChecks(response.data.checks)
+      setPriorityLevels(response.data.levels)
+      setPriorityRules(response.data.rules)
       const trademarks = collection.technical_sheets.reduce((acc, technical_sheet) => {
         const product = technical_sheet.product
         const trademark = product?.trademark
@@ -360,6 +365,9 @@ const ManagementProduction = () => {
         errors_builder={errorsBuilder}
         builders={builders}
         processes={processes}
+        priority_checks={priorityChecks}
+        priority_levels={priorityLevels}
+        priority_rules={priorityRules}
       />
     </div>
   )

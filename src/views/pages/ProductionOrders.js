@@ -108,7 +108,6 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
 
   const fetchProductionOrders = async (technical_sheet_id, params) => {
     try {
-      console.log(params)
       const response = await ProductionOrdersService.all(technical_sheet_id, params)
       setPiecesCutA(response.data.production_orders.find((item) => item.cut === 'A')?.pieces ?? [])
       setStrokesCutA(response.data.production_orders.find((item) => item.cut === 'A')?.strokes)
@@ -125,9 +124,7 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
   const fetchFabrics = async () => {
     try {
       const aux = supplyTypes.find((item) => item.name === 'TELA').id || 218
-      console.log(aux)
       const response = await SuppliesService.all(aux)
-      console.log(response)
       setFabrics(
         Array.isArray(response.data.supplies)
           ? response.data.supplies.reduce((acc, supply) => {
@@ -151,7 +148,6 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
   const fetchSupplyTypes = async () => {
     try {
       const response = await SupplyTypesService.all()
-      console.log(response)
       setSupplyTypes(response.data.supply_types)
       setSupplyType(response.data.supply_types.find((item) => item.name === 'ROLLO'))
     } catch (error) {

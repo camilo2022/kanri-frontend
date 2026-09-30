@@ -1,49 +1,30 @@
 import {
   CFormInput,
   CButton,
-  CFormSelect,
   CModal,
   CModalHeader,
   CModalTitle,
   CModalBody,
   CModalFooter,
   CForm,
-  CCol,
-  CFormLabel,
-  CFormFeedback,
   CPopover,
   CFormCheck,
 } from '@coreui/react'
-import {
-  ChartSpline,
-  ArrowRightLeft,
-  X,
-  Plus,
-  TextInitial,
-  BadgeAlert,
-  BadgeCheck,
-  Save,
-  Regex,
-  Layers,
-  ArrowDownRight,
-  SolarPanel,
-  Edit,
-  CircleX,
-} from 'lucide-react'
+import { X, Plus, BadgeAlert, Save, Layers, ArrowDownRight } from 'lucide-react'
 import { useEffect, useState, useMemo } from 'react'
 import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
 import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
-import LoadingForm from '@/components/LoadingForm'
 import { getSelectStylesInsertUniq } from '@/components/StyleManagementCollection'
 
 const ModalAddReassignmentCurveProgramation = ({
   products,
+  product,
   production_order,
   fetchProducts,
-  product,
   product_stara,
+  product_stara_aux,
   sizes_data,
   curve,
   setCurve,
@@ -52,11 +33,9 @@ const ModalAddReassignmentCurveProgramation = ({
   technical_sheet,
   dataModal,
   setDataModal,
-  selectedReference,
-  setSelectedReference,
   production_changes,
-  getCurveActualized,
-
+  selectedReference,
+  production_reassignments,
   sizes,
   data,
   setData,
@@ -64,28 +43,45 @@ const ModalAddReassignmentCurveProgramation = ({
   openModalReasigned,
   setOpenModalReasigned,
   setModalAddProduct,
+  selectedReferences,
+  setSelectedReferences,
+  hasReassignment,
+  setHasReassignment,
 }) => {
-  const [optReasigned, setOptReasigned] = useState([])
-  const [selectedRows, setSelectedRows] = useState({
-    NACIONAL: false,
-    MEDELLIN: false,
-    STARA: false,
-  })
 
-  const [dataOrigin, setDataOrigin] = useState(null)
-  const [reasigned, setReasigned] = useState(false)
+  const [optReasigned, setOptReasigned] = useState([])
+  const [activeReferenceId, setActiveReferenceId] = useState(null)
+  const [curvesByReference, setCurvesByReference] = useState({})
+  const [destinationDataByReference, setDestinationDataByReference] = useState({})
+  const [selectedRowsByReference, setSelectedRowsByReference] = useState({})
+  const activeReference = curvesByReference[activeReferenceId]?.reference
+  const activeDataAux = curvesByReference[activeReferenceId]?.data
+  const activeDataModal = destinationDataByReference[activeReferenceId] || []
+  const activeSelectedRows = selectedRowsByReference[activeReferenceId] || {
+    NACIONAL: true,
+    MEDELLIN: true,
+    STARA: true,
+  }
+
+  const toggleRowSelect = (location) => {
+    if (!activeReferenceId) return
+
+    setSelectedRowsByReference((prev) => ({
+      ...prev,
+      [activeReferenceId]: {
+        ...(prev[activeReferenceId] || {
+          NACIONAL: true,
+          MEDELLIN: true,
+          STARA: true,
+        }),
+        [location]: !(prev[activeReferenceId]?.[location] ?? true),
+      },
+    }))
+  }
 
   useEffect(() => {
     fetchProducts()
   }, [])
-
-  useEffect(() => {
-    setSelectedRows({
-      NACIONAL: selectedReference?.selectedRows?.NACIONAL ?? false,
-      MEDELLIN: selectedReference?.selectedRows?.MEDELLIN ?? false,
-      STARA: selectedReference?.selectedRows?.STARA ?? false,
-    })
-  }, [selectedReference])
 
   useEffect(() => {
     if (!products) return
@@ -94,310 +90,115 @@ const ModalAddReassignmentCurveProgramation = ({
 
     products
       ?.filter((product) => product.original)
+      .filter((product) => product.technical_sheet?.status !== 'Pendiente')
       .forEach((item) => {
-        item.technical_sheet?.production_orders?.forEach((production_order_item) => {
-          if (production_order_item.id === production_order.id) {
-            return
-          }
+        item.technical_sheet?.production_orders
+          ?.filter((production_order) => {
+            const hasCurve =
+              production_changes?.[item.technical_sheet.id]?.orders?.[production_order.id]?.curve
 
-          aux.set(production_order_item.id, {
-            label: `${item.code} - ${production_order_item.cut}`,
-            code: item.code,
-            value: production_order_item.id,
-            specification_curve: production_order_item.production_order_details.filter(
-              (item) => item.model_type === 'App\\Models\\Product',
-            ),
-            sizes: item.trademark?.sizes || [],
-            production_order_id: production_order_item.id,
-            production_order: production_order_item,
+            const isSelectedReference = production_reassignments?.selected_references?.some(
+              (reference) => reference.production_order_id === production_order.id,
+            )
+
+            return !hasCurve || isSelectedReference
           })
-        })
+          .forEach((production_order_item) => {
+            if (production_order_item.id === production_order.id) {
+              return
+            }
+
+            aux.set(production_order_item.id, {
+              label: `${item.code}-${production_order_item.cut}`,
+              code: item.code,
+              value: production_order_item.id,
+              specification_curve: production_order_item.production_order_details.filter(
+                (item) => item.model_type === 'App\\Models\\Product',
+              ),
+              sizes: item.trademark?.sizes || [],
+              production_order_id: production_order_item.id,
+              production_order: production_order_item,
+            })
+          })
       })
 
     setOptReasigned([...aux.values()])
-
-    const options = [...aux.values()]
-  }, [products])
-
-  useEffect(() => {
-    if (!selectedReference?.specification_curve) {
-      setDataOrigin(null)
-      setSelectedRows({
-        NACIONAL: false,
-        MEDELLIN: false,
-        STARA: false,
-      })
-      return
-    }
-
-    const curve_selected_reference = getCurveActualized?.(
-      selectedReference?.production_order?.technical_sheet_id,
-      selectedReference?.production_order?.id,
-    )
-
-    if (curve_selected_reference) {
-      const curveData = curve_selected_reference.map((item) => ({
-        id: item.id ?? null,
-        location: item.destination,
-        product_id: item.reference_id,
-        reference: item.code,
-        sizes: item.quantities.reduce((acc, aux) => {
-          acc[aux.size_id] = {
-            quantity: Number(aux.quantity ?? 0),
-            size_id: aux.size_id,
-          }
-
-          return acc
-        }, {}),
-      }))
-
-      if (selectedReference.isAvailableEdit) {
-        const productionCurve = production_changes?.curve ?? []
-
-        const curveData = curve_selected_reference.map((item) => ({
-          id: item.id ?? null,
-          location: item.destination,
-          product_id: item.reference_id,
-          reference: item.code,
-          sizes: item.quantities.reduce((acc, aux) => {
-            acc[aux.size_id] = {
-              quantity: Number(aux.quantity ?? 0),
-              size_id: aux.size_id,
-            }
-
-            return acc
-          }, {}),
-        }))
-
-        const selectedLocations = ['NACIONAL', 'MEDELLIN', 'STARA'].filter(
-          (location) => selectedReference.selectedRows?.[location],
-        )
-
-        const reassignedBySize = {}
-
-        selectedReference.sizes.forEach((size) => {
-          reassignedBySize[size.id] = productionCurve.reduce((total, change) => {
-            const quantity = change.quantities?.find((item) => item.size_id === size.id)
-
-            return total + Number(quantity?.quantity ?? 0)
-          }, 0)
-        })
-
-        const updatedCurve = curveData.map((row) => ({
-          ...row,
-          sizes: Object.fromEntries(
-            Object.entries(row.sizes).map(([sizeId, sizeData]) => [sizeId, { ...sizeData }]),
-          ),
-        }))
-
-        selectedLocations.forEach((location) => {
-          const originRow = updatedCurve.find((row) => row.location === location)
-
-          if (!originRow) return
-
-          selectedReference.sizes.forEach((size) => {
-            const sizeId = size.id
-            const amountToReturn = reassignedBySize[sizeId] ?? 0
-
-            if (amountToReturn <= 0) return
-
-            if (!originRow.sizes[sizeId]) {
-              originRow.sizes[sizeId] = {
-                quantity: 0,
-                size_id: sizeId,
-              }
-            }
-
-            originRow.sizes[sizeId].quantity =
-              Number(originRow.sizes[sizeId].quantity ?? 0) + amountToReturn
-
-            reassignedBySize[sizeId] = 0
-          })
-        })
-
-        setDataOrigin(updatedCurve)
-
-        return
-      } else {
-        setDataOrigin(curveData)
-      }
-
-      return
-    }
-
-    const data = selectedReference?.specification_curve
-      .filter((item) => item.model_type === 'App\\Models\\Product')
-      .map((item) => ({
-        id: item.id ?? null,
-        location: item.destination,
-        reference: item.model?.code ?? null,
-        product_id: item.model_id,
-
-        sizes: (selectedReference.sizes ?? []).reduce((acc, size) => {
-          const quantity = item.production_order_detail_quantities?.find(
-            (aux) => aux.size_id === size.id,
-          )
-
-          acc[size.id] = {
-            id: quantity?.id ?? null,
-            size_id: size.id,
-            name: size.name,
-            quantity: Number(quantity?.quantity ?? 0),
-          }
-
-          return acc
-        }, {}),
-      }))
-
-    const locations = ['NACIONAL', 'MEDELLIN', 'STARA']
-
-    locations.forEach((location) => {
-      if (!data.some((item) => item.location === location)) {
-        data.push({
-          id: null,
-          location,
-          reference: null,
-          product_id: null,
-
-          sizes: (selectedReference.sizes ?? []).reduce((acc, size) => {
-            acc[size.id] = {
-              id: null,
-              size_id: size.id,
-              name: size.name,
-              quantity: 0,
-            }
-
-            return acc
-          }, {}),
-        })
-      }
-    })
-
-    setDataOrigin(data)
-
-    if (selectedReference.isAvailableEdit) return
-
-    setDataModal(createEmptyDataModal())
-    setSelectedRows({
-      NACIONAL: false,
-      MEDELLIN: false,
-      STARA: false,
-    })
-    setReasigned(false)
-  }, [selectedReference])
-
-  useEffect(() => {
-    if (!sizes_data || selectedReference?.isAvailableEdit) return
-
-    setDataModal(
-      [
-        {
-          location: 'NACIONAL',
-          product_id: null,
-        },
-        {
-          location: 'MEDELLIN',
-          product_id: null,
-        },
-        {
-          location: 'STARA',
-          product_id: null,
-        },
-      ].map((item) => ({
-        ...item,
-        sizes: sizes_data.reduce((acc, size) => {
-          acc[size.id] = {
-            id: null,
-            size_id: size.id,
-            name: size.name,
-            quantity: 0,
-          }
-
-          return acc
-        }, {}),
-      })),
-    )
-  }, [sizes_data, selectedReference])
+  }, [products, production_changes, production_reassignments])
 
   const [focusedInput, setFocusedInput] = useState(null)
   const [openPopover, setOpenPopover] = useState({
     id: null,
   })
 
-  const toggleRowSelect = (location) => {
-    const row = dataOrigin?.find((row) => row.location === location)
-
-    if (!row || !hasAvailableUnits(row)) {
-      return
-    }
-
-    setSelectedRows((prev) => ({
-      ...prev,
-      [location]: !prev[location],
-    }))
-  }
-
-  useEffect(() => {
-    const hasSelectedRow = Object.values(selectedRows).some(Boolean)
-
-    setReasigned(hasSelectedRow)
-  }, [selectedRows, setReasigned])
-
   const handleChange = (rowIndex, sizeId, value) => {
+    if (!activeReferenceId) return
+
     const inputQuantity = value === '' ? 0 : Number(value)
-    const currentQuantityInRow = Number(dataModal[rowIndex]?.sizes?.[sizeId]?.quantity || 0)
+
+    const currentQuantityInRow = Number(activeDataModal[rowIndex]?.sizes?.[sizeId]?.quantity || 0)
 
     const currentAssignedOthers = (sizeLimits[sizeId]?.assigned || 0) - currentQuantityInRow
+
     const maxAllowedForThisInput = (sizeLimits[sizeId]?.maxAvailable || 0) - currentAssignedOthers
 
     if (inputQuantity > maxAllowedForThisInput) {
       return
     }
 
-    setDataModal((prev) =>
-      prev.map((row, index) => {
+    setDestinationDataByReference((prev) => ({
+      ...prev,
+      [activeReferenceId]: prev[activeReferenceId].map((row, index) => {
         if (index !== rowIndex) return row
+
         return {
           ...row,
           sizes: {
             ...row.sizes,
             [sizeId]: {
               ...row.sizes[sizeId],
-              quantity: Number(value),
+              quantity: inputQuantity,
             },
           },
         }
       }),
-    )
+    }))
   }
 
   const handleChangeReference = (location, value) => {
-    setDataModal((prev) =>
-      prev.map((row) => {
-        if (row.location !== location) return row
+    setDestinationDataByReference((prev) => {
+      const updated = { ...prev }
 
-        return {
-          ...row,
-          ['product_id']: value,
-        }
-      }),
-    )
-  }
+      selectedReferences.forEach((reference) => {
+        const referenceId = reference.value
 
-  const handleChangeData = (e) => {
-    const { name, value } = e.target
+        updated[referenceId] = (updated[referenceId] || []).map((row) => {
+          if (row.location !== location) return row
 
-    setFormData((prev) => ({
-      ...prev,
-      ['code']: value.toUpperCase(),
-    }))
+          return {
+            ...row,
+            product_id: value,
+            sizes: Object.fromEntries(
+              Object.entries(row.sizes || {}).map(([sizeId, size]) => [
+                sizeId,
+                {
+                  ...size,
+                  quantity: value === null ? 0 : size.quantity,
+                },
+              ]),
+            ),
+          }
+        })
+      })
+
+      return updated
+    })
   }
 
   const handleSubmit = async () => {
     Swal.fire({
       title: 'Reasignar Curva',
       html: `<div style="font-size:14px">
-                Se guardará la información de la reasignacion de la curva de la referencia ${selectedReference.label}.<br/>
+                Se guardará la información de la reasignacion de la curva a la referencia.<br/>
                 <strong>¿Deseas continuar?</strong>
               </div>`,
       icon: 'question',
@@ -409,71 +210,122 @@ const ModalAddReassignmentCurveProgramation = ({
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
+          const aux_curve = selectedReferences.map((selectedReference) => {
+            const originalCurve = curvesByReference[selectedReference.value]?.data || []
 
-          const updatedOriginCurve = dataOrigin.map((row) => {
-            const updatedSizes = {}
+            const reassignedDetails = destinationDataByReference[selectedReference.value] || []
 
-            selectedReference?.sizes?.forEach((size) => {
-              const sizeBalances = calculateCascadeStockForSize(size.id, dataOrigin, dataModal)
-              const remainingQty = sizeBalances[row.location] ?? (row.sizes[size.id]?.quantity || 0)
+            const selectedRows = Object.entries(
+              selectedRowsByReference[selectedReference.value] || {},
+            )
+              .filter(([, selected]) => selected)
+              .map(([location]) => location)
 
-              updatedSizes[size.id] = {
-                ...row.sizes[size.id],
-                quantity: remainingQty,
+            const pendingBySize = {}
+
+            sizes.forEach((size) => {
+              pendingBySize[size.id] = reassignedDetails.reduce(
+                (total, row) => total + Number(row.sizes?.[size.id]?.quantity || 0),
+                0,
+              )
+            })
+
+            const updatedCurve = originalCurve.map((originRow) => {
+              const updatedSizes = {}
+
+              sizes.forEach((size) => {
+                const originalQuantity = Number(originRow.sizes?.[size.id]?.quantity || 0)
+
+                const pending = Number(pendingBySize[size.id] || 0)
+
+                const quantityToSubtract = Math.min(originalQuantity, pending)
+
+                updatedSizes[size.id] = {
+                  ...originRow.sizes?.[size.id],
+                  size_id: size.id,
+                  quantity: Math.max(0, originalQuantity - quantityToSubtract),
+                }
+
+                pendingBySize[size.id] = Math.max(0, pending - quantityToSubtract)
+              })
+
+              return {
+                ...originRow,
+                sizes: updatedSizes,
               }
             })
 
             return {
-              ...row,
-              sizes: updatedSizes,
+              ...selectedReference,
+              curve: updatedCurve,
+              reassigned_details: reassignedDetails,
+              selected_rows: selectedRows,
             }
           })
 
-          onReassignmentsChange?.(technical_sheet.id, production_order.id, 'selected_reference', {
-            ...selectedReference,
-            isAvailableEdit: true,
-            selectedRows: {
-              ...selectedRows,
-            },
+          aux_curve.forEach((aux_item) => {
+            onReassignmentsChange?.(
+              technical_sheet.id,
+              production_order.id,
+              'selected_references',
+              {
+                ...aux_item,
+                isAvailableEdit: true,
+                selectedRows: {
+                  ...selectedRowsByReference[aux_item.production_order.id],
+                },
+              },
+            )
           })
 
-          const selectedKeys = onOrderChange?.(
-            technical_sheet.id,
-            production_order,
-            'reasigned_curve',
-            {
-              reasigned_curve: true,
-              production_order_id: selectedReference.production_order.id,
-              selected_rows: Object.entries(selectedRows)
-                .filter(([key, value]) => value === true)
-                .map(([key]) => key),
-            },
-          )
+          const currentCurveOriginal = production_reassignments?.curve_original
 
-          onOrderChange?.(
-            selectedReference.production_order.technical_sheet_id,
-            selectedReference.production_order,
-            'curve',
-            [
-              ...updatedOriginCurve.map((item) => ({
-                id: item.id ?? null,
-                destination: item.location,
-                code: item.reference,
-                reference_id: item.product_id,
-                quantities: Object.values(item.sizes),
+          if (!currentCurveOriginal) {
+
+            onReassignmentsChange?.(technical_sheet.id, production_order.id, 'curve_original', [
+              ...curve.map((item) => ({
+                ...item,
+                quantities: item.quantities.map((quantity) => ({
+                  ...quantity,
+                  quantity: Number(quantity.quantity ?? 0),
+                })),
               })),
-            ],
-          )
+            ])
+          }
+
+          aux_curve.forEach((aux_item) => {
+            onOrderChange?.(
+              aux_item.production_order.technical_sheet_id,
+              aux_item.production_order,
+              'curve',
+              [
+                ...aux_item.curve.map((item) => ({
+                  id: item.id ?? null,
+                  destination: item.location,
+                  code: item.reference,
+                  reference_id: item.product_id,
+                  quantities: Object.values(item.sizes),
+                })),
+              ],
+            )
+          })
 
           onOrderChange?.(technical_sheet.id, production_order, 'curve', [
-            ...dataModal.map((item) => ({
-              id: item.id ?? null,
+            ...totalDestinationData.map((item) => ({
+              id:
+                production_order.production_order_details.find(
+                  (aux) => aux.model_id === item.product_id && aux.destination === item.location,
+                )?.id ?? null,
               destination: item.location,
               reference_id: item.product_id,
               quantities: Object.values(item.sizes),
             })),
           ])
 
+          setHasReassignment((prev) => ({
+            ...prev,
+            [production_order.id]: true,
+          }))
           setOpenModalReasigned(false)
         } catch (error) {
           console.log(error)
@@ -494,21 +346,24 @@ const ModalAddReassignmentCurveProgramation = ({
   }
 
   const availablePerSize = useMemo(() => {
-    if (!selectedReference?.sizes || !dataOrigin || !dataModal) return {}
+    if (!activeReference?.sizes || !activeDataAux || !activeDataModal) {
+      return {}
+    }
 
     const result = {}
 
-    selectedReference.sizes.forEach((size) => {
+    activeReference.sizes.forEach((size) => {
       const sizeId = size.id
 
-      let stockAvailable = dataOrigin.reduce((sum, row) => {
-        if (selectedRows[row.location]) {
+      const stockAvailable = activeDataAux.reduce((sum, row) => {
+        if (activeSelectedRows[row.location]) {
           return sum + Number(row.sizes?.[sizeId]?.quantity || 0)
         }
+
         return sum
       }, 0)
 
-      const requested = dataModal.reduce((sum, row) => {
+      const requested = activeDataModal.reduce((sum, row) => {
         return sum + Number(row.sizes?.[sizeId]?.quantity || 0)
       }, 0)
 
@@ -516,27 +371,31 @@ const ModalAddReassignmentCurveProgramation = ({
 
       result[sizeId] = {
         totalSelected: stockAvailable,
-        remaining: remaining,
+        remaining,
         isNegative: remaining < 0,
       }
     })
 
     return result
-  }, [selectedReference, dataOrigin, dataModal, selectedRows])
+  }, [activeReference, activeDataAux, activeDataModal, activeSelectedRows])
 
   const sizeLimits = useMemo(() => {
-    if (!selectedReference?.sizes || !dataOrigin || !dataModal) return {}
+    if (!activeReference?.sizes || !activeDataAux || !activeDataModal) {
+      return {}
+    }
 
     const limits = {}
 
-    selectedReference.sizes.forEach((size) => {
+    activeReference.sizes.forEach((size) => {
       const sizeId = size.id
 
-      const originalTotal = dataOrigin.reduce((sum, row) => {
-        return selectedRows[row.location] ? sum + Number(row.sizes?.[sizeId]?.quantity || 0) : sum
+      const originalTotal = activeDataAux.reduce((sum, row) => {
+        return activeSelectedRows[row.location]
+          ? sum + Number(row.sizes?.[sizeId]?.quantity || 0)
+          : sum
       }, 0)
 
-      const assignedTotal = dataModal.reduce((sum, row) => {
+      const assignedTotal = activeDataModal.reduce((sum, row) => {
         return sum + Number(row.sizes?.[sizeId]?.quantity || 0)
       }, 0)
 
@@ -548,7 +407,64 @@ const ModalAddReassignmentCurveProgramation = ({
     })
 
     return limits
-  }, [selectedReference, dataOrigin, dataModal, selectedRows])
+  }, [activeReference, activeDataAux, activeDataModal, activeSelectedRows])
+
+  const totalDestinationData = useMemo(() => {
+    if (!selectedReferences.length) return []
+
+    const totals = ['NACIONAL', 'MEDELLIN', 'STARA'].map((location) => ({
+      id: null,
+      location,
+      product_id: null,
+      sizes: {},
+    }))
+
+    selectedReferences.forEach((reference) => {
+      const destinationRows = destinationDataByReference[reference.value] || []
+
+      destinationRows.forEach((row) => {
+        const totalRow = totals.find((item) => item.location === row.location)
+
+        if (!totalRow) return
+
+        if (row.product_id) {
+          totalRow.product_id = row.product_id
+        }
+
+        if (row.id) {
+          totalRow.id = row.id
+        }
+
+        sizes.forEach((size) => {
+          const quantity = Number(row.sizes?.[size.id]?.quantity || 0)
+
+          if (!totalRow.sizes[size.id]) {
+            totalRow.sizes[size.id] = {
+              size_id: size.id,
+              name: size.name,
+              quantity: 0,
+            }
+          }
+
+          totalRow.sizes[size.id].quantity += quantity
+        })
+      })
+    })
+
+    return totals
+  }, [selectedReferences, destinationDataByReference, sizes])
+
+  const totalDestinationBySize = useMemo(() => {
+    const totals = {}
+
+    sizes.forEach((size) => {
+      totals[size.id] = totalDestinationData.reduce((total, row) => {
+        return total + Number(row.sizes?.[size.id]?.quantity || 0)
+      }, 0)
+    })
+
+    return totals
+  }, [totalDestinationData, sizes])
 
   const options = product
     ? [
@@ -577,20 +493,7 @@ const ModalAddReassignmentCurveProgramation = ({
         ]
       : []
 
-  const hasAvailableUnits = (row) => {
-    return selectedReference?.sizes?.some(
-      (size) => Number(row?.sizes?.[size.id]?.quantity || 0) > 0,
-    )
-  }
-
-  const calculateCascadeStockForSize = (sizeId, dataOrigin, dataModal) => {
-    if (!reasigned) {
-      return dataOrigin.reduce((acc, row) => {
-        acc[row.location] = Number(row.sizes?.[sizeId]?.quantity || 0)
-        return acc
-      }, {})
-    }
-
+  const calculateCascadeStockForSize = (sizeId, dataAux, dataModal) => {
     const locationOrder = ['NACIONAL', 'MEDELLIN', 'STARA']
 
     let pendingDemand = dataModal.reduce((total, row) => {
@@ -600,7 +503,8 @@ const ModalAddReassignmentCurveProgramation = ({
     const finalBalances = {}
 
     locationOrder.forEach((loc) => {
-      const auxRow = dataOrigin.find((r) => r.location === loc)
+      const auxRow = dataAux.find((r) => r.location === loc)
+
       const availableStock = Number(auxRow?.sizes?.[sizeId]?.quantity || 0)
 
       if (pendingDemand > 0) {
@@ -619,12 +523,92 @@ const ModalAddReassignmentCurveProgramation = ({
     return finalBalances
   }
 
-  const createEmptyDataModal = () => {
+  const buildCurveData = (reference) => {
+    const curve =
+      Array.isArray(reference.specification_curve) &&
+      reference.specification_curve
+        .filter((item) => item.model_type === 'App\\Models\\Product')
+        .map((item) => ({
+          id: item.id,
+          location: item.destination,
+          reference: item.model.code,
+          product_id: item.model_id,
+          sizes: reference.sizes.reduce((acc, size) => {
+            const quantity = item.production_order_detail_quantities.find(
+              (aux) => aux.size_id === size.id,
+            )
+
+            acc[size.id] = {
+              id: quantity?.id ?? null,
+              size_id: size.id,
+              name: size.name,
+              quantity: quantity?.quantity ?? 0,
+            }
+
+            return acc
+          }, {}),
+        }))
+
+    ;['NACIONAL', 'MEDELLIN', 'STARA'].forEach((location) => {
+      if (!curve.some((item) => item.location === location)) {
+        curve.push({
+          location,
+          reference: null,
+          product_id: null,
+          sizes: reference.sizes.reduce((acc, size) => {
+            acc[size.id] = {
+              id: null,
+              size_id: size.id,
+              name: size.name,
+              quantity: 0,
+            }
+
+            return acc
+          }, {}),
+        })
+      }
+    })
+
+    return curve
+  }
+
+  const buildDestinationDataFromExisting = (reference, reassignment) => {
+    if (!reference || !reassignment) return []
+
+    const reassignedDetails = reassignment.reassigned_details || []
+
+    return ['NACIONAL', 'MEDELLIN', 'STARA'].map((location) => {
+      const existingRow = reassignedDetails.find((row) => row.location === location)
+
+      return {
+        location,
+        reference: existingRow?.reference ?? null,
+        product_id: existingRow?.product_id ?? null,
+
+        sizes: reference.sizes.reduce((acc, size) => {
+          const existingSize = existingRow?.sizes?.[size.id]
+
+          acc[size.id] = {
+            id: existingSize?.id ?? null,
+            size_id: size.id,
+            name: size.name,
+            quantity: Number(existingSize?.quantity || 0),
+          }
+
+          return acc
+        }, {}),
+      }
+    })
+  }
+
+  const buildDestinationData = (reference) => {
+    if (!reference) return []
+
     return ['NACIONAL', 'MEDELLIN', 'STARA'].map((location) => ({
       location,
+      reference: null,
       product_id: null,
-
-      sizes: (sizes_data ?? []).reduce((acc, size) => {
+      sizes: reference.sizes.reduce((acc, size) => {
         acc[size.id] = {
           id: null,
           size_id: size.id,
@@ -636,6 +620,128 @@ const ModalAddReassignmentCurveProgramation = ({
       }, {}),
     }))
   }
+
+  const handleSelectReferences = (references) => {
+    const selected = references || []
+
+    setSelectedReferences(selected)
+
+    setCurvesByReference((prev) => {
+      const next = {}
+
+      selected.forEach((reference) => {
+        next[reference.value] = {
+          reference,
+          data: prev[reference.value]?.data || buildCurveData(reference),
+        }
+      })
+
+      return next
+    })
+
+    setDestinationDataByReference((prev) => {
+      const next = {}
+
+      selected.forEach((reference) => {
+        next[reference.value] = prev[reference.value] || buildDestinationData(reference)
+      })
+
+      return next
+    })
+
+    setSelectedRowsByReference((prev) => {
+      const next = {}
+
+      selected.forEach((reference) => {
+        next[reference.value] = prev[reference.value] || {
+          NACIONAL: true,
+          MEDELLIN: true,
+          STARA: true,
+        }
+      })
+
+      return next
+    })
+
+    if (selected.length > 0) {
+      const currentActiveExists = selected.some(
+        (reference) => reference.value === activeReferenceId,
+      )
+
+      if (!currentActiveExists) {
+        setActiveReferenceId(selected[0].value)
+      }
+    } else {
+      setActiveReferenceId(null)
+    }
+  }
+
+  const hasSizeInActiveReference = (sizeId) => {
+    return activeReference?.sizes?.some((size) => size.id === sizeId) ?? false
+  }
+
+  useEffect(() => {
+    if (!openModalReasigned) return
+    if (!hasReassignment) return
+    if (!production_reassignments.selected_references?.length) return
+    if (!optReasigned?.length) return
+
+    const references = production_reassignments.selected_references
+      .map((item) => {
+        const reference = optReasigned.find((option) => option.value === item.production_order_id)
+
+        return reference || null
+      })
+      .filter(Boolean)
+
+    if (!references.length) return
+
+    setSelectedReferences(references)
+
+    const curves = {}
+    const destinations = {}
+    const selectedRows = {}
+
+    references.forEach((reference) => {
+      const reassignment = production_reassignments.selected_references.find(
+        (item) => item.production_order_id === reference.value,
+      )
+
+      curves[reference.value] = {
+        reference,
+        data: buildCurveData(reference),
+      }
+
+      destinations[reference.value] = buildDestinationDataFromExisting(reference, reassignment)
+
+      selectedRows[reference.value] = reassignment?.selected_rows?.reduce(
+        (acc, item) => {
+          acc[item] = true
+          return acc
+        },
+        {
+          NACIONAL: false,
+          MEDELLIN: false,
+          STARA: false,
+        },
+      ) || {
+        NACIONAL: true,
+        MEDELLIN: true,
+        STARA: true,
+      }
+    })
+
+    setCurvesByReference(curves)
+    setDestinationDataByReference(destinations)
+    setSelectedRowsByReference(selectedRows)
+
+    setActiveReferenceId(references[0].value)
+  }, [
+    openModalReasigned,
+    hasReassignment,
+    production_reassignments.selected_references,
+    optReasigned,
+  ])
 
   return (
     <>
@@ -665,322 +771,1010 @@ const ModalAddReassignmentCurveProgramation = ({
           </CModalTitle>
         </CModalHeader>
         <CModalBody className="px-4 py-3">
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <div className="d-inline-flex align-items-center rounded bg-primary text-white">
-              <div
-                className="d-flex align-items-center px-2"
-                style={{
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <Layers size={14} className="me-1" />
-                TABLA DE ORIGEN (STOCK DISPONIBLE)
+          <div
+            className="p-3 rounded-3"
+            style={{
+              backgroundColor: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            <div className="d-flex align-items-center justify-content-between">
+              <div>
+                <div
+                  className="font-montserrat fw-bold"
+                  style={{
+                    fontSize: '0.85rem',
+                    color: '#0F172A',
+                  }}
+                >
+                  Referencias a reasignar
+                </div>
+
+                <div
+                  className="font-inter text-muted"
+                  style={{
+                    fontSize: '0.75rem',
+                  }}
+                >
+                  Seleccione una o varias referencias para consultar sus curvas.
+                </div>
               </div>
 
-              <div
-                style={{
-                  width: '1px',
-                  height: '22px',
-                  backgroundColor: 'rgba(255,255,255,0.35)',
-                }}
-              />
-
-              <div
-                style={{
-                  minWidth: '230px',
-                  height: '100%',
-                }}
-              >
-                <Select
-                  options={optReasigned}
-                  value={selectedReference}
-                  onChange={(selected) => {
-                    const reference = optReasigned.find(
-                      (option) => option.value === selected?.value,
-                    )
-
-                    setSelectedReference(reference ?? null)
+              {selectedReferences.length > 0 && (
+                <span
+                  className="badge rounded-pill"
+                  style={{
+                    backgroundColor: '#EEF2FF',
+                    color: '#24247F',
+                    fontSize: '0.72rem',
                   }}
-                  isSearchable
-                  placeholder="Seleccionar curva..."
-                  menuPortalTarget={document.body}
-                  menuPosition="fixed"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      height: '38px',
-                      minHeight: '38px',
-                      border: 'none',
-                      borderRadius: 0,
-                      backgroundColor: 'transparent',
-                      boxShadow: 'none',
-                      cursor: 'pointer',
-                    }),
-
-                    valueContainer: (base) => ({
-                      ...base,
-                      padding: '0 8px',
-                    }),
-
-                    singleValue: (base) => ({
-                      ...base,
-                      color: '#fff',
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                    }),
-
-                    placeholder: (base) => ({
-                      ...base,
-                      color: 'rgba(255,255,255,0.85)',
-                      fontSize: '0.78rem',
-                    }),
-
-                    input: (base) => ({
-                      ...base,
-                      color: '#fff',
-                      fontSize: '0.78rem',
-                    }),
-
-                    indicatorSeparator: () => ({
-                      display: 'none',
-                    }),
-
-                    dropdownIndicator: (base) => ({
-                      ...base,
-                      color: '#fff',
-                      padding: '4px 8px',
-                      '&:hover': {
-                        color: '#fff',
-                      },
-                    }),
-
-                    menuPortal: (base) => ({
-                      ...base,
-                      zIndex: 999999,
-                    }),
-
-                    menu: (base) => ({
-                      ...base,
-                      minWidth: '70px',
-                    }),
-
-                    option: (base, state) => ({
-                      ...base,
-                      fontFamily: 'Inter',
-                      fontSize: '0.9rem',
-                      color: '#334155',
-                      backgroundColor: state.isSelected
-                        ? '#EFF6FF'
-                        : state.isFocused
-                          ? '#F8FAFC'
-                          : '#fff',
-                    }),
-                  }}
-                />
-              </div>
+                >
+                  {selectedReferences.length}{' '}
+                  {selectedReferences.length === 1 ? 'referencia' : 'referencias'}
+                </span>
+              )}
             </div>
-          </div>
-          {selectedReference && (
-            <div className="table-responsive mb-4 border rounded">
-              <table
-                className="table align-middle mb-0"
-                style={{
-                  width: '100%',
-                  borderCollapse: 'separate',
-                  borderSpacing: 0,
-                }}
-              >
-                <thead style={{ backgroundColor: '#fdfdfd' }}>
-                  <tr className="font-poppins">
-                    <th
-                      rowSpan={2}
-                      className="text-center align-middle"
-                      style={{ ...thStyle, width: '50px' }}
+            <Select
+              options={optReasigned || []}
+              value={selectedReferences}
+              onChange={handleSelectReferences}
+              isMulti
+              isClearable
+              isSearchable
+              filterOption={customFilterOption}
+              placeholder="Seleccione las referencias..."
+              closeMenuOnSelect={false}
+              hideSelectedOptions={false}
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+              components={{
+                Option: ({ children, isSelected, innerProps }) => (
+                  <div
+                    {...innerProps}
+                    className="d-flex align-items-center"
+                    style={{
+                      padding: '9px 12px',
+                      cursor: 'pointer',
+                      backgroundColor: 'white',
+                      color: '#334155',
+                      fontSize: '0.82rem',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#F8FAFC'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white'
+                    }}
+                  >
+                    <div
+                      className="d-flex align-items-center justify-content-center me-2"
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        border: isSelected ? '1px solid #24247F' : '1px solid #CBD5E1',
+                        borderRadius: '3px',
+                        backgroundColor: isSelected ? '#24247F' : 'white',
+                        flexShrink: 0,
+                      }}
                     >
-                      USAR
-                    </th>
-                    <th
-                      rowSpan={2}
-                      className="text-center align-middle"
-                      style={{ ...thStyle, minWidth: '100px' }}
-                    >
-                      -
-                    </th>
-                    <th
-                      rowSpan={2}
-                      className="text-center align-middle"
-                      style={{ ...thStyle, minWidth: '200px' }}
-                    >
-                      REFERENCIA
-                    </th>
-                    <th
-                      colSpan={selectedReference?.sizes?.length}
-                      className="text-center align-middle"
-                      style={{ ...thStyleGroup }}
-                    >
-                      TALLAS
-                    </th>
-                    <th
-                      rowSpan={2}
-                      className="text-center align-middle"
-                      style={{ ...thStyle, minWidth: '90px' }}
-                    >
-                      TOTAL
-                    </th>
-                  </tr>
-                  <tr className="font-poppins">
-                    {selectedReference?.sizes?.map((size) => {
-                      return (
-                        <th
-                          className="text-center"
+                      {isSelected && (
+                        <span
                           style={{
-                            ...thStyleGroup,
-                            minWidth: '100px',
+                            color: 'white',
+                            fontSize: '11px',
+                            lineHeight: 1,
+                            fontWeight: 700,
                           }}
                         >
-                          {size.name}
-                        </th>
-                      )
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {dataOrigin?.map((row, rowIndex) => {
-                    const isChecked = !!selectedRows[row.location]
+                          ✓
+                        </span>
+                      )}
+                    </div>
+                    <span>{children}</span>
+                  </div>
+                ),
+
+                MultiValue: ({ data, index, getValue }) => {
+                  const values = getValue()
+
+                  return (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        fontSize: '0.82rem',
+                        color: '#334155',
+                        marginRight: '4px',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                        minWidth: 'max-content',
+                      }}
+                    >
+                      <span style={{ fontWeight: 500 }}>{data.label}</span>
+
+                      {index < values.length - 1 ? ', ' : ''}
+                    </span>
+                  )
+                },
+
+                MultiValueContainer: ({ children }) => <span>{children}</span>,
+
+                MultiValueRemove: () => null,
+              }}
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: '38px',
+                  height: '38px',
+                  borderColor: state.hasValue ? '#24247F' : '#DBDFE6',
+                  boxShadow: 'none',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.82rem',
+                  '&:hover': {
+                    borderColor: '#1857b6',
+                    boxShadow: '0 0 0 0.2rem rgba(13, 110, 253, 0.25)',
+                  },
+                }),
+
+                valueContainer: (base) => ({
+                  ...base,
+                  minHeight: '38px',
+                  height: '38px',
+                  padding: '0 10px',
+                  overflow: 'hidden',
+                  flexWrap: 'nowrap',
+                  whiteSpace: 'nowrap',
+                }),
+
+                indicatorsContainer: (base) => ({
+                  ...base,
+                  height: '38px',
+                }),
+
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: 'transparent',
+                  borderRadius: 0,
+                  margin: 0,
+                  padding: 0,
+                }),
+
+                multiValueLabel: (base) => ({
+                  ...base,
+                  padding: 0,
+                  color: '#334155',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }),
+
+                multiValueRemove: (base) => ({
+                  ...base,
+                  display: 'none',
+                }),
+
+                menuPortal: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                }),
+
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                  borderRadius: '0.375rem',
+                  overflow: 'hidden',
+                  fontFamily: 'Inter',
+                }),
+
+                menuList: (base) => ({
+                  ...base,
+                  padding: 0,
+                }),
+              }}
+            />
+          </div>
+          {selectedReferences.length > 0 && (
+            <>
+              <div className="d-flex align-items-center justify-content-between mb-2 mt-3">
+                <div className="d-flex align-items-center gap-2">
+                  <span className="badge bg-primary text-white fw-bold px-2 py-2 rounded">
+                    <Layers size={14} className="me-1" />{' '}
+                    {selectedReferences.length > 1
+                      ? 'TABLAS DE ORIGEN (STOCK DISPONIBLE)'
+                      : 'TABLA DE ORIGEN (STOCK DISPONIBLE)'}
+                  </span>
+                </div>
+              </div>
+              <div className="mb-4">
+                <div
+                  className="d-flex gap-1"
+                  style={{
+                    overflowX: 'auto',
+                    borderBottom: '1px solid #E2E8F0',
+                    paddingLeft: '4px',
+                  }}
+                >
+                  {selectedReferences.map((reference) => {
+                    const isActive = activeReferenceId === reference.value
+
                     return (
+                      <button
+                        key={reference.value}
+                        type="button"
+                        onClick={() => setActiveReferenceId(reference.value)}
+                        className="border-0"
+                        style={{
+                          backgroundColor: isActive ? '#24247F' : '#F8FAFC',
+                          color: isActive ? '#FFFFFF' : '#64748B',
+                          padding: '9px 14px',
+                          borderRadius: '8px 8px 0 0',
+                          fontSize: '0.76rem',
+                          fontFamily: 'Poppins',
+                          fontWeight: isActive ? 600 : 500,
+                          whiteSpace: 'nowrap',
+                          transition: 'all .2s ease',
+                        }}
+                      >
+                        {reference.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                <div
+                  style={{
+                    border: '1px solid #E2E8F0',
+                    borderTop: 'none',
+                    borderRadius: '0 0 10px 10px',
+                    backgroundColor: '#FFFFFF',
+                    padding: '16px',
+                  }}
+                >
+                  <div className="table-responsive border rounded">
+                    <table
+                      className="table align-middle mb-0"
+                      style={{
+                        width: '100%',
+                        borderCollapse: 'separate',
+                        borderSpacing: 0,
+                      }}
+                    >
+                      <thead style={{ backgroundColor: '#fdfdfd' }}>
+                        <tr className="font-poppins">
+                          <th
+                            rowSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle, width: '50px' }}
+                          >
+                            USAR
+                          </th>
+                          <th
+                            rowSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle, minWidth: '100px' }}
+                          >
+                            -
+                          </th>
+                          <th
+                            rowSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle, minWidth: '200px' }}
+                          >
+                            REFERENCIA
+                          </th>
+                          <th
+                            colSpan={activeReference?.sizes?.length || 0}
+                            className="text-center align-middle"
+                            style={{ ...thStyleGroup }}
+                          >
+                            TALLAS
+                          </th>
+                          <th
+                            rowSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle, minWidth: '90px' }}
+                          >
+                            TOTAL
+                          </th>
+                        </tr>
+                        <tr className="font-poppins">
+                          {activeReference?.sizes?.map((size) => {
+                            return (
+                              <th
+                                className="text-center"
+                                style={{
+                                  ...thStyleGroup,
+                                  minWidth: '100px',
+                                }}
+                              >
+                                {size.name}
+                              </th>
+                            )
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeDataAux?.map((row, rowIndex) => {
+                          const isChecked = !!activeSelectedRows[row.location]
+                          return (
+                            <tr
+                              key={row.location}
+                              style={{ backgroundColor: isChecked ? '#fafafa' : '#FFFFFF' }}
+                              className="font-inter"
+                            >
+                              <td className="table-input-spc text-center align-middle border-end">
+                                <CFormCheck
+                                  checked={isChecked}
+                                  onChange={() => toggleRowSelect(row.location)}
+                                  disabled={
+                                    activeDataModal?.reduce((total, row) => {
+                                      return (
+                                        total +
+                                        activeReference?.sizes?.reduce((subtotal, size) => {
+                                          return (
+                                            subtotal + Number(row.sizes?.[size.id]?.quantity || 0)
+                                          )
+                                        }, 0)
+                                      )
+                                    }, 0) > 0
+                                  }
+                                />
+                              </td>
+                              <td
+                                className={`justify-content-between gap-2 text-center align-middle ${errors?.[row.location] ? 'd-flex' : ''}`}
+                                style={{ ...thStyle, minWidth: '100px' }}
+                              >
+                                {row.location || '-'}
+                              </td>
+                              <td
+                                className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle"
+                                style={{ fontSize: '0.875rem' }}
+                              >
+                                {row.reference || '-'}
+                              </td>
+                              {activeReference?.sizes?.map((size) => {
+                                const sizeBalances = calculateCascadeStockForSize(
+                                  size.id,
+                                  activeDataAux,
+                                  activeDataModal,
+                                )
+
+                                const originalQty = row.sizes[size.id]?.quantity || 0
+
+                                const remainingQty = sizeBalances[row.location] ?? originalQty
+                                const isModified = remainingQty !== originalQty
+
+                                return (
+                                  <td
+                                    key={size.id}
+                                    className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle"
+                                  >
+                                    <div className="d-flex align-items-center justify-content-center gap-1 table-input border-0 shadow-none py-1 font-inter w-100 text-center">
+                                      {isModified && (
+                                        <>
+                                          <span className="text-muted text-decoration-line-through small">
+                                            {originalQty}
+                                          </span>
+                                          <span
+                                            className="text-muted small"
+                                            style={{ fontSize: '0.75rem' }}
+                                          >
+                                            ➔
+                                          </span>
+                                        </>
+                                      )}
+
+                                      <span
+                                        className={`${
+                                          remainingQty === 0
+                                            ? 'text-danger'
+                                            : isModified
+                                              ? 'text-success'
+                                              : 'text-dark'
+                                        }`}
+                                      >
+                                        {remainingQty}
+                                      </span>
+                                    </div>
+                                  </td>
+                                )
+                              })}
+                              <td className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle fw-bold">
+                                {Object.values(row.sizes || {}).reduce((acc, size) => {
+                                  return acc + size.quantity
+                                }, 0)}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                        <tr className="font-poppins">
+                          <td
+                            colSpan={3}
+                            className="text-center align-middle"
+                            style={{ ...thStyle }}
+                          >
+                            TOTALES:
+                          </td>
+                          {activeReference?.sizes?.map((size) => {
+                            return (
+                              <td
+                                className="py-3 px-2 text-center border-end border-light fw-bold font-inter"
+                                style={{ fontSize: '13px' }}
+                              >
+                                {activeDataAux?.reduce((acc, row) => {
+                                  return acc + Number(row.sizes[size.id].quantity || 0)
+                                }, 0)}
+                              </td>
+                            )
+                          })}
+                          <td
+                            className="text-primary py-3 px-2 text-center border-end border-light fw-bold font-inter"
+                            style={{ fontSize: '13px' }}
+                          >
+                            {activeDataAux?.reduce((total, row) => {
+                              return (
+                                total +
+                                activeReference?.sizes?.reduce((subtotal, size) => {
+                                  return subtotal + Number(row.sizes[size.id].quantity || 0)
+                                }, 0)
+                              )
+                            }, 0)}
+                          </td>
+                        </tr>
+                        <tr className="font-poppins">
+                          <td
+                            colSpan={3}
+                            className="text-center align-middle"
+                            style={{ ...thStyle }}
+                          >
+                            DISPONIBLE PARA REASIGNAR:
+                          </td>
+                          {activeReference?.sizes?.map((size) => {
+                            const state = availablePerSize[size.id]
+                            return (
+                              <td
+                                key={size.id}
+                                className={`py-3 px-2 text-center border-end border-light fw-bold font-inter ${state?.isNegative ? 'text-danger bg-danger-subtle' : 'text-success'}`}
+                                style={{ fontSize: '13px' }}
+                              >
+                                {state?.remaining ?? 0}
+                              </td>
+                            )
+                          })}
+                          <td
+                            className="text-primary py-3 px-2 text-center border-end border-light fw-bold font-inter"
+                            style={{ fontSize: '13px' }}
+                          >
+                            {Object.values(availablePerSize).reduce(
+                              (acc, curr) => acc + (curr.remaining || 0),
+                              0,
+                            )}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="table-responsive border rounded mt-2">
+                    <table
+                      className="table align-middle mb-0"
+                      style={{
+                        width: '100%',
+                        borderCollapse: 'separate',
+                        borderSpacing: 0,
+                      }}
+                    >
+                      <thead style={{ backgroundColor: '#fdfdfd' }}>
+                        <tr className="font-poppins">
+                          <th
+                            rowSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle, minWidth: '100px' }}
+                          >
+                            -
+                          </th>
+                          <th
+                            rowSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle, minWidth: '200px' }}
+                          >
+                            REFERENCIA
+                          </th>
+                          <th
+                            colSpan={sizes.length}
+                            className="text-center align-middle"
+                            style={{ ...thStyleGroup }}
+                          >
+                            TALLAS
+                          </th>
+                          <th
+                            rowSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle, minWidth: '90px' }}
+                          >
+                            TOTAL
+                          </th>
+                        </tr>
+                        <tr className="font-poppins">
+                          {sizes.map((size) => {
+                            const isSizeAvailable = hasSizeInActiveReference(size.id)
+                            return (
+                              <th
+                                className="text-center"
+                                style={{
+                                  ...thStyleGroup,
+                                  backgroundColor: isSizeAvailable
+                                    ? '#F8FAFC'
+                                    : 'rgb(250, 250, 250)',
+                                  color: isSizeAvailable ? undefined : 'rgb(195 195 195)',
+                                  minWidth: '100px',
+                                }}
+                              >
+                                {size.name}
+                              </th>
+                            )
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeDataModal?.map((row, rowIndex) => (
+                          <tr
+                            key={row.location}
+                            className={`font-inter ${errors?.[row.location] ? 'table-row-error' : ''}`}
+                          >
+                            <td
+                              className={`justify-content-between gap-2 text-center align-middle ${errors?.[row.location] ? 'd-flex' : ''}`}
+                              style={{ ...thStyle, minWidth: '100px' }}
+                            >
+                              {row.location || '-'}
+                              {errors?.[row.location] && (
+                                <CPopover
+                                  visible={openPopover?.location === row.location}
+                                  placement="top"
+                                  onHide={() => setOpenPopover(null)}
+                                  title={
+                                    <div
+                                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                                      style={{
+                                        color: '#991B1B',
+                                        fontSize: '0.85rem',
+                                        padding: '2px 0',
+                                      }}
+                                    >
+                                      <BadgeAlert size={15} className="text-danger" />
+                                      <span>Errores de validación</span>
+                                    </div>
+                                  }
+                                  content={
+                                    <div
+                                      className="font-inter custom-popover-error"
+                                      style={{
+                                        maxWidth: '260px',
+                                        fontSize: '0.82rem',
+                                      }}
+                                    >
+                                      {errors?.[row.location].map((err, i) => (
+                                        <div
+                                          key={i}
+                                          className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                        >
+                                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  }
+                                >
+                                  <span
+                                    style={{
+                                      cursor: 'pointer',
+                                      color: '#ef4444',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setOpenPopover((prev) => {
+                                        if (prev?.location === row.location) {
+                                          return null
+                                        }
+                                        return { location: row.location }
+                                      })
+                                    }}
+                                  >
+                                    <BadgeAlert size={16} />
+                                  </span>
+                                </CPopover>
+                              )}
+                            </td>
+                            <td
+                              className="py-2 px-2 text-muted text-center border-end border-light align-middle"
+                              style={{ fontSize: '0.875rem' }}
+                            >
+                              {row.location !== 'STARA' ? (
+                                <Select
+                                  value={
+                                    options.find((option) => option.value === row.product_id) ??
+                                    null
+                                  }
+                                  options={options}
+                                  onChange={(selected) =>
+                                    handleChangeReference(row.location, selected.value)
+                                  }
+                                  isSearchable
+                                  filterOption={customFilterOption}
+                                  className="font-inter w-100"
+                                  placeholder="Seleccione..."
+                                  menuPortalTarget={document.body}
+                                  menuPosition="fixed"
+                                  styles={getSelectStylesInsertUniq()}
+                                />
+                              ) : options_stara.length > 0 ? (
+                                <Select
+                                  value={
+                                    options_stara.find(
+                                      (option) => option.value === row.product_id,
+                                    ) ?? null
+                                  }
+                                  options={options_stara}
+                                  onChange={(selected) =>
+                                    handleChangeReference(row.location, selected.value)
+                                  }
+                                  isSearchable
+                                  filterOption={customFilterOption}
+                                  className="font-inter w-100"
+                                  placeholder="Seleccione..."
+                                  menuPortalTarget={document.body}
+                                  menuPosition="fixed"
+                                  styles={getSelectStylesInsertUniq()}
+                                />
+                              ) : (
+                                <CButton
+                                  color="primary"
+                                  variant="outline"
+                                  size="sm"
+                                  className="d-inline-flex align-items-center gap-1 py-1 px-2 border-dashed"
+                                  style={{
+                                    fontSize: '0.78rem',
+                                    fontWeight: '500',
+                                    borderStyle: 'dashed',
+                                  }}
+                                  onClick={() => {
+                                    setModalAddProduct(true)
+                                  }}
+                                >
+                                  <Plus size={14} />
+                                  <span>Agregar producto</span>
+                                </CButton>
+                              )}
+                            </td>
+                            {sizes.map((size) => {
+                              const isSizeAvailable = hasSizeInActiveReference(size.id)
+                              return (
+                                <td
+                                  key={size.id}
+                                  className="py-2 px-2 text-muted text-center border-end border-light align-middle"
+                                  style={{
+                                    backgroundColor: isSizeAvailable
+                                      ? '#FFFFFF'
+                                      : 'rgb(250, 250, 250)',
+
+                                    transition: 'background-color 0.2s ease',
+                                  }}
+                                >
+                                  <CFormInput
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    value={
+                                      focusedInput?.row === rowIndex &&
+                                      focusedInput?.size === size.id &&
+                                      row.sizes?.[size.id]?.quantity === 0
+                                        ? ''
+                                        : (row.sizes?.[size.id]?.quantity ?? 0)
+                                    }
+                                    style={{
+                                      color: isSizeAvailable
+                                        ? undefined
+                                        : 'rgb(195 195 195) !important',
+                                    }}
+                                    className={`table-input border-0 shadow-none py-1 font-inter w-100 text-center ${!isSizeAvailable ? 'size-unavailable' : ''}`}
+                                    onFocus={() =>
+                                      setFocusedInput({
+                                        row: rowIndex,
+                                        size: size.id,
+                                      })
+                                    }
+                                    onBlur={() => {
+                                      if (row.sizes[size.id].quantity === '') {
+                                        handleChange(rowIndex, size.id, 0)
+                                      }
+                                      setFocusedInput(null)
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
+                                        e.preventDefault()
+                                      }
+                                    }}
+                                    onChange={(e) => {
+                                      const value = e.target.value
+                                      if (/^\d*$/.test(value)) {
+                                        handleChange(rowIndex, size.id, value)
+                                      }
+                                    }}
+                                    disabled={!row.product_id}
+                                  />
+                                </td>
+                              )
+                            })}
+                            <td className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle fw-bold">
+                              {Object.values(row.sizes || {}).reduce((acc, size) => {
+                                return acc + size.quantity
+                              }, 0)}
+                            </td>
+                          </tr>
+                        ))}
+                        <tr className="font-poppins">
+                          <td
+                            colSpan={2}
+                            className="text-center align-middle"
+                            style={{ ...thStyle }}
+                          >
+                            TOTALES:
+                          </td>
+                          {sizes.map((size) => {
+                            const isSizeAvailable = hasSizeInActiveReference(size.id)
+                            return (
+                              <td
+                                className="py-3 px-2 text-center border-end border-light fw-bold font-inter"
+                                style={{
+                                  fontSize: '13px',
+                                  backgroundColor: isSizeAvailable
+                                    ? '#FFFFFF'
+                                    : 'rgb(250, 250, 250)',
+                                  color: isSizeAvailable ? undefined : 'rgb(195 195 195)',
+                                }}
+                              >
+                                {activeDataModal?.reduce((acc, row) => {
+                                  return acc + (row.sizes?.[size.id]?.quantity ?? 0)
+                                }, 0)}
+                              </td>
+                            )
+                          })}
+                          <td
+                            className="text-primary py-3 px-2 text-center border-end border-light fw-bold font-inter"
+                            style={{ fontSize: '13px' }}
+                          >
+                            {activeDataModal?.reduce((total, row) => {
+                              return (
+                                total +
+                                sizes.reduce((subtotal, size) => {
+                                  return subtotal + Number(row.sizes?.[size.id]?.quantity ?? 0)
+                                }, 0)
+                              )
+                            }, 0)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <span className="badge bg-success text-white fw-bold px-2 py-2 rounded">
+                  <ArrowDownRight size={14} className="me-1" /> TABLA DE DESTINO (REASIGNACIÓN)
+                </span>
+              </div>
+              <div className="table-responsive border rounded mb-2">
+                <table
+                  className="table align-middle mb-0"
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'separate',
+                    borderSpacing: 0,
+                  }}
+                >
+                  <thead style={{ backgroundColor: '#fdfdfd' }}>
+                    <tr className="font-poppins">
+                      <th
+                        rowSpan={2}
+                        className="text-center align-middle"
+                        style={{ ...thStyle, minWidth: '100px' }}
+                      >
+                        -
+                      </th>
+                      <th
+                        rowSpan={2}
+                        className="text-center align-middle"
+                        style={{ ...thStyle, minWidth: '200px' }}
+                      >
+                        REFERENCIA
+                      </th>
+                      <th
+                        colSpan={sizes.length}
+                        className="text-center align-middle"
+                        style={{ ...thStyleGroup }}
+                      >
+                        TALLAS
+                      </th>
+                      <th
+                        rowSpan={2}
+                        className="text-center align-middle"
+                        style={{ ...thStyle, minWidth: '90px' }}
+                      >
+                        TOTAL
+                      </th>
+                    </tr>
+                    <tr className="font-poppins">
+                      {sizes.map((size) => {
+                        return (
+                          <th
+                            className="text-center"
+                            style={{
+                              ...thStyleGroup,
+                              minWidth: '100px',
+                            }}
+                          >
+                            {size.name}
+                          </th>
+                        )
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {totalDestinationData?.map((row, rowIndex) => (
                       <tr
                         key={row.location}
-                        style={{ backgroundColor: isChecked ? '#fafafa' : '#FFFFFF' }}
-                        className="font-inter"
+                        className={`font-inter ${errors?.[row.location] ? 'table-row-error' : ''}`}
                       >
-                        <td className="table-input-spc text-center align-middle border-end">
-                          <CFormCheck
-                            checked={isChecked}
-                            onChange={() => toggleRowSelect(row.location)}
-                            disabled={
-                              !hasAvailableUnits(row) ||
-                              dataModal?.reduce((total, row) => {
-                                return (
-                                  total +
-                                  sizes_data?.reduce((subtotal, size) => {
-                                    return subtotal + Number(row.sizes[size.id]?.quantity || 0)
-                                  }, 0)
-                                )
-                              }, 0) > 0
-                            }
-                          />
-                        </td>
                         <td
                           className={`justify-content-between gap-2 text-center align-middle ${errors?.[row.location] ? 'd-flex' : ''}`}
                           style={{ ...thStyle, minWidth: '100px' }}
                         >
                           {row.location || '-'}
+                          {errors?.[row.location] && (
+                            <CPopover
+                              visible={openPopover?.location === row.location}
+                              placement="top"
+                              onHide={() => setOpenPopover(null)}
+                              title={
+                                <div
+                                  className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                                  style={{
+                                    color: '#991B1B',
+                                    fontSize: '0.85rem',
+                                    padding: '2px 0',
+                                  }}
+                                >
+                                  <BadgeAlert size={15} className="text-danger" />
+                                  <span>Errores de validación</span>
+                                </div>
+                              }
+                              content={
+                                <div
+                                  className="font-inter custom-popover-error"
+                                  style={{
+                                    maxWidth: '260px',
+                                    fontSize: '0.82rem',
+                                  }}
+                                >
+                                  {errors?.[row.location].map((err, i) => (
+                                    <div
+                                      key={i}
+                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                    >
+                                      <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              }
+                            >
+                              <span
+                                style={{
+                                  cursor: 'pointer',
+                                  color: '#ef4444',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setOpenPopover((prev) => {
+                                    if (prev?.location === row.location) {
+                                      return null
+                                    }
+                                    return { location: row.location }
+                                  })
+                                }}
+                              >
+                                <BadgeAlert size={16} />
+                              </span>
+                            </CPopover>
+                          )}
                         </td>
                         <td
-                          className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle"
+                          className="py-2 px-2 text-muted text-center border-end border-light align-middle"
                           style={{ fontSize: '0.875rem' }}
                         >
-                          {row.reference || '-'}
+                          {row.location !== 'STARA' ? (
+                            <Select
+                              value={
+                                options.find((option) => option.value === row.product_id) ?? null
+                              }
+                              options={options}
+                              isSearchable
+                              filterOption={customFilterOption}
+                              className="font-inter w-100"
+                              placeholder="Seleccione..."
+                              menuPortalTarget={document.body}
+                              menuPosition="fixed"
+                              styles={getSelectStylesInsertUniq()}
+                            />
+                          ) : options_stara.length > 0 ? (
+                            <Select
+                              value={
+                                options_stara.find((option) => option.value === row.product_id) ??
+                                null
+                              }
+                              options={options_stara}
+                              isSearchable
+                              filterOption={customFilterOption}
+                              className="font-inter w-100"
+                              placeholder="Seleccione..."
+                              menuPortalTarget={document.body}
+                              menuPosition="fixed"
+                              styles={getSelectStylesInsertUniq()}
+                            />
+                          ) : (
+                            <CButton
+                              color="primary"
+                              variant="outline"
+                              size="sm"
+                              className="d-inline-flex align-items-center gap-1 py-1 px-2 border-dashed"
+                              style={{
+                                fontSize: '0.78rem',
+                                fontWeight: '500',
+                                borderStyle: 'dashed',
+                              }}
+                              onClick={() => {
+                                setModalAddProduct(true)
+                              }}
+                            >
+                              <Plus size={14} />
+                              <span>Agregar producto</span>
+                            </CButton>
+                          )}
                         </td>
-                        {selectedReference?.sizes?.map((size) => {
-                          const sizeBalances = calculateCascadeStockForSize(
-                            size.id,
-                            dataOrigin,
-                            dataModal,
-                          )
-
-                          const originalQty = row.sizes[size.id]?.quantity || 0
-                          const remainingQty = sizeBalances[row.location] ?? originalQty
-                          const isModified = remainingQty !== originalQty
+                        {sizes.map((size) => {
                           return (
                             <td
                               key={size.id}
-                              className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle"
+                              className="py-2 px-2 text-muted text-center border-end border-light align-middle"
                             >
-                              <div className="d-flex align-items-center justify-content-center gap-1 table-input border-0 shadow-none py-1 font-inter w-100 text-center">
-                                {isModified && (
-                                  <>
-                                    <span className="text-muted text-decoration-line-through small">
-                                      {originalQty}
-                                    </span>
-                                    <span
-                                      className="text-muted small"
-                                      style={{ fontSize: '0.75rem' }}
-                                    >
-                                      ➔
-                                    </span>
-                                  </>
-                                )}
-
-                                <span
-                                  className={`${
-                                    remainingQty === 0
-                                      ? 'text-danger'
-                                      : isModified
-                                        ? 'text-success'
-                                        : 'text-dark'
-                                  }`}
-                                >
-                                  {remainingQty}
-                                </span>
-                              </div>
+                              <span className="table-input border-0 shadow-none py-1 font-inter w-100 text-center">
+                                {row.sizes?.[size.id]?.quantity ?? 0}
+                              </span>
                             </td>
                           )
                         })}
                         <td className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle fw-bold">
                           {Object.values(row.sizes || {}).reduce((acc, size) => {
-                            return acc + Number(size.quantity)
+                            return acc + size.quantity
                           }, 0)}
                         </td>
                       </tr>
-                    )
-                  })}
-                  <tr className="font-poppins">
-                    <td colSpan={3} className="text-center align-middle" style={{ ...thStyle }}>
-                      TOTALES:
-                    </td>
-                    {selectedReference?.sizes?.map((size) => {
-                      return (
-                        <td
-                          className="py-3 px-2 text-center border-end border-light fw-bold font-inter"
-                          style={{ fontSize: '13px' }}
-                        >
-                          {dataOrigin?.reduce((acc, row) => {
-                            return acc + Number(row.sizes?.[size.id]?.quantity ?? 0)
-                          }, 0)}
-                        </td>
-                      )
-                    })}
-                    <td
-                      className="text-primary py-3 px-2 text-center border-end border-light fw-bold font-inter"
-                      style={{ fontSize: '13px' }}
-                    >
-                      {dataOrigin?.reduce((total, row) => {
-                        return (
-                          total +
-                          selectedReference?.sizes?.reduce((subtotal, size) => {
-                            return subtotal + Number(row.sizes?.[size.id]?.quantity ?? 0)
-                          }, 0)
-                        )
-                      }, 0)}
-                    </td>
-                  </tr>
-                  {reasigned && (
+                    ))}
                     <tr className="font-poppins">
-                      <td colSpan={3} className="text-center align-middle" style={{ ...thStyle }}>
-                        DISPONIBLE PARA REASIGNAR:
+                      <td colSpan={2} className="text-center align-middle" style={{ ...thStyle }}>
+                        TOTALES:
                       </td>
-                      {selectedReference?.sizes?.map((size) => {
-                        const state = availablePerSize[size.id]
+                      {sizes.map((size) => {
                         return (
                           <td
-                            key={size.id}
-                            className={`py-3 px-2 text-center border-end border-light fw-bold font-inter ${state?.isNegative ? 'text-danger bg-danger-subtle' : 'text-success'}`}
-                            style={{ fontSize: '13px' }}
+                            className="py-3 px-2 text-center border-end border-light fw-bold font-inter"
+                            style={{
+                              fontSize: '13px',
+                            }}
                           >
-                            {state?.remaining ?? 0}
+                            {totalDestinationBySize[size.id] ?? 0}
                           </td>
                         )
                       })}
@@ -988,289 +1782,17 @@ const ModalAddReassignmentCurveProgramation = ({
                         className="text-primary py-3 px-2 text-center border-end border-light fw-bold font-inter"
                         style={{ fontSize: '13px' }}
                       >
-                        {Object.values(availablePerSize).reduce(
-                          (acc, curr) => acc + (curr.remaining || 0),
+                        {Object.values(totalDestinationBySize).reduce(
+                          (total, quantity) => total + Number(quantity || 0),
                           0,
                         )}
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
-
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <span className="badge bg-success text-white fw-bold px-2 py-2 rounded">
-              <ArrowDownRight size={14} className="me-1" /> TABLA DE DESTINO (REASIGNACIÓN)
-            </span>
-          </div>
-          <div className="table-responsive border rounded">
-            <table
-              className="table align-middle mb-0"
-              style={{
-                width: '100%',
-                borderCollapse: 'separate',
-                borderSpacing: 0,
-              }}
-            >
-              <thead style={{ backgroundColor: '#fdfdfd' }}>
-                <tr className="font-poppins">
-                  <th
-                    rowSpan={2}
-                    className="text-center align-middle"
-                    style={{ ...thStyle, minWidth: '100px' }}
-                  >
-                    -
-                  </th>
-                  <th
-                    rowSpan={2}
-                    className="text-center align-middle"
-                    style={{ ...thStyle, minWidth: '200px' }}
-                  >
-                    REFERENCIA
-                  </th>
-                  <th
-                    colSpan={sizes.length}
-                    className="text-center align-middle"
-                    style={{ ...thStyleGroup }}
-                  >
-                    TALLAS
-                  </th>
-                  <th
-                    rowSpan={2}
-                    className="text-center align-middle"
-                    style={{ ...thStyle, minWidth: '90px' }}
-                  >
-                    TOTAL
-                  </th>
-                </tr>
-                <tr className="font-poppins">
-                  {sizes_data.map((size) => {
-                    return (
-                      <th
-                        className="text-center"
-                        style={{
-                          ...thStyleGroup,
-                          minWidth: '100px',
-                        }}
-                      >
-                        {size.name}
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {dataModal?.map((row, rowIndex) => (
-                  <tr
-                    key={row.location}
-                    className={`font-inter ${errors?.[row.location] ? 'table-row-error' : ''}`}
-                  >
-                    <td
-                      className={`justify-content-between gap-2 text-center align-middle ${errors?.[row.location] ? 'd-flex' : ''}`}
-                      style={{ ...thStyle, minWidth: '100px' }}
-                    >
-                      {row.location || '-'}
-                      {errors?.[row.location] && (
-                        <CPopover
-                          visible={openPopover?.location === row.location}
-                          placement="top"
-                          onHide={() => setOpenPopover(null)}
-                          title={
-                            <div
-                              className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                              style={{
-                                color: '#991B1B',
-                                fontSize: '0.85rem',
-                                padding: '2px 0',
-                              }}
-                            >
-                              <BadgeAlert size={15} className="text-danger" />
-                              <span>Errores de validación</span>
-                            </div>
-                          }
-                          content={
-                            <div
-                              className="font-inter custom-popover-error"
-                              style={{
-                                maxWidth: '260px',
-                                fontSize: '0.82rem',
-                              }}
-                            >
-                              {errors?.[row.location].map((err, i) => (
-                                <div
-                                  key={i}
-                                  className="d-flex align-items-start gap-2 p-1 rounded-2"
-                                >
-                                  <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                                </div>
-                              ))}
-                            </div>
-                          }
-                        >
-                          <span
-                            style={{
-                              cursor: 'pointer',
-                              color: '#ef4444',
-                              display: 'flex',
-                              alignItems: 'center',
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setOpenPopover((prev) => {
-                                if (prev?.location === row.location) {
-                                  return null
-                                }
-                                return { location: row.location }
-                              })
-                            }}
-                          >
-                            <BadgeAlert size={16} />
-                          </span>
-                        </CPopover>
-                      )}
-                    </td>
-                    <td
-                      className="py-2 px-2 text-muted text-center border-end border-light align-middle"
-                      style={{ fontSize: '0.875rem' }}
-                    >
-                      {row.location !== 'STARA' ? (
-                        <Select
-                          value={options.find((option) => option.value === row.product_id) ?? null}
-                          options={options}
-                          onChange={(selected) =>
-                            handleChangeReference(row.location, selected.value)
-                          }
-                          isSearchable
-                          filterOption={customFilterOption}
-                          className="font-inter w-100"
-                          placeholder="Seleccione..."
-                          menuPortalTarget={document.body}
-                          menuPosition="fixed"
-                          styles={getSelectStylesInsertUniq()}
-                        />
-                      ) : options_stara.length > 0 ? (
-                        <Select
-                          value={
-                            options_stara.find((option) => option.value === row.product_id) ?? null
-                          }
-                          options={options_stara}
-                          onChange={(selected) =>
-                            handleChangeReference(row.location, selected.value)
-                          }
-                          isSearchable
-                          filterOption={customFilterOption}
-                          className="font-inter w-100"
-                          placeholder="Seleccione..."
-                          menuPortalTarget={document.body}
-                          menuPosition="fixed"
-                          styles={getSelectStylesInsertUniq()}
-                        />
-                      ) : (
-                        <CButton
-                          color="primary"
-                          variant="outline"
-                          size="sm"
-                          className="d-inline-flex align-items-center gap-1 py-1 px-2 border-dashed"
-                          style={{
-                            fontSize: '0.78rem',
-                            fontWeight: '500',
-                            borderStyle: 'dashed',
-                          }}
-                          onClick={() => {
-                            setModalAddProduct(true)
-                          }}
-                        >
-                          <Plus size={14} />
-                          <span>Agregar producto</span>
-                        </CButton>
-                      )}
-                    </td>
-                    {sizes_data.map((size) => (
-                      <td
-                        key={size.id}
-                        className="py-2 px-2 text-muted text-center border-end border-light align-middle"
-                      >
-                        <CFormInput
-                          type="number"
-                          min={0}
-                          step={1}
-                          value={
-                            focusedInput?.row === rowIndex &&
-                            focusedInput?.size === size.id &&
-                            row.sizes[size.id].quantity === 0
-                              ? ''
-                              : row.sizes[size.id].quantity
-                          }
-                          className="table-input border-0 shadow-none py-1 font-inter w-100 text-center"
-                          onFocus={() =>
-                            setFocusedInput({
-                              row: rowIndex,
-                              size: size.id,
-                            })
-                          }
-                          onBlur={() => {
-                            if (row.sizes[size.id].quantity === '') {
-                              handleChange(rowIndex, size.id, 0)
-                            }
-                            setFocusedInput(null)
-                          }}
-                          onKeyDown={(e) => {
-                            if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
-                              e.preventDefault()
-                            }
-                          }}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            if (/^\d*$/.test(value)) {
-                              handleChange(rowIndex, size.id, value)
-                            }
-                          }}
-                          disabled={!row.product_id}
-                        />
-                      </td>
-                    ))}
-                    <td className="table-input-spc py-2 px-2 text-muted text-center border-end border-light align-middle fw-bold">
-                      {Object.values(row.sizes || {}).reduce((acc, size) => {
-                        return acc + Number(size.quantity)
-                      }, 0)}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="font-poppins">
-                  <td colSpan={2} className="text-center align-middle" style={{ ...thStyle }}>
-                    TOTALES:
-                  </td>
-                  {sizes_data.map((size) => {
-                    return (
-                      <td
-                        className="py-3 px-2 text-center border-end border-light fw-bold font-inter"
-                        style={{ fontSize: '13px' }}
-                      >
-                        {dataModal?.reduce((acc, row) => {
-                          return acc + Number(row.sizes?.[size.id]?.quantity ?? 0)
-                        }, 0)}
-                      </td>
-                    )
-                  })}
-                  <td
-                    className="text-primary py-3 px-2 text-center border-end border-light fw-bold font-inter"
-                    style={{ fontSize: '13px' }}
-                  >
-                    {dataModal?.reduce((total, row) => {
-                      return (
-                        total +
-                        sizes.reduce((subtotal, size) => {
-                          return subtotal + Number(row.sizes[size.id].quantity || 0)
-                        }, 0)
-                      )
-                    }, 0)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </CModalBody>
         <CModalFooter className="mt-2">
           <CButton

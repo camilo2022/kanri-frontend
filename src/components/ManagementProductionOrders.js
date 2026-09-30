@@ -34,6 +34,11 @@ const ManagementProductionOrders = ({
   opt_status,
   builders,
   processes,
+  hasReassignment,
+  setHasReassignment,
+  priority_checks,
+  priority_levels,
+  priority_rules,
 }) => {
   const dispath = useDispatch()
   const [editingOrderId, setEditingOrderId] = useState(null)
@@ -57,13 +62,6 @@ const ManagementProductionOrders = ({
       >
         <thead>
           <tr className="font-poppins">
-            {/*<th
-              rowSpan={2}
-              className="text-center align-middle sticky-actions"
-              style={{ ...thStyle, width: '100px' }}
-            >
-              ACCIONES
-            </th>*/}
             <th
               rowSpan={2}
               className="text-center align-middle"
@@ -71,13 +69,6 @@ const ManagementProductionOrders = ({
             >
               CÓDIGO
             </th>
-            {/*<th
-              rowSpan={2}
-              className="text-center align-middle sticky-reference-header"
-              style={{ ...thStyle, width: '120px' }}
-            >
-              REFERENCIA
-            </th>*/}
             <th
               rowSpan={2}
               className="text-center align-middle"
@@ -175,6 +166,14 @@ const ManagementProductionOrders = ({
               style={{ ...thStyle, width: '160px', minWidth: '160px' }}
             >
               ESTADO
+            </th>
+
+            <th
+              rowSpan={2}
+              className="text-center align-middle"
+              style={{ ...thStyle, width: '165px', minWidth: '165px' }}
+            >
+              PRIORIDAD
             </th>
 
             <th
@@ -280,6 +279,12 @@ const ManagementProductionOrders = ({
               opt_status={opt_status}
               builders={builders}
               processes={processes}
+              hasReassignment={hasReassignment}
+              setHasReassignment={setHasReassignment}
+              production_changes_all={production_changes}
+              priority_checks={priority_checks}
+              priority_levels={priority_levels}
+              priority_rules={priority_rules}
             />
           ))}
         </tbody>

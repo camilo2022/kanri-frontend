@@ -97,7 +97,6 @@ const ProductionSchedule = ({ schedule, processes }) => {
             ? productionOrder.production_order_details
                 ?.filter((detail) => detail.model_type === 'App\\Models\\Product')
                 .reduce((acc, detail) => {
-                  console.log(detail)
                   return (
                     acc +
                     (detail.production_order_detail_quantities || []).reduce(
@@ -113,7 +112,6 @@ const ProductionSchedule = ({ schedule, processes }) => {
             ? productionOrder.production_order_details
                 ?.filter((detail) => detail.model_type === 'App\\Models\\Product')
                 .reduce((acc, detail) => {
-                  console.log(detail)
                   return (
                     acc +
                     (detail.production_order_detail_quantities || []).reduce(
@@ -128,7 +126,6 @@ const ProductionSchedule = ({ schedule, processes }) => {
           productionOrder.production_order_details
             ?.filter((detail) => detail.model_type === 'App\\Models\\Product')
             .reduce((acc, detail) => {
-              console.log(detail)
               return (
                 acc +
                 (detail.production_order_detail_quantities || []).reduce(
@@ -138,7 +135,6 @@ const ProductionSchedule = ({ schedule, processes }) => {
               )
             }, 0) || 0
 
-        console.log(total, total_satelite)
 
         units += total
         units_satelite += total_satelite
@@ -158,8 +154,6 @@ const ProductionSchedule = ({ schedule, processes }) => {
     <div className="production-dashboard">
       {schedule.map((day) => {
         const stats = getDayStats(day)
-
-        console.log(stats)
 
         return (
           <section key={day.date} className="schedule-section">
@@ -322,7 +316,6 @@ const ProcessCell = ({ items }) => {
   return (
     <div className="process-items w-100">
       {items.map((item) => {
-        console.log(item)
         const productionOrder = item.production_order
 
         if (!productionOrder) return null
@@ -384,9 +377,6 @@ const ProcessTotal = ({ items, accentColor }) => {
 }
 
 export const Show = ({ data, fetchProductionOrders, processes, loading, errors }) => {
-  console.log(data)
-  console.log(processes)
-  console.log(errors)
   const [selectedCollection, setSelectedCollection] = useState(null)
   const [selectedTrademark, setSelectedTrademark] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -484,8 +474,6 @@ export const Show = ({ data, fetchProductionOrders, processes, loading, errors }
         garmentTypes: Object.values(garmentTypes),
       }))
   }, [scheduleDetails])
-
-  console.log(schedule)
 
   const handleFilter = () => {
     setAppliedProcess(selectedProcess)

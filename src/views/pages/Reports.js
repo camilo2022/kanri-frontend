@@ -45,8 +45,6 @@ const Reports = () => {
       setReport(response.data.report)
       setModels(response.data.model_type)
 
-      console.log(response)
-
       const statuses =
         response.data.statusses?.[response.data.report.settings.model] ??
         response.data.statusses?.['App\\Models\\TechnicalSheet'] ??

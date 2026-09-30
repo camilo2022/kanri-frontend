@@ -202,16 +202,11 @@ export const List = ({
       supply_type?.settings?.form
         ?.filter((item) => item.type !== 'selectdinamic' || item.cardinality === 'single')
         ?.reduce((acc, item) => {
-          console.log(item)
-          console.log(supply)
-          console.log(supply.settings?.values)
 
           const value =
             item.cardinality === 'single'
               ? dataGet(item.path, supply[item.field], '')
               : supply.settings?.values?.[item.field]
-
-          console.log(value)
 
           acc[item.label] = value || '-'
 
@@ -373,9 +368,6 @@ export const List = ({
       />
     )
   }
-
-  console.log(formattedData)
-  console.log(data.supplies)
 
   return (
     <>

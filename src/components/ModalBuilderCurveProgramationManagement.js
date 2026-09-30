@@ -24,7 +24,6 @@ import {
   Tag,
   Grid,
   Pencil,
-  XCircle,
   BadgeAlert,
   BadgeCheck,
   Trash,
@@ -86,7 +85,6 @@ const ModalBuilderCurveProgramationManagement = ({
   fetchSubcategories,
   openModalBuilder,
   setOpenModalBuilder,
-  onSave,
   create_builder,
   update_builder,
   delete_builder,
@@ -363,6 +361,8 @@ const ModalBuilderCurveProgramationManagement = ({
       percentages: sizePercentages,
     }
 
+    console.log('CUERPO DEL CONSTRUCTOR', payload)
+
     setIsSubmitting(true)
     try {
       if (editingBuilderId && update_builder) {
@@ -416,28 +416,6 @@ const ModalBuilderCurveProgramationManagement = ({
       })
       setOpenModalBuilder(false)
     } catch (error) {}
-  }
-  const customSelectStyles = {
-    ...tableSelectStyles,
-    control: (provided, state) => ({
-      ...provided,
-      minHeight: '40px',
-      maxHeight: '40px',
-      borderRadius: '10px',
-      border: state.isFocused ? '1px solid #24247f' : '1px solid #E2E8F0',
-      boxShadow: state.isFocused ? '0 0 0 3px rgba(36, 36, 127, 0.12)' : 'none',
-    }),
-    valueContainer: (provided) => ({
-      ...provided,
-      padding: '2px 8px',
-      maxHeight: '38px',
-      overflow: 'hidden',
-      flexWrap: 'nowrap',
-      whiteSpace: 'nowrap',
-    }),
-    multiValue: () => ({
-      display: 'none',
-    }),
   }
 
   const getCustomSelectStyles = (isInvalid, isValid) => {
