@@ -63,6 +63,7 @@ const Banks = React.lazy(() => import('./views/pages/Banks'))
 const AccountTypes = React.lazy(() => import('./views/pages/AccountTypes'))
 const ProductionSchedules = React.lazy(() => import('./views/pages/ProductionSchedules'))
 const Reports = React.lazy(() => import('./views/pages/Reports'))
+const Typologies = React.lazy(() => import('./views/pages/Typologies'))
 /**
  * Array of route configuration objects
  *
@@ -136,6 +137,7 @@ const routes = [
   { path: '/account_types', name: 'Tipos de Cuenta', element: AccountTypes },
   { path: '/production_schedule', name: 'Cronograma de Producción', element: ProductionSchedules },
   { path: '/reports', name: 'Reportes', element: Reports },
+  { path: '/typologies', name: 'Tipologías', element: Typologies },
 ]
 
 export default routes
