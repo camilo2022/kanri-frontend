@@ -78,7 +78,7 @@ const restore = async (id) => {
   }
 }
 
-const SupplyTypesService = {
+const TypologiesService = {
   all,
   store,
   update,
@@ -87,4 +87,4 @@ const SupplyTypesService = {
   restore,
 }
 
-export default SupplyTypesService
+export default TypologiesService

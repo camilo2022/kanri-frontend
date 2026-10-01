@@ -181,16 +181,8 @@ export const tableSelectStylesCorrect = {
     fontSize: '.82rem',
     color: '#94A3B8',
   }),
-  indicatorsContainer: (provided) => ({
-    ...provided,
-    height: '32px',
-    opacity: 0,
-    transition: 'opacity .18s ease',
-  }),
-  dropdownIndicator: (provided) => ({
-    ...provided,
-    padding: '0 6px',
-    color: '#64748B',
+  indicatorsContainer: () => ({
+    display: 'none',
   }),
   indicatorSeparator: () => ({
     display: 'none',

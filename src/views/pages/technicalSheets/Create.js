@@ -43,8 +43,8 @@ export const Create = ({
   models,
   statusCollection,
   statusTechnical,
+  typologies,
 }) => {
-  console.log(errors)
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
   const [formData, setFormData] = useState({ status: 'Pendiente' })
@@ -562,6 +562,7 @@ export const Create = ({
         catalogsData={catalogsData}
         dataGet={dataGet}
         loadCatalog={loadCatalog}
+        typologies={typologies}
       />
     </CCard>
   )

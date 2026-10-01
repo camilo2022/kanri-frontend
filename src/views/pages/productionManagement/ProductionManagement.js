@@ -62,7 +62,6 @@ export const ProductionManagement = ({
 
   const handleOrderChange = useCallback(
     (technical_sheet_id, production_order, field, value, product_stara = null) => {
-      console.log(technical_sheet_id, production_order, field, value, (product_stara = null))
       setProductionChanges((prev) => {
         const technicalSheetChanges = prev[technical_sheet_id] ?? {}
 

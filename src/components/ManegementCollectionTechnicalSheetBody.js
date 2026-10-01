@@ -18,6 +18,7 @@ const ManagementCollectionTechnicalSheetBody = ({
   setModified,
   validated,
   errors,
+  typologies,
 }) => {
   const rows = useMemo(() => {
     return Object.values(technical_sheets).map((sheet, index) => (
@@ -41,6 +42,7 @@ const ManagementCollectionTechnicalSheetBody = ({
         setModified={setModified}
         validated={validated?.[sheet.id]}
         errors={errors?.[sheet.id]}
+        typologies={typologies}
       />
     ))
   }, [

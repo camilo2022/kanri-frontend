@@ -27,8 +27,8 @@ import {
   AlertTriangle,
   Plus,
   RefreshCw,
+  ClipboardType,
 } from 'lucide-react'
-import LoadingForm from '@/components/LoadingForm'
 import { useRef } from 'react'
 import TableDinamicTechnicalSheet from '@/components/TableDinamicTechnicalSheet'
 import TableStaticTechnicalSheet from '@/components/TableStaticTechnicalSheet'
@@ -56,12 +56,15 @@ export const TechnicalSheetDetail = ({
   dataGet,
   loadCatalog,
   process_edit = null,
+  typologies,
 }) => {
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
   const [openPopover, setOpenPopover] = useState({ process: null, type: null })
   const [changeStatus, setChangeStatus] = useState(null)
+  const [changeTypology, setChangeTypology] = useState(null)
   const [selectedStatus, setSelectedStatus] = useState(null)
+  const [selectedTypology, setSelectedTypology] = useState(null)
   const [selectedDetail, setSelectedDetail] = useState(null)
 
   const [selectedSubprocess, setSelectedSubprocess] = useState(null)
@@ -354,6 +357,38 @@ export const TechnicalSheetDetail = ({
     }
   }
 
+  const handleChangeTypology = async (id, typologyId) => {
+    try {
+      const selectedTypologyData = typologies.find((item) => item.value === typologyId)
+
+      setDetails((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          typology: selectedTypologyData
+            ? [
+                {
+                  id: selectedTypologyData.value,
+                  name: selectedTypologyData.label,
+                },
+              ]
+            : [],
+        },
+      }))
+
+      setChangeTypology(false)
+      setSelectedDetail(null)
+      setSelectedTypology(null)
+
+      Toast.fire({
+        icon: 'success',
+        title: 'Tipología asignada',
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const hasProcessErrors = (process) => {
     const errorKeys = Object.keys(errors || {})
 
@@ -426,6 +461,8 @@ export const TechnicalSheetDetail = ({
                 const status =
                   STATUS_CONFIG[details?.[process.id]?.status] || STATUS_CONFIG['Pendiente']
 
+                const typology = details?.[process.id]?.typology?.[0]
+
                 const equalDinamic = isEqual(
                   {
                     header: process?.settings?.schema?.dinamic?.header,
@@ -492,6 +529,30 @@ export const TechnicalSheetDetail = ({
                             }}
                           >
                             {status.icon} {status.label}
+                          </span>
+                          <div
+                            className="border-start"
+                            style={{ height: '20px', borderColor: '#e2e8f0' }}
+                          ></div>
+                          <span
+                            className="process-tag"
+                            style={{
+                              backgroundColor: '#F1F5F9',
+                              color: '#475569',
+                              border: '1px solid #CBD5E1',
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+
+                              setChangeTypology(true)
+                              setSelectedTypology(status.label)
+                              setSelectedDetail(process.id)
+                            }}
+                          >
+                            <ClipboardType size={14} className="me-1" />{' '}
+                            {typology?.settings?.code || typology?.name
+                              ? [typology?.settings?.code, typology?.name].filter(Boolean).join('-')
+                              : 'Sin tipificación'}
                           </span>
                         </div>
                       </div>
@@ -1930,7 +1991,7 @@ export const TechnicalSheetDetail = ({
                   : null
               }
               onChange={(option) => setSelectedStatus(option.value)}
-              placeholder="Buscar o seleccionar subcategoría..."
+              placeholder="Buscar o seleccionar estado..."
               isSearchable
               styles={{
                 ...tableSelectStyles,
@@ -1968,6 +2029,78 @@ export const TechnicalSheetDetail = ({
           >
             <RefreshCw size={14} />
             Cambiar Estado
+          </CButton>
+        </CModalFooter>
+      </CModal>
+      <CModal
+        visible={changeTypology}
+        onClose={() => {
+          setChangeTypology(false)
+          setSelectedDetail(null)
+          setSelectedTypology(null)
+        }}
+        alignment="center"
+        className="font-montserrat"
+      >
+        <CModalHeader style={{ borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC' }}>
+          <CModalTitle style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A' }}>
+            Cambiar Tipología
+          </CModalTitle>
+        </CModalHeader>
+        <CModalBody className="p-4">
+          <div className="mb-3">
+            <label
+              className="form-label font-inter fw-semibold mb-2"
+              style={{ fontSize: '0.85rem', color: '#334155' }}
+            >
+              Selecciona la nueva tipología del detalle de la ficha técnica:
+            </label>
+            <Select
+              options={typologies.filter((item) => item.processes.includes(selectedDetail))}
+              value={
+                Array.isArray(typologies)
+                  ? typologies.find((item) => item.value === selectedTypology) || null
+                  : null
+              }
+              onChange={(option) => setSelectedTypology(option.value)}
+              placeholder="Buscar o seleccionar tipología..."
+              isSearchable
+              styles={{
+                ...tableSelectStyles,
+                control: (provided, state) => ({
+                  ...provided,
+                  minHeight: '40px',
+                  borderRadius: '10px',
+                  border: state.isFocused ? '1px solid #24247f' : '1px solid #E2E8F0',
+                  boxShadow: state.isFocused ? '0 0 0 3px rgba(36, 36, 127, 0.12)' : 'none',
+                }),
+                valueContainer: (provided) => ({ ...provided, padding: '0 12px' }),
+                indicatorsContainer: (provided) => ({ ...provided, opacity: 1 }),
+              }}
+            />
+          </div>
+        </CModalBody>
+        <CModalFooter style={{ borderTop: '1px solid #E2E8F0', gap: '8px' }}>
+          <CButton
+            color="secondary"
+            size="sm"
+            className="font-inter fw-medium"
+            onClick={() => {
+              setChangeTypology(false)
+              setSelectedDetail(null)
+              setSelectedTypology(null)
+            }}
+          >
+            Cancelar
+          </CButton>
+          <CButton
+            size="sm"
+            className="font-inter fw-semibold px-3 text-white d-flex align-items-center gap-2"
+            style={{ backgroundColor: '#24247f', border: 'none' }}
+            onClick={() => handleChangeTypology(selectedDetail, selectedTypology)}
+          >
+            <RefreshCw size={14} />
+            Cambiar Tipología
           </CButton>
         </CModalFooter>
       </CModal>

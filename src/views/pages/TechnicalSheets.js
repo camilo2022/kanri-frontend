@@ -3,9 +3,6 @@ import { useDispatch } from 'react-redux'
 import ProductionOrders from './ProductionOrders'
 import ProductsService from '../../services/products.service'
 import ProcessesService from '../../services/processes.service'
-import TrademarksService from '../../services/trademarks.service'
-import CategoriesService from '../../services/categories.service'
-import SubcategoriesService from '../../services/subcategories.service'
 import CollectionsService from '../../services/collections.service'
 import TechnicalSheetsService from '../../services/technical_sheets.service'
 import SubgroupsService from '../../services/subgroups.service'
@@ -19,11 +16,11 @@ import WaistbandTypesService from '../../services/waistband_types.service'
 import SupplyTypesService from '../../services/supply_types.service'
 import EmployeesService from '../../services/employees.service'
 import TechnicalSheetDetailService from '../../services/technical_sheet_detail.service'
+import TypologiesService from '../../services/typologies.service'
 import Create from './technicalSheets/Create'
 import Edit from './technicalSheets/Edit'
 import EditProcess from './technicalSheets/processes/Edit'
 import Products from './Products'
-import CreateTransformation from './technicalSheets/productionOrder/transformations/Create'
 
 const TechnicalSheet = ({ product_id, action, process_id = null }) => {
   const dispatch = useDispatch()
@@ -44,6 +41,7 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
   const [supplyTypes, setSupplyTypes] = useState(null)
   const [supplies, setSupplies] = useState(null)
   const [models, setModels] = useState(null)
+  const [typologies, setTypologies] = useState()
   const [statusCollection, setStatusCollection] = useState(null)
   const [statusTechnical, setStatusTechnical] = useState(null)
 
@@ -51,13 +49,12 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
-  const [productionOrder, setProductionOrder] = useState(null)
-
   useEffect(() => {
     if (!product_id) return
     setLoading(true)
     findProduct(product_id)
     fetchProcesses({ in_technical_sheet: true })
+    fetchTypologies()
     if (view.name === 'edit_technical_sheet') {
       findTechnicalSheet({ product_id })
       fetchSupplyTypes()
@@ -510,6 +507,24 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
     }
   }
 
+  const fetchTypologies = async () => {
+    try {
+      const response = await TypologiesService.all()
+      setTypologies(
+        Array.isArray(response.data.typologies)
+          ? response.data.typologies.map((item) => ({
+              value: item.id,
+              label: `${item?.settings?.code}-${item?.name}`,
+              processes: item?.processes.map((item) => item.id),
+            }))
+          : [],
+      )
+    } catch (error) {
+      setErrors(error.errors)
+      throw error
+    }
+  }
+
   const renderView = () => {
     switch (view.name) {
       case 'create_technical_sheet':
@@ -543,6 +558,7 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
             create={createTechnicalSheet}
             errors={errors}
             models={models}
+            typologies={typologies}
             statusCollection={statusCollection}
             statusTechnical={statusTechnical}
           />
@@ -583,6 +599,7 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
             save={saveTechnicalSheetDetails}
             statusCollection={statusCollection}
             statusTechnical={statusTechnical}
+            typologies={typologies}
           />
         )
 

@@ -41,6 +41,7 @@ const ManagementCollectionTechnicalSheetRow = ({
   setModified,
   validated,
   errors,
+  typologies,
 }) => {
   const dispath = useDispatch()
   const [editingField, setEditingField] = useState(null)
@@ -62,6 +63,32 @@ const ManagementCollectionTechnicalSheetRow = ({
       if (typeof ref.openMenu === 'function') {
         ref.openMenu('first')
       }
+    }
+  }, [editingField])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!editingField) return
+
+      const currentRef = inputRefs.current[editingField]
+
+      if (currentRef && currentRef.contains?.(event.target)) {
+        return
+      }
+
+      const activeElement = document.querySelector(`[data-editing-field="${editingField}"]`)
+
+      if (activeElement?.contains(event.target)) {
+        return
+      }
+
+      setEditingField(null)
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [editingField])
 
@@ -157,52 +184,6 @@ const ManagementCollectionTechnicalSheetRow = ({
     [[sheetId, trademark.id, category.id, subcategory.id, setData, setModified]],
   )
 
-  const updateSheetDeatilsField = useCallback(
-    (process, value) => {
-      setData((prev) => {
-        const newData = structuredClone(prev)
-
-        const trademarkData = (newData[trademark.id] ??= { categories: {} })
-        const categoryData = (trademarkData.categories[category.id] ??= { subcategories: {} })
-        const subcategoryData = (categoryData.subcategories[subcategory.id] ??= {
-          technical_sheets: {},
-        })
-
-        const sheet = (subcategoryData.technical_sheets[sheetId] ??= {
-          technical_sheet_details: {},
-        })
-
-        sheet.technical_sheet_details[process.id] ??= {
-          model_id: process.id,
-          model_type: 'App\\Models\\Process',
-          status: '',
-          settings: process.settings.schema || null,
-        }
-
-        sheet.technical_sheet_details[process.id].status = value
-
-        dispath({
-          type: 'ADD_TECHNICAL_SHEET',
-          payload: {
-            id: sheetId,
-            technicalSheet: sheet,
-          },
-        })
-
-        return newData
-      })
-
-      setModified((prev) => ({
-        ...prev,
-        [sheetId]: {
-          ...prev[sheetId],
-          ['technical_sheet_details']: true,
-        },
-      }))
-    },
-    [[sheetId, trademark.id, category.id, subcategory.id, setData, setModified]],
-  )
-
   const updatePreviousProcessStatuses = (process, status, technicalSheetDetails) => {
     technicalSheetDetails[process.id] ??= {
       model_id: process.id,
@@ -216,30 +197,6 @@ const ManagementCollectionTechnicalSheetRow = ({
     process.before_processes?.forEach((previousProcess) => {
       updatePreviousProcessStatuses(previousProcess, status, technicalSheetDetails)
     })
-  }
-
-  const getTechnicalSheetStatus = (details) => {
-    const statuses = Object.values(details)
-      .map((detail) => detail?.status)
-      .filter(Boolean)
-
-    if (statuses.length === 0) {
-      return 'Pendiente'
-    }
-
-    if (statuses.some((status) => status === 'En revisión')) {
-      return 'En revisión'
-    }
-
-    if (statuses.every((status) => status === 'Aprobado')) {
-      return 'Aprobado'
-    }
-
-    if (statuses.every((status) => status === 'Pendiente')) {
-      return 'Pendiente'
-    }
-
-    return 'En revisión'
   }
 
   const updateProcessStatus = useCallback(
@@ -338,6 +295,70 @@ const ManagementCollectionTechnicalSheetRow = ({
       }))
     },
     [sheetId, trademark.id, category.id, subcategory.id, setData, setModified, dispath],
+  )
+
+  const updateProcessTypology = useCallback(
+    (process, value) => {
+      const selectedTypologyData = typologies.find((item) => item.value === value)
+
+      setData((prev) => {
+        const newData = structuredClone(prev)
+
+        const trademarkData = (newData[trademark.id] ??= {
+          categories: {},
+        })
+
+        const categoryData = (trademarkData.categories[category.id] ??= {
+          subcategories: {},
+        })
+
+        const subcategoryData = (categoryData.subcategories[subcategory.id] ??= {
+          technical_sheets: {},
+        })
+
+        const sheetData = (subcategoryData.technical_sheets[sheetId] ??= {
+          technical_sheet_details: {},
+        })
+
+        const details = sheetData.technical_sheet_details
+
+        details[process.id] ??= {
+          model_id: process.id,
+          model_type: 'App\\Models\\Process',
+          status: '',
+          settings: process.settings?.schema || null,
+          typology: [],
+        }
+
+        details[process.id].typology = selectedTypologyData
+          ? [
+              {
+                id: selectedTypologyData.value,
+                name: selectedTypologyData.label,
+              },
+            ]
+          : []
+
+        dispath({
+          type: 'ADD_TECHNICAL_SHEET',
+          payload: {
+            id: sheetId,
+            technicalSheet: sheetData,
+          },
+        })
+
+        return newData
+      })
+
+      setModified((prev) => ({
+        ...prev,
+        [sheetId]: {
+          ...prev[sheetId],
+          [`process-${process.id}-typology`]: true,
+        },
+      }))
+    },
+    [sheetId, trademark.id, category.id, subcategory.id, typologies, setData, setModified, dispath],
   )
 
   const getCellClass = useCallback(
@@ -874,11 +895,11 @@ const ManagementCollectionTechnicalSheetRow = ({
           )}
         </div>
       </td>
-      <td className={`${getCellClass('observation', 'cell-width-260')} table-cell-ellipsis`}>
+      <td className={`${getCellClass('observation', 'cell-width-230')} table-cell-ellipsis`}>
         <div className="d-flex align-items-center gap-2">
-          {editingField === 'observation' ? (
+          {editingField === `observation-${sheetId}` ? (
             <CFormTextarea
-              ref={(el) => (inputRefs.current.observation = el)}
+              ref={(el) => (inputRefs.current[`observation-${sheetId}`] = el)}
               disabled={isLocked}
               rows={2}
               value={sheet?.observation || ''}
@@ -889,12 +910,13 @@ const ManagementCollectionTechnicalSheetRow = ({
           ) : (
             <div
               className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100 me-auto"
+              data-editing-field={`observation-${sheetId}`}
               onClick={() => {
                 if (isLocked) return
-                setEditingField('observation')
+                setEditingField(`observation-${sheetId}`)
               }}
             >
-              {sheet?.observation || 'Ingresar...'}
+              {sheet?.observation || '-'}
             </div>
           )}
           {getFieldErrors('observation').length > 0 && (
@@ -1189,106 +1211,227 @@ const ManagementCollectionTechnicalSheetRow = ({
       )}
       {processes.map((process, index) => {
         return (
-          <td
-            key={process.id}
-            className={`table-cell ${getProcessClass(sheet?.technical_sheet_details?.[process.id]?.status || '')} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
-          >
-            <div className="d-flex align-items-center gap-2 w-100">
-              <div className="flex-grow-1">
-                {editingField === `process-${process.id}` ? (
-                  <Select
-                    ref={(el) => (inputRefs.current[`process-${process.id}`] = el)}
-                    isDisabled={
-                      isLocked ||
-                      sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
-                    }
-                    options={optionsProcess}
-                    value={optionsProcess.find(
-                      (opt) => opt.value === sheet?.technical_sheet_details?.[process.id]?.status,
-                    )}
-                    onChange={(selected) => updateProcessStatus(process, selected.value)}
-                    isSearchable
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-                    styles={selectStylesWithPortal}
-                  />
-                ) : (
-                  <div
-                    className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                    onClick={() => {
-                      if (
+          <>
+            <td
+              className={`table-cell ${getCellClass(`process-${process.id}-typology`)} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
+              style={{
+                minWidth: '200px',
+                width: '200px',
+                maxWidth: '200px',
+              }}
+            >
+              <div className="d-flex align-items-center gap-2 w-100">
+                <div className="flex-grow-1">
+                  {editingField === `process-${process.id}-typology` ? (
+                    <Select
+                      ref={(el) => (inputRefs.current[`process-${process.id}-typology`] = el)}
+                      isDisabled={
                         isLocked ||
                         sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
-                      ) {
-                        return
                       }
-                      setEditingField(`process-${process.id}`)
-                    }}
-                  >
-                    {sheet?.technical_sheet_details?.[process.id]?.status.toUpperCase() ||
-                      'Seleccionar...'}
+                      options={typologies.filter((item) => item.processes.includes(process.id))}
+                      value={
+                        Array.isArray(typologies)
+                          ? typologies.find(
+                              (item) =>
+                                item.value ===
+                                sheet?.technical_sheet_details?.[process.id]?.typology?.[0]?.id,
+                            ) || null
+                          : null
+                      }
+                      onChange={(selected) => updateProcessTypology(process, selected.value)}
+                      isSearchable
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      styles={selectStylesWithPortal}
+                    />
+                  ) : (
+                    <div
+                      className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                      onClick={() => {
+                        if (
+                          isLocked ||
+                          sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                        ) {
+                          return
+                        }
+                        setEditingField(`process-${process.id}-typology`)
+                      }}
+                    >
+                      {typologies.find(
+                        (item) =>
+                          item.value ===
+                          sheet?.technical_sheet_details?.[process.id]?.typology?.[0]?.id,
+                      )?.label || '-'}
+                    </div>
+                  )}
+                </div>
+                {getFieldErrors(`technical_sheet_details.${index}`).length > 0 && (
+                  <div style={{ position: 'relative' }}>
+                    <span
+                      style={{ cursor: 'pointer', color: '#ef4444' }}
+                      onClick={() =>
+                        setOpenPopover(
+                          openPopover === `technical_sheet_details.${index}`
+                            ? null
+                            : `technical_sheet_details.${index}`,
+                        )
+                      }
+                    >
+                      <BadgeAlert size={16} />
+                    </span>
+                    <CPopover
+                      visible={openPopover === `technical_sheet_details.${index}`}
+                      placement="top"
+                      onHide={() => setOpenPopover(null)}
+                      title={
+                        <div
+                          className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                          style={{
+                            color: '#991B1B',
+                            fontSize: '0.85rem',
+                            padding: '2px 0',
+                          }}
+                        >
+                          <BadgeAlert size={15} className="text-danger" />
+                          <span>Errores de validación</span>
+                        </div>
+                      }
+                      content={
+                        <div
+                          className="font-inter custom-popover-error"
+                          style={{
+                            maxWidth: '260px',
+                            fontSize: '0.82rem',
+                          }}
+                        >
+                          {getFieldErrors(`technical_sheet_details.${index}`).map((err, i) => (
+                            <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                              <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                            </div>
+                          ))}
+                        </div>
+                      }
+                    >
+                      <span
+                        className="position-absolute"
+                        style={{ transform: 'translateY(-10px)' }}
+                      />
+                    </CPopover>
                   </div>
                 )}
               </div>
-              {getFieldErrors(`technical_sheet_details.${index}`).length > 0 && (
-                <div style={{ position: 'relative' }}>
-                  <span
-                    style={{ cursor: 'pointer', color: '#ef4444' }}
-                    onClick={() =>
-                      setOpenPopover(
-                        openPopover === `technical_sheet_details.${index}`
-                          ? null
-                          : `technical_sheet_details.${index}`,
-                      )
-                    }
-                  >
-                    <BadgeAlert size={16} />
-                  </span>
-                  <CPopover
-                    visible={openPopover === `technical_sheet_details.${index}`}
-                    placement="top"
-                    onHide={() => setOpenPopover(null)}
-                    title={
-                      <div
-                        className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                        style={{
-                          color: '#991B1B',
-                          fontSize: '0.85rem',
-                          padding: '2px 0',
-                        }}
-                      >
-                        <BadgeAlert size={15} className="text-danger" />
-                        <span>Errores de validación</span>
-                      </div>
-                    }
-                    content={
-                      <div
-                        className="font-inter custom-popover-error"
-                        style={{
-                          maxWidth: '260px',
-                          fontSize: '0.82rem',
-                        }}
-                      >
-                        {getFieldErrors(`technical_sheet_details.${index}`).map((err, i) => (
-                          <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                            <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                          </div>
-                        ))}
-                      </div>
-                    }
-                  >
-                    <span
-                      className="position-absolute"
-                      style={{ transform: 'translateY(-10px)' }}
+            </td>
+            <td
+              key={process.id}
+              className={`table-cell ${getProcessClass(
+                sheet?.technical_sheet_details?.[process.id]?.status || '',
+              )} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
+              style={{
+                minWidth: '125px',
+                width: '125px',
+                maxWidth: '125px',
+              }}
+            >
+              <div className="d-flex align-items-center gap-2 w-100">
+                <div className="flex-grow-1">
+                  {editingField === `process-${process.id}` ? (
+                    <Select
+                      ref={(el) => (inputRefs.current[`process-${process.id}`] = el)}
+                      isDisabled={
+                        isLocked ||
+                        sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                      }
+                      options={optionsProcess}
+                      value={optionsProcess.find(
+                        (opt) => opt.value === sheet?.technical_sheet_details?.[process.id]?.status,
+                      )}
+                      onChange={(selected) => updateProcessStatus(process, selected.value)}
+                      isSearchable
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      styles={selectStylesWithPortal}
                     />
-                  </CPopover>
+                  ) : (
+                    <div
+                      className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                      onClick={() => {
+                        if (
+                          isLocked ||
+                          sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                        ) {
+                          return
+                        }
+                        setEditingField(`process-${process.id}`)
+                      }}
+                    >
+                      {sheet?.technical_sheet_details?.[process.id]?.status.toUpperCase() ||
+                        'Seleccionar...'}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </td>
+                {getFieldErrors(`technical_sheet_details.${index}`).length > 0 && (
+                  <div style={{ position: 'relative' }}>
+                    <span
+                      style={{ cursor: 'pointer', color: '#ef4444' }}
+                      onClick={() =>
+                        setOpenPopover(
+                          openPopover === `technical_sheet_details.${index}`
+                            ? null
+                            : `technical_sheet_details.${index}`,
+                        )
+                      }
+                    >
+                      <BadgeAlert size={16} />
+                    </span>
+                    <CPopover
+                      visible={openPopover === `technical_sheet_details.${index}`}
+                      placement="top"
+                      onHide={() => setOpenPopover(null)}
+                      title={
+                        <div
+                          className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                          style={{
+                            color: '#991B1B',
+                            fontSize: '0.85rem',
+                            padding: '2px 0',
+                          }}
+                        >
+                          <BadgeAlert size={15} className="text-danger" />
+                          <span>Errores de validación</span>
+                        </div>
+                      }
+                      content={
+                        <div
+                          className="font-inter custom-popover-error"
+                          style={{
+                            maxWidth: '260px',
+                            fontSize: '0.82rem',
+                          }}
+                        >
+                          {getFieldErrors(`technical_sheet_details.${index}`).map((err, i) => (
+                            <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                              <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                            </div>
+                          ))}
+                        </div>
+                      }
+                    >
+                      <span
+                        className="position-absolute"
+                        style={{ transform: 'translateY(-10px)' }}
+                      />
+                    </CPopover>
+                  </div>
+                )}
+              </div>
+            </td>
+          </>
         )
       })}
-      <td className={`table-cell ${getStatusClass(sheet?.status)} ${getErrorProcess('status')}`}>
+      <td
+        className={`table-cell ${getStatusClass(sheet?.status, 'cell-width-125')} ${getErrorProcess('status')}`}
+      >
         <div className="d-flex align-items-center gap-2 w-100">
           <div className="flex-grow-1">
             {editingField === 'status' ? (

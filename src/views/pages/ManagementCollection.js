@@ -11,6 +11,7 @@ import TrademarksService from '../../services/trademarks.service'
 import CategoriesService from '../../services/categories.service'
 import SubcategoriesService from '../../services/subcategories.service'
 import CollectionManagementService from '../../services/collection_management.service'
+import TypologiesService from '../../services/typologies.service'
 
 const ManagementCollections = () => {
   const dispatch = useDispatch()
@@ -26,6 +27,7 @@ const ManagementCollections = () => {
   const [auxTrademark, setAuxTrademark] = useState(null)
   const [auxCategories, setAuxCategories] = useState(null)
   const [auxSubcategories, setAuxSubcategories] = useState(null)
+  const [typologies, setTypologies] = useState()
 
   useEffect(() => {
     fetchCollections()
@@ -36,6 +38,7 @@ const ManagementCollections = () => {
     fetchBootTypes()
     fetchTrademarks()
     fetchCategories()
+    fetchTypologies()
   }, [])
 
   const fetchCollections = async (params) => {
@@ -179,6 +182,24 @@ const ManagementCollections = () => {
     return result
   }
 
+  const fetchTypologies = async () => {
+    try {
+      const response = await TypologiesService.all()
+      setTypologies(
+        Array.isArray(response.data.typologies)
+          ? response.data.typologies.map((item) => ({
+              value: item.id,
+              label: item.name,
+              processes: item?.processes.map((item) => item.id),
+            }))
+          : [],
+      )
+    } catch (error) {
+      setErrors(error.errors)
+      throw error
+    }
+  }
+
   return (
     <div>
       <CollectionManagement
@@ -203,6 +224,7 @@ const ManagementCollections = () => {
         auxSubcategories={auxSubcategories}
         save={save}
         errors={errors}
+        typologies={typologies}
       />
     </div>
   )

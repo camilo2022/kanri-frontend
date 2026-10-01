@@ -55,6 +55,7 @@ export const CollectionManagement = ({
   fetchCategories,
   auxSubcategories,
   save,
+  typologies,
 }) => {
   const dispath = useDispatch()
   const technicalSheets = useSelector((state) => state.technicalSheetsModified)
@@ -200,13 +201,14 @@ export const CollectionManagement = ({
             technical_sheet_details: Object.values(sheet.technical_sheet_details).map((item) => ({
               model_type: item.model_type,
               model_id: item.model_id,
+              typology: item.typology?.[0]?.id || null,
               status: item.status,
               settings: item.settings || [],
             })),
             photo_d: sheet.photo_d !== null ? sheet.photo_d : [],
             photo_t: sheet.photo_t !== null ? sheet.photo_t : [],
           }
-
+          
           const result = await save(aux)
 
           if (result.success) {
@@ -984,6 +986,7 @@ export const CollectionManagement = ({
                                     setModified={setModified}
                                     validated={validated}
                                     errors={errors}
+                                    typologies={typologies}
                                   />
                                 </div>
                               </div>

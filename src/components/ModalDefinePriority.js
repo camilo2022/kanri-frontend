@@ -22,13 +22,10 @@ const ModalDefinePriority = ({
   priority_rules,
   changeFormData,
 }) => {
-  console.log(production_order, production_changes)
   const [priorityChecks, setPriorityChecks] = useState({})
 
   useEffect(() => {
     if (!openModalPriority) return
-
-    console.log(production_order)
 
     const savedCriteria =
       production_changes?.settings?.priority_checks ||
@@ -136,7 +133,6 @@ const ModalDefinePriority = ({
   }
 
   const handleSubmit = () => {
-    console.log(priorityLevel, priorityChecks)
     changeFormData?.('priority', priorityLevel)
     changeFormData?.('settings', { priority_checks: { ...priorityChecks } })
 

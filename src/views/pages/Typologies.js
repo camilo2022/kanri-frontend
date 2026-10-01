@@ -16,7 +16,6 @@ const Typologies = () => {
   const [processes, setProcesses] = useState()
 
   useEffect(() => {
-    console.log(view)
     setLoading(true)
     setTypology('')
     fetchProcesses()
@@ -81,7 +80,6 @@ const Typologies = () => {
   const findTypology = async (id) => {
     try {
       const response = await TypologiesService.find(id)
-      console.log(response)
       setTypology(response.data.typology)
       return response
     } catch (error) {

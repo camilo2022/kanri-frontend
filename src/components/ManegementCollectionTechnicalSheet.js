@@ -29,6 +29,7 @@ const ManagementCollectionTechnicalSheet = ({
   setModified,
   validated,
   errors,
+  typologies,
 }) => {
   const dispath = useDispatch()
   const [rechangeModal, setRechangeModal] = useState(false)
@@ -241,7 +242,6 @@ const ManagementCollectionTechnicalSheet = ({
         ref={tableRef}
         className="table align-middle mb-0"
         style={{
-          tableLayout: 'fixed',
           minWidth: '1800px',
           borderCollapse: 'separate',
           borderSpacing: 0,
@@ -259,28 +259,28 @@ const ManagementCollectionTechnicalSheet = ({
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '160px' }}
+              style={{ ...thStyle, width: '160px', minWidth: '160px', maxWidth: '160px' }}
             >
               CÓDIGO
             </th>
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '160px' }}
+              style={{ ...thStyle, width: '160px', minWidth: '160px', maxWidth: '160px' }}
             >
               REFERENCIA
             </th>
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '200px' }}
+              style={{ ...thStyle, width: '200px', minWidth: '200px' }}
             >
               TIPO DE PRENDA
             </th>
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '230px' }}
+              style={{ ...thStyle, width: '230px', minWidth: '230px' }}
             >
               TONO
             </th>
@@ -294,7 +294,7 @@ const ManagementCollectionTechnicalSheet = ({
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '220px' }}
+              style={{ ...thStyle, width: '230px', minWidth: '230px' }}
             >
               OBSERVACIÓN
             </th>
@@ -321,12 +321,13 @@ const ManagementCollectionTechnicalSheet = ({
               INSUMOS
             </th>
             <th
-              colSpan={processes.length}
+              colSpan={processes.length * 2}
               className="text-center"
               style={{
                 ...thStyleGroup,
-                width: `${processes.length * 160}px`,
-                minWidth: `${processes.length * 160}px`,
+                width: `${processes.length * 325}px`,
+                minWidth: `${processes.length * 325}px`,
+                maxWidth: `${processes.length * 325}px`,
               }}
             >
               PROCESOS
@@ -334,7 +335,7 @@ const ManagementCollectionTechnicalSheet = ({
             <th
               rowSpan={2}
               className="text-center align-middle"
-              style={{ ...thStyle, width: '160px' }}
+              style={{ ...thStyle, minWidth: '125px', width: '125px', maxWidth: '125px' }}
             >
               ESTADO
             </th>
@@ -391,12 +392,14 @@ const ManagementCollectionTechnicalSheet = ({
             {processes.map((process) => (
               <th
                 key={process.id}
+                colSpan={2}
                 className="text-center"
                 style={{
                   ...thStyleGroup,
+                  width: '325px',
+                  minWidth: '325px',
+                  maxWidth: '325px',
                   borderTop: '0px',
-                  width: '160px',
-                  minWidth: '160px',
                 }}
               >
                 {process.name}
@@ -422,6 +425,7 @@ const ManagementCollectionTechnicalSheet = ({
             setModified={setModified}
             validated={validated}
             errors={errors}
+            typologies={typologies}
           />
         </tbody>
       </table>

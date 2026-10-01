@@ -44,6 +44,7 @@ export const Edit = ({
   models,
   statusCollection,
   statusTechnical,
+  typologies,
 }) => {
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
@@ -406,6 +407,7 @@ export const Edit = ({
 
               return {
                 ...detail,
+                typology: detail?.typology?.[0]?.id,
                 settings,
               }
             }),
@@ -703,6 +705,7 @@ export const Edit = ({
         catalogsData={catalogsData}
         dataGet={dataGet}
         loadCatalog={loadCatalog}
+        typologies={typologies}
       />
     </CCard>
   )

@@ -361,8 +361,6 @@ const ModalBuilderCurveProgramationManagement = ({
       percentages: sizePercentages,
     }
 
-    console.log('CUERPO DEL CONSTRUCTOR', payload)
-
     setIsSubmitting(true)
     try {
       if (editingBuilderId && update_builder) {
