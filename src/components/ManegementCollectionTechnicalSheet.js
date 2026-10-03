@@ -321,13 +321,13 @@ const ManagementCollectionTechnicalSheet = ({
               INSUMOS
             </th>
             <th
-              colSpan={processes.length * 2}
+              colSpan={processes.length || 1}
               className="text-center"
               style={{
                 ...thStyleGroup,
-                width: `${processes.length * 325}px`,
-                minWidth: `${processes.length * 325}px`,
-                maxWidth: `${processes.length * 325}px`,
+                width: `${processes.length * 180}px`,
+                minWidth: `${processes.length * 180}px`,
+                maxWidth: `${processes.length * 180}px`,
               }}
             >
               PROCESOS
@@ -392,13 +392,12 @@ const ManagementCollectionTechnicalSheet = ({
             {processes.map((process) => (
               <th
                 key={process.id}
-                colSpan={2}
                 className="text-center"
                 style={{
                   ...thStyleGroup,
-                  width: '325px',
-                  minWidth: '325px',
-                  maxWidth: '325px',
+                  width: '180px',
+                  minWidth: '180px',
+                  maxWidth: '180px',
                   borderTop: '0px',
                 }}
               >

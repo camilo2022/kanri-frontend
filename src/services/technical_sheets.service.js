@@ -75,8 +75,8 @@ const update = async (id, data) => {
   }
 }
 
-const pdf = (uuid, production_order_id) => {
-  return `${api.defaults.baseURL}/technical_sheets/pdf/${uuid}?production_order_id=${production_order_id}`
+const pdf = (uuid) => {
+  return `${api.defaults.baseURL}/technical_sheets/pdf/${uuid}`
 }
 
 const TechnicalSheetsService = {

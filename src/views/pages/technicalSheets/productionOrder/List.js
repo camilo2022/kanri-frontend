@@ -171,9 +171,10 @@ export const List = ({
                   !user_active?.permissions.some((p) => p.name === 'products.find') ||
                   !user_active?.permissions.some((p) => p.name === 'products.update')
                 }
-                onClick={() =>
-                  pdf_technical_sheet(production_order.technical_sheet.uuid, production_order.id)
-                }
+                onClick={() => {
+                  console.log(production_order.uuid)
+                  pdf_technical_sheet(production_order.uuid)
+                }}
               >
                 <FileBox size={18} strokeWidth={1.5} />
               </button>

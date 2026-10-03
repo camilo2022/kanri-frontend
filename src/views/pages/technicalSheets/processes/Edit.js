@@ -23,6 +23,7 @@ export const EditProcess = ({
   models,
   statusCollection,
   process,
+  typologies,
 }) => {
   const [editingField, setEditingField] = useState(null)
   const inputRefs = useRef({})
@@ -385,6 +386,7 @@ export const EditProcess = ({
 
               return {
                 ...detail,
+                typology: detail?.typology?.[0]?.id,
                 settings,
               }
             }),
@@ -499,6 +501,7 @@ export const EditProcess = ({
         dataGet={dataGet}
         loadCatalog={loadCatalog}
         process={process}
+        typologies={typologies}
       />
     </CCard>
   )

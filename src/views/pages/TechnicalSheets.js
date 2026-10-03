@@ -616,6 +616,7 @@ const TechnicalSheet = ({ product_id, action, process_id = null }) => {
             models={models}
             statusCollection={statusCollection}
             process={process}
+            typologies={typologies}
           />
         )
 

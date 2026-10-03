@@ -1636,6 +1636,7 @@ const ProductionOrderRow = ({
               <>
                 {processes.map((process) => {
                   const detail = details.find((item) => item.model_id === process.id)
+                  console.log(detail)
 
                   return (
                     <td
@@ -1643,112 +1644,136 @@ const ProductionOrderRow = ({
                       rowSpan={4}
                       className={`table-cell text-center align-middle ${errors?.[`production_order_details.${process.id}.settings.date`] ? 'table-cell-error' : ''}`}
                     >
-                      <div
-                        className={`gap-2 w-100 ${
-                          !isProcessEnabled(process)
-                            ? 'status-badge-aux-no-place badge-status-disabled-aux'
-                            : `${getStatusBadgeClass(getProcessStatus(process, detail))} status-badge-aux`
-                        }`}
-                      >
-                        {!isProcessEnabled(process) ? (
-                          <span
-                            className="font-inter text-center px-2"
-                            style={{
-                              fontSize: '11px',
-                              color: '#64748B',
-                              lineHeight: '1',
-                            }}
-                          >
-                            -
-                          </span>
-                        ) : detail?.status === 'Pendiente' ? (
+                      <div className="d-flex flex-column align-items-center justify-content-center h-100 gap-1">
+                        <div
+                          className="d-flex justify-content-center align-items-center w-100"
+                          style={{
+                            color: '#64748B',
+                            backgroundColor: '#F8FAFC',
+                            border: '1px solid #CBD5E1',
+                            padding: '12px 12px',
+                            lineHeight: '1.2',
+                          }}
+                        >
                           <span
                             className="font-inter text-center"
                             style={{
-                              fontSize: '13px',
-                              padding: '1px',
+                              fontSize: '12px',
+                              lineHeight: '1.2',
+                              minWidth: '126px',
                             }}
-                            title="El proceso aún no ha sido aprobado por Gerencia"
                           >
-                            PENDIENTE
+                            {detail?.typology?.[0]?.name ?? '-'}
                           </span>
-                        ) : (
-                          <input
-                            type="date"
-                            value={programation[process.id]?.date}
-                            onChange={(e) => handleDateChange(process.id, e.target.value)}
-                            className="font-inter text-center border-0 shadow-none"
-                            style={{
-                              background: 'transparent',
-                              outline: 'none',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              color: '#334155',
-                            }}
-                            disabled={!formData.production_place || is_reference_reasigned}
-                          />
-                        )}
+                        </div>
 
-                        {errors?.[`production_order_details.${process.id}.settings.date`]?.length >
-                          0 && (
-                          <div style={{ position: 'relative' }}>
+                        <div
+                          className={`gap-2 w-100 ${
+                            !isProcessEnabled(process)
+                              ? 'status-badge-aux-no-place badge-status-disabled-aux'
+                              : `${getStatusBadgeClass(getProcessStatus(process, detail))} status-badge-aux`
+                          }`}
+                        >
+                          {!isProcessEnabled(process) ? (
                             <span
-                              style={{ cursor: 'pointer', color: '#ef4444' }}
-                              onClick={() =>
-                                setOpenPopover(
-                                  openPopover === `date_${process.id}`
-                                    ? null
-                                    : `date_${process.id}`,
-                                )
-                              }
+                              className="font-inter text-center px-2"
+                              style={{
+                                fontSize: '11px',
+                                color: '#64748B',
+                                lineHeight: '1',
+                              }}
                             >
-                              <BadgeAlert size={16} />
+                              -
                             </span>
-                            <CPopover
-                              visible={openPopover === `date_${process.id}`}
-                              placement="top"
-                              onHide={() => setOpenPopover(null)}
-                              title={
-                                <div
-                                  className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                                  style={{
-                                    color: '#991B1B',
-                                    fontSize: '0.85rem',
-                                    padding: '2px 0',
-                                  }}
-                                >
-                                  <BadgeAlert size={15} className="text-danger" />
-                                  <span>Errores de validación</span>
-                                </div>
-                              }
-                              content={
-                                <div
-                                  className="font-inter custom-popover-error"
-                                  style={{
-                                    maxWidth: '260px',
-                                    fontSize: '0.82rem',
-                                  }}
-                                >
-                                  {errors?.[
-                                    `production_order_details.${process.id}.settings.date`
-                                  ].map((err, i) => (
-                                    <div
-                                      key={i}
-                                      className="d-flex align-items-start gap-2 p-1 rounded-2"
-                                    >
-                                      <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              }
+                          ) : detail?.status === 'Pendiente' ? (
+                            <span
+                              className="font-inter text-center"
+                              style={{
+                                fontSize: '13px',
+                                padding: '1px',
+                              }}
+                              title="El proceso aún no ha sido aprobado por Gerencia"
                             >
+                              PENDIENTE
+                            </span>
+                          ) : (
+                            <input
+                              type="date"
+                              value={programation[process.id]?.date}
+                              onChange={(e) => handleDateChange(process.id, e.target.value)}
+                              className="font-inter text-center border-0 shadow-none"
+                              style={{
+                                background: 'transparent',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                color: '#334155',
+                              }}
+                              disabled={!formData.production_place || is_reference_reasigned}
+                            />
+                          )}
+
+                          {errors?.[`production_order_details.${process.id}.settings.date`]
+                            ?.length > 0 && (
+                            <div style={{ position: 'relative' }}>
                               <span
-                                className="position-absolute"
-                                style={{ transform: 'translateY(-10px)' }}
-                              />
-                            </CPopover>
-                          </div>
-                        )}
+                                style={{ cursor: 'pointer', color: '#ef4444' }}
+                                onClick={() =>
+                                  setOpenPopover(
+                                    openPopover === `date_${process.id}`
+                                      ? null
+                                      : `date_${process.id}`,
+                                  )
+                                }
+                              >
+                                <BadgeAlert size={16} />
+                              </span>
+                              <CPopover
+                                visible={openPopover === `date_${process.id}`}
+                                placement="top"
+                                onHide={() => setOpenPopover(null)}
+                                title={
+                                  <div
+                                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                                    style={{
+                                      color: '#991B1B',
+                                      fontSize: '0.85rem',
+                                      padding: '2px 0',
+                                    }}
+                                  >
+                                    <BadgeAlert size={15} className="text-danger" />
+                                    <span>Errores de validación</span>
+                                  </div>
+                                }
+                                content={
+                                  <div
+                                    className="font-inter custom-popover-error"
+                                    style={{
+                                      maxWidth: '260px',
+                                      fontSize: '0.82rem',
+                                    }}
+                                  >
+                                    {errors?.[
+                                      `production_order_details.${process.id}.settings.date`
+                                    ].map((err, i) => (
+                                      <div
+                                        key={i}
+                                        className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                      >
+                                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                }
+                              >
+                                <span
+                                  className="position-absolute"
+                                  style={{ transform: 'translateY(-10px)' }}
+                                />
+                              </CPopover>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   )

@@ -372,6 +372,8 @@ const ManagementCollectionTechnicalSheetRow = ({
         classes += ' table-cell-error'
       }
 
+      console.log(modified, field)
+
       if (modified) {
         classes += ' table-cell-row-modified'
         if (modified[field]) {
@@ -475,31 +477,459 @@ const ManagementCollectionTechnicalSheetRow = ({
   const isLocked = sheet?.status === 'Aprobado' || sheet?.status === 'Cancelado'
 
   return (
-    <tr key={sheetId}>
-      <td className={`style-table-td sticky-actions cell-width-100 ${getErrorIndex('index')}`}>
-        <div className="overlay-loading">
-          <CTooltip content="Reasignar" placement="top">
-            <button
+    <>
+      <tr key={`${sheetId}-1`}>
+        <td
+          rowSpan={2}
+          className={`style-table-td sticky-actions cell-width-100 ${getErrorIndex('index')}`}
+        >
+          <div className="overlay-loading">
+            <CTooltip content="Reasignar" placement="top">
+              <button
+                onClick={() => {
+                  onOpenModal(sheet)
+                }}
+                className="td-button-refresh"
+              >
+                <RefreshCw size={16} />
+              </button>
+            </CTooltip>
+            <CTooltip content="Eliminar" placement="top">
+              <button
+                onClick={handleDeleteRow}
+                className="td-button-delete"
+                hidden={!String(sheetId).startsWith('temp')}
+              >
+                <Trash2 size={16} />
+              </button>
+            </CTooltip>
+            {!!Object.keys(errors?.errors || {}).length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <CTooltip content="Hay errorres en esta fila" placement="top">
+                  <span
+                    style={{ cursor: 'pointer', color: '#ef4444' }}
+                    onClick={() =>
+                      setOpenPopover(openPopover === 'observation' ? null : 'observation')
+                    }
+                  >
+                    <BadgeAlert size={16} />
+                  </span>
+                </CTooltip>
+              </div>
+            )}
+          </div>
+        </td>
+        <td rowSpan={2} className={getCellClass('code')}>
+          <div className="d-flex align-items-center gap-2">
+            <div
+              className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100 h-100"
               onClick={() => {
-                onOpenModal(sheet)
+                if (isLocked || sheet?.status === 'En Revision') return
+                setEditingField('code')
               }}
-              className="td-button-refresh"
             >
-              <RefreshCw size={16} />
-            </button>
-          </CTooltip>
-          <CTooltip content="Eliminar" placement="top">
-            <button
-              onClick={handleDeleteRow}
-              className="td-button-delete"
-              hidden={!String(sheetId).startsWith('temp')}
-            >
-              <Trash2 size={16} />
-            </button>
-          </CTooltip>
-          {!!Object.keys(errors?.errors || {}).length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <CTooltip content="Hay errorres en esta fila" placement="top">
+              {sheet?.code || '-'}
+            </div>
+            {getFieldErrors('code').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() => setOpenPopover(openPopover === 'code' ? null : 'code')}
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'code'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('code').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
+              </div>
+            )}
+          </div>
+        </td>
+        <td rowSpan={2} className={getCellClass('product')}>
+          <div className="d-flex align-items-center gap-2">
+            {editingField === 'product' ? (
+              <CFormInput
+                ref={(el) => (inputRefs.current.product = el)}
+                disabled={isLocked || sheet?.status === 'En Revision'}
+                type="text"
+                value={sheet?.product?.code || ''}
+                placeholder={sheet?.product?.code === '' ? 'Ingresar...' : ''}
+                onChange={(e) => updateSheetField('code', e.target.value.toUpperCase(), 'product')}
+                className="table-input border-0 shadow-none px-2 py-1 font-inter"
+              />
+            ) : (
+              <div
+                className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100"
+                onClick={() => {
+                  if (isLocked || sheet?.status === 'En Revision') return
+                  setEditingField('product')
+                }}
+              >
+                {sheet?.product?.code && sheet.product.code !== ''
+                  ? sheet.product.code
+                  : 'Ingresar...'}
+              </div>
+            )}
+            {getFieldErrors('product').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() => setOpenPopover(openPopover === 'product' ? null : 'product')}
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'product'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('product').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
+              </div>
+            )}
+          </div>
+        </td>
+        <td rowSpan={2} className={getCellClass('garment_type_id', 'cell-width-200')}>
+          <div className="d-flex align-items-center gap-2 w-100">
+            <div className="flex-grow-1">
+              {editingField === 'garment_type' ? (
+                <Select
+                  ref={(el) => (inputRefs.current.garment_type = el)}
+                  isDisabled={isLocked}
+                  options={Object.values(garmentTypes)}
+                  value={garmentTypes[sheet?.garment_type_id] || null}
+                  onChange={(selected) => {
+                    updateSheetField('garment_type_id', selected.value)
+                    setEditingField(null)
+                  }}
+                  onBlur={() => setEditingField(null)}
+                  isSearchable
+                  menuPortalTarget={document.body}
+                  menuPosition="fixed"
+                  styles={selectStylesWithPortal}
+                />
+              ) : (
+                <div
+                  className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                  onClick={() => {
+                    if (isLocked) return
+                    setEditingField('garment_type')
+                  }}
+                >
+                  {!!garmentTypes && sheet?.garment_type_id
+                    ? garmentTypes?.[sheet?.garment_type_id]?.label
+                    : sheet?.garment_type
+                      ? `${sheet.garment_type?.settings?.code ?? 'N/A'} - ${sheet.garment_type?.name ?? 'N/A'}`
+                      : 'Seleccionar...'}
+                </div>
+              )}
+            </div>
+            {getFieldErrors('garment_type_id').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() =>
+                    setOpenPopover(openPopover === 'garment_type_id' ? null : 'garment_type_id')
+                  }
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'garment_type_id'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('garment_type_id').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
+              </div>
+            )}
+          </div>
+        </td>
+        <td rowSpan={2} className={getCellClass('wash_tone_id', 'cell-width-230')}>
+          <div className="d-flex align-items-center gap-2 w-100">
+            <div className="flex-grow-1">
+              {editingField === 'wash_tone' ? (
+                <Select
+                  ref={(el) => (inputRefs.current.wash_tone = el)}
+                  isDisabled={isLocked}
+                  options={Object.values(washTones)}
+                  value={washTones[sheet?.wash_tone_id] || null}
+                  onChange={(selected) => {
+                    updateSheetField('wash_tone_id', selected.value)
+                    setEditingField(null)
+                  }}
+                  onBlur={() => setEditingField(null)}
+                  isSearchable
+                  menuPortalTarget={document.body}
+                  menuPosition="fixed"
+                  styles={selectStylesWithPortal}
+                />
+              ) : (
+                <div
+                  className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                  onClick={() => {
+                    if (isLocked) return
+                    setEditingField('wash_tone')
+                  }}
+                >
+                  {!!washTones && sheet?.wash_tone_id
+                    ? washTones?.[sheet?.wash_tone_id]?.label
+                    : sheet?.wash_tone
+                      ? `${sheet.wash_tone?.settings?.code ?? 'N/A'} - ${sheet.wash_tone?.name ?? 'N/A'}`
+                      : 'Seleccionar...'}
+                </div>
+              )}
+            </div>
+            {getFieldErrors('wash_tone_id').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() =>
+                    setOpenPopover(openPopover === 'wash_tone_id' ? null : 'wash_tone_id')
+                  }
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'wash_tone_id'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('wash_tone_id').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
+              </div>
+            )}
+          </div>
+        </td>
+        <td rowSpan={2} className={getCellClass('boot_type_id', 'cell-width-230')}>
+          <div className="d-flex align-items-center gap-2 w-100">
+            <div className="flex-grow-1">
+              {editingField === 'boot_type' ? (
+                <Select
+                  ref={(el) => (inputRefs.current.boot_type = el)}
+                  isDisabled={isLocked}
+                  options={Object.values(bootTypes)}
+                  value={bootTypes[sheet?.boot_type_id] || null}
+                  onChange={(selected) => {
+                    updateSheetField('boot_type_id', selected.value)
+                    setEditingField(null)
+                  }}
+                  onBlur={() => setEditingField(null)}
+                  isSearchable
+                  menuPortalTarget={document.body}
+                  menuPosition="fixed"
+                  styles={selectStylesWithPortal}
+                />
+              ) : (
+                <div
+                  className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                  onClick={() => {
+                    if (isLocked) return
+                    setEditingField('boot_type')
+                  }}
+                >
+                  {!!bootTypes && sheet?.boot_type_id
+                    ? bootTypes?.[sheet?.boot_type_id]?.label
+                    : sheet?.boot_type
+                      ? `${sheet.boot_type?.settings?.code ?? 'N/A'} - ${sheet.boot_type?.name ?? 'N/A'}`
+                      : 'Seleccionar...'}
+                </div>
+              )}
+            </div>
+            {getFieldErrors('boot_type_id').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() =>
+                    setOpenPopover(openPopover === 'boot_type_id' ? null : 'boot_type_id')
+                  }
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'boot_type_id'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('boot_type_id').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
+              </div>
+            )}
+          </div>
+        </td>
+        <td
+          rowSpan={2}
+          className={`${getCellClass('observation', 'cell-width-230')} table-cell-ellipsis`}
+        >
+          <div className="d-flex align-items-center gap-2">
+            {editingField === `observation-${sheetId}` ? (
+              <CFormTextarea
+                ref={(el) => (inputRefs.current[`observation-${sheetId}`] = el)}
+                disabled={isLocked}
+                rows={2}
+                value={sheet?.observation || ''}
+                placeholder={sheet?.observation === '' ? 'Ingresar...' : ''}
+                onChange={(e) => updateSheetField('observation', e.target.value.toUpperCase())}
+                className="table-input border-0 shadow-none px-2 py-1 font-inter"
+              />
+            ) : (
+              <div
+                className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100 me-auto"
+                data-editing-field={`observation-${sheetId}`}
+                onClick={() => {
+                  if (isLocked) return
+                  setEditingField(`observation-${sheetId}`)
+                }}
+              >
+                {sheet?.observation || '-'}
+              </div>
+            )}
+            {getFieldErrors('observation').length > 0 && (
+              <div style={{ position: 'relative' }}>
                 <span
                   style={{ cursor: 'pointer', color: '#ef4444' }}
                   onClick={() =>
@@ -508,1013 +938,609 @@ const ManagementCollectionTechnicalSheetRow = ({
                 >
                   <BadgeAlert size={16} />
                 </span>
-              </CTooltip>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={getCellClass('code')}>
-        <div className="d-flex align-items-center gap-2">
-          <div
-            className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100 h-100"
-            onClick={() => {
-              if (isLocked || sheet?.status === 'En Revision') return
-              setEditingField('code')
-            }}
-          >
-            {sheet?.code || '-'}
-          </div>
-          {getFieldErrors('code').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() => setOpenPopover(openPopover === 'code' ? null : 'code')}
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'code'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('code').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={getCellClass('product')}>
-        <div className="d-flex align-items-center gap-2">
-          {editingField === 'product' ? (
-            <CFormInput
-              ref={(el) => (inputRefs.current.product = el)}
-              disabled={isLocked || sheet?.status === 'En Revision'}
-              type="text"
-              value={sheet?.product?.code || ''}
-              placeholder={sheet?.product?.code === '' ? 'Ingresar...' : ''}
-              onChange={(e) => updateSheetField('code', e.target.value.toUpperCase(), 'product')}
-              className="table-input border-0 shadow-none px-2 py-1 font-inter"
-            />
-          ) : (
-            <div
-              className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer me-auto w-100"
-              onClick={() => {
-                if (isLocked || sheet?.status === 'En Revision') return
-                setEditingField('product')
-              }}
-            >
-              {sheet?.product?.code && sheet.product.code !== ''
-                ? sheet.product.code
-                : 'Ingresar...'}
-            </div>
-          )}
-          {getFieldErrors('product').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() => setOpenPopover(openPopover === 'product' ? null : 'product')}
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'product'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('product').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={getCellClass('garment_type_id', 'cell-width-200')}>
-        <div className="d-flex align-items-center gap-2 w-100">
-          <div className="flex-grow-1">
-            {editingField === 'garment_type' ? (
-              <Select
-                ref={(el) => (inputRefs.current.garment_type = el)}
-                isDisabled={isLocked}
-                options={Object.values(garmentTypes)}
-                value={garmentTypes[sheet?.garment_type_id] || null}
-                onChange={(selected) => {
-                  updateSheetField('garment_type_id', selected.value)
-                  setEditingField(null)
-                }}
-                onBlur={() => setEditingField(null)}
-                isSearchable
-                menuPortalTarget={document.body}
-                menuPosition="fixed"
-                styles={selectStylesWithPortal}
-              />
-            ) : (
-              <div
-                className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                onClick={() => {
-                  if (isLocked) return
-                  setEditingField('garment_type')
-                }}
-              >
-                {!!garmentTypes && sheet?.garment_type_id
-                  ? garmentTypes?.[sheet?.garment_type_id]?.label
-                  : sheet?.garment_type
-                    ? `${sheet.garment_type?.settings?.code ?? 'N/A'} - ${sheet.garment_type?.name ?? 'N/A'}`
-                    : 'Seleccionar...'}
+                <CPopover
+                  visible={openPopover === 'observation'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('observation').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
               </div>
             )}
-          </div>
-          {getFieldErrors('garment_type_id').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() =>
-                  setOpenPopover(openPopover === 'garment_type_id' ? null : 'garment_type_id')
-                }
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'garment_type_id'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('garment_type_id').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={getCellClass('wash_tone_id', 'cell-width-230')}>
-        <div className="d-flex align-items-center gap-2 w-100">
-          <div className="flex-grow-1">
-            {editingField === 'wash_tone' ? (
-              <Select
-                ref={(el) => (inputRefs.current.wash_tone = el)}
-                isDisabled={isLocked}
-                options={Object.values(washTones)}
-                value={washTones[sheet?.wash_tone_id] || null}
-                onChange={(selected) => {
-                  updateSheetField('wash_tone_id', selected.value)
-                  setEditingField(null)
-                }}
-                onBlur={() => setEditingField(null)}
-                isSearchable
-                menuPortalTarget={document.body}
-                menuPosition="fixed"
-                styles={selectStylesWithPortal}
-              />
-            ) : (
-              <div
-                className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                onClick={() => {
-                  if (isLocked) return
-                  setEditingField('wash_tone')
-                }}
-              >
-                {!!washTones && sheet?.wash_tone_id
-                  ? washTones?.[sheet?.wash_tone_id]?.label
-                  : sheet?.wash_tone
-                    ? `${sheet.wash_tone?.settings?.code ?? 'N/A'} - ${sheet.wash_tone?.name ?? 'N/A'}`
-                    : 'Seleccionar...'}
-              </div>
-            )}
-          </div>
-          {getFieldErrors('wash_tone_id').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() =>
-                  setOpenPopover(openPopover === 'wash_tone_id' ? null : 'wash_tone_id')
-                }
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'wash_tone_id'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('wash_tone_id').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={getCellClass('boot_type_id', 'cell-width-230')}>
-        <div className="d-flex align-items-center gap-2 w-100">
-          <div className="flex-grow-1">
-            {editingField === 'boot_type' ? (
-              <Select
-                ref={(el) => (inputRefs.current.boot_type = el)}
-                isDisabled={isLocked}
-                options={Object.values(bootTypes)}
-                value={bootTypes[sheet?.boot_type_id] || null}
-                onChange={(selected) => {
-                  updateSheetField('boot_type_id', selected.value)
-                  setEditingField(null)
-                }}
-                onBlur={() => setEditingField(null)}
-                isSearchable
-                menuPortalTarget={document.body}
-                menuPosition="fixed"
-                styles={selectStylesWithPortal}
-              />
-            ) : (
-              <div
-                className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                onClick={() => {
-                  if (isLocked) return
-                  setEditingField('boot_type')
-                }}
-              >
-                {!!bootTypes && sheet?.boot_type_id
-                  ? bootTypes?.[sheet?.boot_type_id]?.label
-                  : sheet?.boot_type
-                    ? `${sheet.boot_type?.settings?.code ?? 'N/A'} - ${sheet.boot_type?.name ?? 'N/A'}`
-                    : 'Seleccionar...'}
-              </div>
-            )}
-          </div>
-          {getFieldErrors('boot_type_id').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() =>
-                  setOpenPopover(openPopover === 'boot_type_id' ? null : 'boot_type_id')
-                }
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'boot_type_id'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('boot_type_id').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={`${getCellClass('observation', 'cell-width-230')} table-cell-ellipsis`}>
-        <div className="d-flex align-items-center gap-2">
-          {editingField === `observation-${sheetId}` ? (
-            <CFormTextarea
-              ref={(el) => (inputRefs.current[`observation-${sheetId}`] = el)}
-              disabled={isLocked}
-              rows={2}
-              value={sheet?.observation || ''}
-              placeholder={sheet?.observation === '' ? 'Ingresar...' : ''}
-              onChange={(e) => updateSheetField('observation', e.target.value.toUpperCase())}
-              className="table-input border-0 shadow-none px-2 py-1 font-inter"
-            />
-          ) : (
-            <div
-              className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100 me-auto"
-              data-editing-field={`observation-${sheetId}`}
-              onClick={() => {
-                if (isLocked) return
-                setEditingField(`observation-${sheetId}`)
-              }}
-            >
-              {sheet?.observation || '-'}
-            </div>
-          )}
-          {getFieldErrors('observation').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() => setOpenPopover(openPopover === 'observation' ? null : 'observation')}
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'observation'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('observation').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={`${getCellClass('photo_d')}`}>
-        <div className="d-flex align-items-center justify-content-center gap-2">
-          <PreviewPopover
-            image={sheet['photo_d']}
-            original={sheet['photo_d_original']}
-            field={'photo_d'}
-            updateSheetField={updateSheetField}
-            isLocked={isLocked}
-          />
-          {getFieldErrors('photo_d').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                ref={errorIconRef}
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() => setOpenPopover(openPopover === 'photo_d' ? null : 'photo_d')}
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'photo_d'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    ref={errorPopoverRef}
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('photo_d').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className={`${getCellClass('photo_t')}`}>
-        <div className="d-flex align-items-center justify-content-center gap-2">
-          <PreviewPopover
-            image={sheet['photo_t']}
-            original={sheet['photo_t_original']}
-            field={'photo_t'}
-            updateSheetField={updateSheetField}
-            isLocked={isLocked}
-          />
-          {getFieldErrors('photo_t').length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() => setOpenPopover(openPopover === 'photo_t' ? null : 'photo_t')}
-              >
-                <BadgeAlert size={16} />
-              </span>
-              <CPopover
-                visible={openPopover === 'photo_t'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('photo_t').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
-            </div>
-          )}
-        </div>
-      </td>
-      {supplyTypes.length === 0 ? (
-        <td className="table-cell">
-          <div
-            className="d-flex flex-column align-items-center justify-content-center gap-1 py-1"
-            style={{
-              color: '#6b7280',
-            }}
-          >
-            <BadgeAlert size={20} />
-            <span
-              style={{
-                fontSize: '11px',
-                textAlign: 'center',
-                lineHeight: '1',
-              }}
-            >
-              No hay tipos de insumo registrados.
-            </span>
           </div>
         </td>
-      ) : (
-        supplyTypes.map((supplyType) => {
-          return (
-            <td key={supplyType.id} className={getCellClass(`supply.${supplyType.id}`)}>
-              <div className="d-flex align-items-center gap-2 w-100">
-                <div className="flex-grow-1">
-                  {editingField === `supply.${supplyType.id}` ? (
-                    <Select
-                      ref={(el) => (inputRefs.current[`supply.${supplyType.id}`] = el)}
-                      isDisabled={isLocked}
-                      options={supplies[supplyType.id] || []}
-                      value={
-                        supplies[supplyType.id]?.find(
-                          (opt) => opt.value === sheet?.supplies?.[supplyType.id]?.id,
-                        ) || null
-                      }
-                      onChange={(selected) => {
-                        updateSheetField(
-                          supplyType.id,
-                          selected.data,
-                          'supplies',
-                          `supply.${supplyType.id}`,
-                        )
-                        setEditingField(null)
-                      }}
-                      onBlur={() => setEditingField(null)}
-                      isSearchable
-                      menuPortalTarget={document.body}
-                      menuPosition="fixed"
-                      styles={selectStylesWithPortal}
-                    />
-                  ) : (
+        <td rowSpan={2} className={`${getCellClass('photo_d')}`}>
+          <div className="d-flex align-items-center justify-content-center gap-2">
+            <PreviewPopover
+              image={sheet['photo_d']}
+              original={sheet['photo_d_original']}
+              field={'photo_d'}
+              updateSheetField={updateSheetField}
+              isLocked={isLocked}
+            />
+            {getFieldErrors('photo_d').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  ref={errorIconRef}
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() => setOpenPopover(openPopover === 'photo_d' ? null : 'photo_d')}
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'photo_d'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
                     <div
-                      className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                      onClick={() => {
-                        if (isLocked) return
-                        setEditingField(`supply.${supplyType.id}`)
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
                       }}
                     >
-                      {supplies[supplyType.id]?.find(
-                        (opt) => opt.value === sheet?.supplies?.[supplyType.id],
-                      )?.label ||
-                        (sheet?.supplies?.[supplyType.id]
-                          ? `${sheet.supplies[supplyType.id]?.name ?? 'N/A'} - ${
-                              sheet.supplies[supplyType.id]?.description ?? 'N/A'
-                            }`
-                          : 'Seleccionar...')}
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
                     </div>
-                  )}
-                </div>
-                {getFieldErrors(`supply.${supplyType.id}`).length > 0 && (
-                  <div style={{ position: 'relative' }}>
-                    <span
-                      style={{ cursor: 'pointer', color: '#ef4444' }}
-                      onClick={() =>
-                        setOpenPopover(
-                          openPopover === `supply.${supplyType.id}`
-                            ? null
-                            : `supply.${supplyType.id}`,
-                        )
-                      }
-                    >
-                      <BadgeAlert size={16} />
-                    </span>
-                    <CPopover
-                      visible={openPopover === `supply.${supplyType.id}`}
-                      placement="top"
-                      onHide={() => setOpenPopover(null)}
-                      title={
-                        <div
-                          className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                          style={{
-                            color: '#991B1B',
-                            fontSize: '0.85rem',
-                            padding: '2px 0',
-                          }}
-                        >
-                          <BadgeAlert size={15} className="text-danger" />
-                          <span>Errores de validación</span>
-                        </div>
-                      }
-                      content={
-                        <div
-                          className="font-inter custom-popover-error"
-                          style={{
-                            maxWidth: '260px',
-                            fontSize: '0.82rem',
-                          }}
-                        >
-                          {getFieldErrors(`supply.${supplyType.id}`).map((err, i) => (
-                            <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                              <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                            </div>
-                          ))}
-                        </div>
-                      }
-                    >
-                      <span
-                        className="position-absolute"
-                        style={{ transform: 'translateY(-10px)' }}
-                      />
-                    </CPopover>
-                  </div>
-                )}
-              </div>
-            </td>
-          )
-        })
-      )}
-      {processes.map((process, index) => {
-        return (
-          <>
-            <td
-              className={`table-cell ${getCellClass(`process-${process.id}-typology`)} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
-              style={{
-                minWidth: '200px',
-                width: '200px',
-                maxWidth: '200px',
-              }}
-            >
-              <div className="d-flex align-items-center gap-2 w-100">
-                <div className="flex-grow-1">
-                  {editingField === `process-${process.id}-typology` ? (
-                    <Select
-                      ref={(el) => (inputRefs.current[`process-${process.id}-typology`] = el)}
-                      isDisabled={
-                        isLocked ||
-                        sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
-                      }
-                      options={typologies.filter((item) => item.processes.includes(process.id))}
-                      value={
-                        Array.isArray(typologies)
-                          ? typologies.find(
-                              (item) =>
-                                item.value ===
-                                sheet?.technical_sheet_details?.[process.id]?.typology?.[0]?.id,
-                            ) || null
-                          : null
-                      }
-                      onChange={(selected) => updateProcessTypology(process, selected.value)}
-                      isSearchable
-                      menuPortalTarget={document.body}
-                      menuPosition="fixed"
-                      styles={selectStylesWithPortal}
-                    />
-                  ) : (
+                  }
+                  content={
                     <div
-                      className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                      onClick={() => {
-                        if (
-                          isLocked ||
-                          sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
-                        ) {
-                          return
-                        }
-                        setEditingField(`process-${process.id}-typology`)
+                      ref={errorPopoverRef}
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
                       }}
                     >
-                      {typologies.find(
-                        (item) =>
-                          item.value ===
-                          sheet?.technical_sheet_details?.[process.id]?.typology?.[0]?.id,
-                      )?.label || '-'}
+                      {getFieldErrors('photo_d').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </div>
-                {getFieldErrors(`technical_sheet_details.${index}`).length > 0 && (
-                  <div style={{ position: 'relative' }}>
-                    <span
-                      style={{ cursor: 'pointer', color: '#ef4444' }}
-                      onClick={() =>
-                        setOpenPopover(
-                          openPopover === `technical_sheet_details.${index}`
-                            ? null
-                            : `technical_sheet_details.${index}`,
-                        )
-                      }
-                    >
-                      <BadgeAlert size={16} />
-                    </span>
-                    <CPopover
-                      visible={openPopover === `technical_sheet_details.${index}`}
-                      placement="top"
-                      onHide={() => setOpenPopover(null)}
-                      title={
-                        <div
-                          className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                          style={{
-                            color: '#991B1B',
-                            fontSize: '0.85rem',
-                            padding: '2px 0',
-                          }}
-                        >
-                          <BadgeAlert size={15} className="text-danger" />
-                          <span>Errores de validación</span>
-                        </div>
-                      }
-                      content={
-                        <div
-                          className="font-inter custom-popover-error"
-                          style={{
-                            maxWidth: '260px',
-                            fontSize: '0.82rem',
-                          }}
-                        >
-                          {getFieldErrors(`technical_sheet_details.${index}`).map((err, i) => (
-                            <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                              <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                            </div>
-                          ))}
-                        </div>
-                      }
-                    >
-                      <span
-                        className="position-absolute"
-                        style={{ transform: 'translateY(-10px)' }}
-                      />
-                    </CPopover>
-                  </div>
-                )}
-              </div>
-            </td>
-            <td
-              key={process.id}
-              className={`table-cell ${getProcessClass(
-                sheet?.technical_sheet_details?.[process.id]?.status || '',
-              )} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
-              style={{
-                minWidth: '125px',
-                width: '125px',
-                maxWidth: '125px',
-              }}
-            >
-              <div className="d-flex align-items-center gap-2 w-100">
-                <div className="flex-grow-1">
-                  {editingField === `process-${process.id}` ? (
-                    <Select
-                      ref={(el) => (inputRefs.current[`process-${process.id}`] = el)}
-                      isDisabled={
-                        isLocked ||
-                        sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
-                      }
-                      options={optionsProcess}
-                      value={optionsProcess.find(
-                        (opt) => opt.value === sheet?.technical_sheet_details?.[process.id]?.status,
-                      )}
-                      onChange={(selected) => updateProcessStatus(process, selected.value)}
-                      isSearchable
-                      menuPortalTarget={document.body}
-                      menuPosition="fixed"
-                      styles={selectStylesWithPortal}
-                    />
-                  ) : (
-                    <div
-                      className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                      onClick={() => {
-                        if (
-                          isLocked ||
-                          sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
-                        ) {
-                          return
-                        }
-                        setEditingField(`process-${process.id}`)
-                      }}
-                    >
-                      {sheet?.technical_sheet_details?.[process.id]?.status.toUpperCase() ||
-                        'Seleccionar...'}
-                    </div>
-                  )}
-                </div>
-                {getFieldErrors(`technical_sheet_details.${index}`).length > 0 && (
-                  <div style={{ position: 'relative' }}>
-                    <span
-                      style={{ cursor: 'pointer', color: '#ef4444' }}
-                      onClick={() =>
-                        setOpenPopover(
-                          openPopover === `technical_sheet_details.${index}`
-                            ? null
-                            : `technical_sheet_details.${index}`,
-                        )
-                      }
-                    >
-                      <BadgeAlert size={16} />
-                    </span>
-                    <CPopover
-                      visible={openPopover === `technical_sheet_details.${index}`}
-                      placement="top"
-                      onHide={() => setOpenPopover(null)}
-                      title={
-                        <div
-                          className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                          style={{
-                            color: '#991B1B',
-                            fontSize: '0.85rem',
-                            padding: '2px 0',
-                          }}
-                        >
-                          <BadgeAlert size={15} className="text-danger" />
-                          <span>Errores de validación</span>
-                        </div>
-                      }
-                      content={
-                        <div
-                          className="font-inter custom-popover-error"
-                          style={{
-                            maxWidth: '260px',
-                            fontSize: '0.82rem',
-                          }}
-                        >
-                          {getFieldErrors(`technical_sheet_details.${index}`).map((err, i) => (
-                            <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                              <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                            </div>
-                          ))}
-                        </div>
-                      }
-                    >
-                      <span
-                        className="position-absolute"
-                        style={{ transform: 'translateY(-10px)' }}
-                      />
-                    </CPopover>
-                  </div>
-                )}
-              </div>
-            </td>
-          </>
-        )
-      })}
-      <td
-        className={`table-cell ${getStatusClass(sheet?.status, 'cell-width-125')} ${getErrorProcess('status')}`}
-      >
-        <div className="d-flex align-items-center gap-2 w-100">
-          <div className="flex-grow-1">
-            {editingField === 'status' ? (
-              <Select
-                ref={(el) => (inputRefs.current.status = el)}
-                isDisabled={sheet?.status === 'Aprobado' || sheet?.status === 'En revisión'}
-                options={
-                  String(sheetId).startsWith('temp-')
-                    ? optionsStatus
-                    : sheet?.status === 'Cancelado'
-                      ? []
-                      : sheet?.status === 'Pendiente'
-                        ? optionsStatus
-                        : optionsStatus.filter((option) => option.value !== 'Pendiente')
-                }
-                value={optionsStatus.find((opt) => opt.value === sheet?.status)}
-                onChange={(selected) => {
-                  updateSheetField('status', selected.value)
-                  setEditingField(null)
-                }}
-                onBlur={() => setEditingField(null)}
-                isSearchable
-                menuPortalTarget={document.body}
-                menuPosition="fixed"
-                styles={selectStylesWithPortal}
-              />
-            ) : (
-              <div
-                className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
-                onClick={() => setEditingField('status')}
-              >
-                {sheet?.status.toUpperCase() || 'Seleccionar...'}
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
               </div>
             )}
           </div>
-          {getFieldErrors('status').length > 0 && (
-            <div style={{ position: 'relative' }}>
+        </td>
+        <td rowSpan={2} className={`${getCellClass('photo_t')}`}>
+          <div className="d-flex align-items-center justify-content-center gap-2">
+            <PreviewPopover
+              image={sheet['photo_t']}
+              original={sheet['photo_t_original']}
+              field={'photo_t'}
+              updateSheetField={updateSheetField}
+              isLocked={isLocked}
+            />
+            {getFieldErrors('photo_t').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() => setOpenPopover(openPopover === 'photo_t' ? null : 'photo_t')}
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'photo_t'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('photo_t').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
+              </div>
+            )}
+          </div>
+        </td>
+        {supplyTypes.length === 0 ? (
+          <td rowSpan={2} className="table-cell">
+            <div
+              className="d-flex flex-column align-items-center justify-content-center gap-1 py-1"
+              style={{
+                color: '#6b7280',
+              }}
+            >
+              <BadgeAlert size={20} />
               <span
-                style={{ cursor: 'pointer', color: '#ef4444' }}
-                onClick={() => setOpenPopover(openPopover === 'status' ? null : 'status')}
+                style={{
+                  fontSize: '11px',
+                  textAlign: 'center',
+                  lineHeight: '1',
+                }}
               >
-                <BadgeAlert size={16} />
+                No hay tipos de insumo registrados.
               </span>
-              <CPopover
-                visible={openPopover === 'status'}
-                placement="top"
-                onHide={() => setOpenPopover(null)}
-                title={
-                  <div
-                    className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                    style={{
-                      color: '#991B1B',
-                      fontSize: '0.85rem',
-                      padding: '2px 0',
-                    }}
-                  >
-                    <BadgeAlert size={15} className="text-danger" />
-                    <span>Errores de validación</span>
-                  </div>
-                }
-                content={
-                  <div
-                    className="font-inter custom-popover-error"
-                    style={{
-                      maxWidth: '260px',
-                      fontSize: '0.82rem',
-                    }}
-                  >
-                    {getFieldErrors('status').map((err, i) => (
-                      <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                        <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                      </div>
-                    ))}
-                  </div>
-                }
-              >
-                <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
-              </CPopover>
             </div>
-          )}
-        </div>
-      </td>
-    </tr>
+          </td>
+        ) : (
+          supplyTypes.map((supplyType) => {
+            return (
+              <td
+                rowSpan={2}
+                key={supplyType.id}
+                className={getCellClass(`supply.${supplyType.id}`)}
+              >
+                <div className="d-flex align-items-center gap-2 w-100">
+                  <div className="flex-grow-1">
+                    {editingField === `supply.${supplyType.id}` ? (
+                      <Select
+                        ref={(el) => (inputRefs.current[`supply.${supplyType.id}`] = el)}
+                        isDisabled={isLocked}
+                        options={supplies[supplyType.id] || []}
+                        value={
+                          supplies[supplyType.id]?.find(
+                            (opt) => opt.value === sheet?.supplies?.[supplyType.id]?.id,
+                          ) || null
+                        }
+                        onChange={(selected) => {
+                          updateSheetField(
+                            supplyType.id,
+                            selected.data,
+                            'supplies',
+                            `supply.${supplyType.id}`,
+                          )
+                          setEditingField(null)
+                        }}
+                        onBlur={() => setEditingField(null)}
+                        isSearchable
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        styles={selectStylesWithPortal}
+                      />
+                    ) : (
+                      <div
+                        className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                        onClick={() => {
+                          if (isLocked) return
+                          setEditingField(`supply.${supplyType.id}`)
+                        }}
+                      >
+                        {supplies[supplyType.id]?.find(
+                          (opt) => opt.value === sheet?.supplies?.[supplyType.id],
+                        )?.label ||
+                          (sheet?.supplies?.[supplyType.id]
+                            ? `${sheet.supplies[supplyType.id]?.name ?? 'N/A'} - ${
+                                sheet.supplies[supplyType.id]?.description ?? 'N/A'
+                              }`
+                            : 'Seleccionar...')}
+                      </div>
+                    )}
+                  </div>
+                  {getFieldErrors(`supply.${supplyType.id}`).length > 0 && (
+                    <div style={{ position: 'relative' }}>
+                      <span
+                        style={{ cursor: 'pointer', color: '#ef4444' }}
+                        onClick={() =>
+                          setOpenPopover(
+                            openPopover === `supply.${supplyType.id}`
+                              ? null
+                              : `supply.${supplyType.id}`,
+                          )
+                        }
+                      >
+                        <BadgeAlert size={16} />
+                      </span>
+                      <CPopover
+                        visible={openPopover === `supply.${supplyType.id}`}
+                        placement="top"
+                        onHide={() => setOpenPopover(null)}
+                        title={
+                          <div
+                            className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                            style={{
+                              color: '#991B1B',
+                              fontSize: '0.85rem',
+                              padding: '2px 0',
+                            }}
+                          >
+                            <BadgeAlert size={15} className="text-danger" />
+                            <span>Errores de validación</span>
+                          </div>
+                        }
+                        content={
+                          <div
+                            className="font-inter custom-popover-error"
+                            style={{
+                              maxWidth: '260px',
+                              fontSize: '0.82rem',
+                            }}
+                          >
+                            {getFieldErrors(`supply.${supplyType.id}`).map((err, i) => (
+                              <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                                <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                              </div>
+                            ))}
+                          </div>
+                        }
+                      >
+                        <span
+                          className="position-absolute"
+                          style={{ transform: 'translateY(-10px)' }}
+                        />
+                      </CPopover>
+                    </div>
+                  )}
+                </div>
+              </td>
+            )
+          })
+        )}
+        {processes.map((process, index) => {
+          return (
+            <>
+              <td
+                className={`table-cell ${getCellClass(`process-${process.id}-typology`)} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
+                style={{
+                  minWidth: '180px',
+                  width: '180px',
+                  maxWidth: '180px',
+                }}
+              >
+                <div className="d-flex align-items-center gap-2 w-100">
+                  <div className="flex-grow-1">
+                    {editingField === `process-${process.id}-typology` ? (
+                      <Select
+                        ref={(el) => (inputRefs.current[`process-${process.id}-typology`] = el)}
+                        isDisabled={
+                          isLocked ||
+                          sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                        }
+                        options={typologies.filter((item) => item.processes.includes(process.id))}
+                        value={
+                          Array.isArray(typologies)
+                            ? typologies.find(
+                                (item) =>
+                                  item.value ===
+                                  sheet?.technical_sheet_details?.[process.id]?.typology?.[0]?.id,
+                              ) || null
+                            : null
+                        }
+                        onChange={(selected) => updateProcessTypology(process, selected.value)}
+                        isSearchable
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        styles={selectStylesWithPortal}
+                      />
+                    ) : (
+                      <div
+                        className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                        onClick={() => {
+                          if (
+                            isLocked ||
+                            sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                          ) {
+                            return
+                          }
+                          setEditingField(`process-${process.id}-typology`)
+                        }}
+                      >
+                        {typologies.find(
+                          (item) =>
+                            item.value ===
+                            sheet?.technical_sheet_details?.[process.id]?.typology?.[0]?.id,
+                        )?.label || '-'}
+                      </div>
+                    )}
+                  </div>
+                  {getFieldErrors(`technical_sheet_details.${index}`).length > 0 && (
+                    <div style={{ position: 'relative' }}>
+                      <span
+                        style={{ cursor: 'pointer', color: '#ef4444' }}
+                        onClick={() =>
+                          setOpenPopover(
+                            openPopover === `technical_sheet_details.${index}`
+                              ? null
+                              : `technical_sheet_details.${index}`,
+                          )
+                        }
+                      >
+                        <BadgeAlert size={16} />
+                      </span>
+                      <CPopover
+                        visible={openPopover === `technical_sheet_details.${index}`}
+                        placement="top"
+                        onHide={() => setOpenPopover(null)}
+                        title={
+                          <div
+                            className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                            style={{
+                              color: '#991B1B',
+                              fontSize: '0.85rem',
+                              padding: '2px 0',
+                            }}
+                          >
+                            <BadgeAlert size={15} className="text-danger" />
+                            <span>Errores de validación</span>
+                          </div>
+                        }
+                        content={
+                          <div
+                            className="font-inter custom-popover-error"
+                            style={{
+                              maxWidth: '260px',
+                              fontSize: '0.82rem',
+                            }}
+                          >
+                            {getFieldErrors(`technical_sheet_details.${index}`).map((err, i) => (
+                              <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                                <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                              </div>
+                            ))}
+                          </div>
+                        }
+                      >
+                        <span
+                          className="position-absolute"
+                          style={{ transform: 'translateY(-10px)' }}
+                        />
+                      </CPopover>
+                    </div>
+                  )}
+                </div>
+              </td>
+            </>
+          )
+        })}
+        <td
+          rowSpan={2}
+          className={`table-cell ${getStatusClass(sheet?.status, 'cell-width-125')} ${getErrorProcess('status')}`}
+        >
+          <div className="d-flex align-items-center gap-2 w-100">
+            <div className="flex-grow-1">
+              {editingField === 'status' ? (
+                <Select
+                  ref={(el) => (inputRefs.current.status = el)}
+                  isDisabled={sheet?.status === 'Aprobado' || sheet?.status === 'En revisión'}
+                  options={
+                    String(sheetId).startsWith('temp-')
+                      ? optionsStatus
+                      : sheet?.status === 'Cancelado'
+                        ? []
+                        : sheet?.status === 'Pendiente'
+                          ? optionsStatus
+                          : optionsStatus.filter((option) => option.value !== 'Pendiente')
+                  }
+                  value={optionsStatus.find((opt) => opt.value === sheet?.status)}
+                  onChange={(selected) => {
+                    updateSheetField('status', selected.value)
+                    setEditingField(null)
+                  }}
+                  onBlur={() => setEditingField(null)}
+                  isSearchable
+                  menuPortalTarget={document.body}
+                  menuPosition="fixed"
+                  styles={selectStylesWithPortal}
+                />
+              ) : (
+                <div
+                  className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                  onClick={() => setEditingField('status')}
+                >
+                  {sheet?.status.toUpperCase() || 'Seleccionar...'}
+                </div>
+              )}
+            </div>
+            {getFieldErrors('status').length > 0 && (
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{ cursor: 'pointer', color: '#ef4444' }}
+                  onClick={() => setOpenPopover(openPopover === 'status' ? null : 'status')}
+                >
+                  <BadgeAlert size={16} />
+                </span>
+                <CPopover
+                  visible={openPopover === 'status'}
+                  placement="top"
+                  onHide={() => setOpenPopover(null)}
+                  title={
+                    <div
+                      className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                      style={{
+                        color: '#991B1B',
+                        fontSize: '0.85rem',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <BadgeAlert size={15} className="text-danger" />
+                      <span>Errores de validación</span>
+                    </div>
+                  }
+                  content={
+                    <div
+                      className="font-inter custom-popover-error"
+                      style={{
+                        maxWidth: '260px',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      {getFieldErrors('status').map((err, i) => (
+                        <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                          <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                >
+                  <span className="position-absolute" style={{ transform: 'translateY(-10px)' }} />
+                </CPopover>
+              </div>
+            )}
+          </div>
+        </td>
+      </tr>
+      <tr key={`${sheetId}-2`}>
+        {processes.map((process, index) => {
+          return (
+            <>
+              <td
+                key={process.id}
+                className={`table-cell ${getProcessClass(
+                  sheet?.technical_sheet_details?.[process.id]?.status || '',
+                )} ${getErrorProcess(`technical_sheet_details.${index}`)}`}
+                style={{
+                  minWidth: '180px',
+                  width: '180px',
+                  maxWidth: '180px',
+                }}
+              >
+                <div className="d-flex align-items-center gap-2 w-100">
+                  <div className="flex-grow-1">
+                    {editingField === `process-${process.id}` ? (
+                      <Select
+                        ref={(el) => (inputRefs.current[`process-${process.id}`] = el)}
+                        isDisabled={
+                          isLocked ||
+                          sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                        }
+                        options={optionsProcess}
+                        value={optionsProcess.find(
+                          (opt) =>
+                            opt.value === sheet?.technical_sheet_details?.[process.id]?.status,
+                        )}
+                        onChange={(selected) => updateProcessStatus(process, selected.value)}
+                        isSearchable
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        styles={selectStylesWithPortal}
+                      />
+                    ) : (
+                      <div
+                        className="table-input border-0 shadow-none px-2 py-2 font-inter cursor-pointer w-100"
+                        onClick={() => {
+                          if (
+                            isLocked ||
+                            sheet?.technical_sheet_details?.[process.id]?.status === 'Aprobado'
+                          ) {
+                            return
+                          }
+                          setEditingField(`process-${process.id}`)
+                        }}
+                      >
+                        {sheet?.technical_sheet_details?.[process.id]?.status.toUpperCase() ||
+                          'Seleccionar...'}
+                      </div>
+                    )}
+                  </div>
+                  {getFieldErrors(`technical_sheet_details.${index}`).length > 0 && (
+                    <div style={{ position: 'relative' }}>
+                      <span
+                        style={{ cursor: 'pointer', color: '#ef4444' }}
+                        onClick={() =>
+                          setOpenPopover(
+                            openPopover === `technical_sheet_details.${index}`
+                              ? null
+                              : `technical_sheet_details.${index}`,
+                          )
+                        }
+                      >
+                        <BadgeAlert size={16} />
+                      </span>
+                      <CPopover
+                        visible={openPopover === `technical_sheet_details.${index}`}
+                        placement="top"
+                        onHide={() => setOpenPopover(null)}
+                        title={
+                          <div
+                            className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                            style={{
+                              color: '#991B1B',
+                              fontSize: '0.85rem',
+                              padding: '2px 0',
+                            }}
+                          >
+                            <BadgeAlert size={15} className="text-danger" />
+                            <span>Errores de validación</span>
+                          </div>
+                        }
+                        content={
+                          <div
+                            className="font-inter custom-popover-error"
+                            style={{
+                              maxWidth: '260px',
+                              fontSize: '0.82rem',
+                            }}
+                          >
+                            {getFieldErrors(`technical_sheet_details.${index}`).map((err, i) => (
+                              <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                                <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                              </div>
+                            ))}
+                          </div>
+                        }
+                      >
+                        <span
+                          className="position-absolute"
+                          style={{ transform: 'translateY(-10px)' }}
+                        />
+                      </CPopover>
+                    </div>
+                  )}
+                </div>
+              </td>
+            </>
+          )
+        })}
+      </tr>
+    </>
   )
 }
 

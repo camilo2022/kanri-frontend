@@ -419,7 +419,7 @@ const ModalBuilderCurveProgramationManagement = ({
   const getCustomSelectStyles = (isInvalid, isValid) => {
     let borderColor = '#E2E8F0'
     let focusBorderColor = '#24247f'
-    let focusBoxShadow = '0 0 0 3px rgba(36, 36, 127, 0.12)'
+    let focusBoxShadow = '0 0 0 0.2rem rgba(13, 110, 253, 0.25)'
 
     if (isInvalid) {
       borderColor = '#dc3545'
@@ -439,11 +439,10 @@ const ModalBuilderCurveProgramationManagement = ({
         maxHeight: '40px',
         borderRadius: '10px',
         border: `1px solid ${borderColor}`,
-        borderColor: borderColor,
         '&:hover': {
-          borderColor: borderColor,
+          borderColor: focusBorderColor,
+          boxShadow: state.isFocused ? focusBoxShadow : 'none',
         },
-        boxShadow: state.isFocused ? focusBoxShadow : 'none',
       }),
       valueContainer: (provided) => ({
         ...provided,
@@ -499,7 +498,55 @@ const ModalBuilderCurveProgramationManagement = ({
                   handleMultiSelectChange(opts, trademarkOptions, setSelectedTrademarks)
                 }
                 placeholder="Seleccionar marca(s)..."
-                components={{ Option: CustomOption, ValueContainer: CustomValueContainer }}
+                components={{
+                  Option: ({ children, isSelected, innerProps }) => (
+                    <div
+                      {...innerProps}
+                      className="d-flex align-items-center"
+                      style={{
+                        padding: '9px 12px',
+                        cursor: 'pointer',
+                        backgroundColor: 'white',
+                        color: '#334155',
+                        fontSize: '0.82rem',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#F8FAFC'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white'
+                      }}
+                    >
+                      <div
+                        className="d-flex align-items-center justify-content-center me-2"
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          border: isSelected ? '1px solid #24247F' : '1px solid #CBD5E1',
+                          borderRadius: '3px',
+                          backgroundColor: isSelected ? '#24247F' : 'white',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isSelected && (
+                          <span
+                            style={{
+                              color: 'white',
+                              fontSize: '11px',
+                              lineHeight: 1,
+                              fontWeight: 700,
+                            }}
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </div>
+
+                      <span>{children}</span>
+                    </div>
+                  ),
+                  ValueContainer: CustomValueContainer,
+                }}
                 styles={getCustomSelectStyles(isInvalidTrademark, isValidTrademark)}
                 isClearable={false}
               />
