@@ -1,7 +1,6 @@
 import {
   CFormInput,
   CButton,
-  CFormSelect,
   CModal,
   CModalHeader,
   CModalTitle,
@@ -16,13 +15,11 @@ import {
 import {
   ChartSpline,
   ArrowRightLeft,
-  X,
   Plus,
   TextInitial,
   BadgeAlert,
   BadgeCheck,
   Save,
-  Regex,
   Edit,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -30,10 +27,8 @@ import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
 import { Toast } from '@/components/Toast'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
-import LoadingForm from '@/components/LoadingForm'
 import { getSelectStylesInsertUniq } from '@/components/StyleManagementCollection'
 import ModalAddReassignmentCurve from '@/components/ModalAddReassignmentCurve'
-import { tableSelectStyles } from '@/components/StyleManagementCollection'
 
 const TableCurveSpecifications = ({
   technical_sheet,
@@ -49,7 +44,6 @@ const TableCurveSpecifications = ({
   createProduct,
   product_stara,
   errors_create,
-  setReasigned,
   selectedReference,
   setSelectedReference,
   dataNew,
@@ -60,7 +54,6 @@ const TableCurveSpecifications = ({
   setHasReassignment,
 }) => {
   const [focusedInput, setFocusedInput] = useState(null)
-  const [isSelectingRef, setIsSelectingRef] = useState(false)
   const [modalAddProduct, setModalAddProduct] = useState(false)
   const [modalAddSpecification, setModalAddSpecification] = useState(false)
   const [formData, setFormData] = useState({
@@ -71,7 +64,6 @@ const TableCurveSpecifications = ({
   const [openPopover, setOpenPopover] = useState({
     id: null,
   })
-  const [optReasigned, setOptReasigned] = useState(null)
   const [dataAux, setDataAux] = useState(null)
   const [dataModal, setDataModal] = useState(null)
   const [selectedReferences, setSelectedReferences] = useState([])
@@ -253,64 +245,6 @@ const TableCurveSpecifications = ({
           }, 2510)
         } catch (error) {
           setValidatedAdd(true)
-        }
-      } else {
-        Toast.fire({
-          icon: 'error',
-          title: 'Acción cancelada',
-        })
-      }
-    })
-  }
-
-  const handleDeleteAsigned = async () => {
-    Swal.fire({
-      title: 'Eliminar reasignación',
-      html: `<div style="font-size:14px">
-                Se eliminará la información de la reasignacion de la curva de la referencia ${selectedReference.label}.<br/>
-                <strong>¿Deseas continuar?</strong>
-              </div>`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          setData(
-            [
-              {
-                location: 'NACIONAL',
-                product_id: null,
-              },
-              {
-                location: 'MEDELLIN',
-                product_id: null,
-              },
-              {
-                location: 'STARA',
-                product_id: null,
-              },
-            ].map((item) => ({
-              ...item,
-              sizes: sizes.reduce((acc, size) => {
-                acc[size.id] = {
-                  id: size.id,
-                  name: size.name,
-                  quantity: 0,
-                }
-
-                return acc
-              }, {}),
-            })),
-          )
-          setSelectedReference(null)
-          setDataAux(null)
-          setIsSelectingRef(false)
-        } catch (error) {
-          console.log(error)
         }
       } else {
         Toast.fire({

@@ -90,63 +90,9 @@ const ManagementProductionTechnicalSheetRow = ({
     return String.fromCharCode(65 + nextCode)
   }
 
-  const findBuilder = () => {
-    if (!builders?.length) {
-      return null
-    }
-
-    const trademarkId = String(technical_sheet.product?.trademark_id)
-    const categoryId = String(technical_sheet.product?.subcategory?.category?.[0]?.id)
-    const subcategoryId = String(technical_sheet.product?.subcategory_id)
-
-    const exactBuilder = builders.find((builder) => {
-      const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
-      const categories = builder.categories?.map((item) => String(item.id)) ?? []
-      const subcategories = builder.subcategories?.map((item) => String(item.id)) ?? []
-
-      return (
-        trademarks.includes(trademarkId) &&
-        categories.includes(categoryId) &&
-        subcategories.includes(subcategoryId)
-      )
-    })
-
-    if (exactBuilder) {
-      return exactBuilder
-    }
-
-    const categoryBuilder = builders.find((builder) => {
-      const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
-      const categories = builder.categories?.map((item) => String(item.id)) ?? []
-
-      return (
-        trademarks.includes(trademarkId) &&
-        categories.includes(categoryId) &&
-        (!builder.subcategories || builder.subcategories.length === 0)
-      )
-    })
-
-    if (categoryBuilder) {
-      return categoryBuilder
-    }
-
-    const trademarkBuilder = builders.find((builder) => {
-      const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
-
-      return (
-        trademarks.includes(trademarkId) &&
-        (!builder.categories || builder.categories.length === 0) &&
-        (!builder.subcategories || builder.subcategories.length === 0)
-      )
-    })
-
-    return trademarkBuilder ?? null
-  }
-
   const handleCreateOrder = () => {
     const tempId = `new-${Date.now()}`
     const nextCut = getNextCut(auxProductionOrders)
-    const builder = findBuilder()
 
     const newOrder = {
       id: tempId,
@@ -158,12 +104,6 @@ const ManagementProductionTechnicalSheetRow = ({
       cut: nextCut,
       color_id: null,
       production_order_details: [],
-      builder_id: builder?.id ?? null,
-      builder_percentages:
-        builder?.percentages.reduce((acc, item) => {
-          acc[item.size.id] = { percentage: item.percentage }
-          return acc
-        }, {}) ?? null,
     }
 
     onCreateOrder?.(technical_sheet.id, newOrder)
@@ -272,6 +212,7 @@ const ManagementProductionTechnicalSheetRow = ({
             priority_checks={priority_checks}
             priority_levels={priority_levels}
             priority_rules={priority_rules}
+            builders={builders}
           />
         ))
       ) : (

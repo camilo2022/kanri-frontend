@@ -1,6 +1,6 @@
 import { CFormInput, CButton, CTooltip, CPopover } from '@coreui/react'
 import { Plus, Trash2, ClipboardPaste, ScissorsLineDashed, BadgeAlert } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
 import Select from 'react-select'

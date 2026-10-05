@@ -1,8 +1,5 @@
 import React, { useState } from 'react'
-import { CFormInput, CTooltip } from '@coreui/react'
-import { X, RefreshCw, Trash2 } from 'lucide-react'
-import Select from 'react-select'
-import { getSelectStylesInsertUniq } from '@/components/StyleManagementCollection'
+import { X } from 'lucide-react'
 
 const TechnicalSheetWithoutOrder = ({ technical_sheet, sizes }) => {
   const [showFullscreen, setShowFullscreen] = useState(false)

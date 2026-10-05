@@ -1,7 +1,6 @@
 import {
   CFormInput,
   CButton,
-  CFormSelect,
   CModal,
   CModalHeader,
   CModalTitle,
@@ -15,24 +14,17 @@ import {
   CFormCheck,
 } from '@coreui/react'
 import {
-  ChartSpline,
-  ArrowRightLeft,
-  X,
   Plus,
   TextInitial,
   BadgeAlert,
   BadgeCheck,
   Save,
-  Regex,
   Layers,
   ArrowDownRight,
 } from 'lucide-react'
 import { useEffect, useState, useMemo } from 'react'
 import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
-import { Toast } from '@/components/Toast'
-import Swal from 'sweetalert2'
 import Select from 'react-select'
-import LoadingForm from '@/components/LoadingForm'
 import { getSelectStylesInsertUniq } from '@/components/StyleManagementCollection'
 
 const TransformationReassignmentCurve = ({
@@ -42,14 +34,9 @@ const TransformationReassignmentCurve = ({
   sizes,
   sizes_now,
   dataOrigin,
-  setDataOrigin,
   errors,
   trademarks,
-  createProduct,
   product_stara,
-  errors_create,
-  dataNew,
-  setDataNew,
   data,
   setData,
   formData,
@@ -67,7 +54,6 @@ const TransformationReassignmentCurve = ({
   const [openPopover, setOpenPopover] = useState({
     id: null,
   })
-  const [optReasigned, setOptReasigned] = useState(null)
   const [selectedRows, setSelectedRows] = useState({
     NACIONAL: false,
     MEDELLIN: false,

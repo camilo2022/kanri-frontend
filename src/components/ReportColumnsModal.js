@@ -7,21 +7,8 @@ import {
   CModalHeader,
   CModalTitle,
   CFormInput,
-  CAccordion,
-  CAccordionItem,
-  CAccordionHeader,
-  CAccordionBody,
 } from '@coreui/react'
-import {
-  Search,
-  GripVertical,
-  X,
-  Check,
-  Save,
-  Folder,
-  ChevronDown,
-  SquareCheckBig,
-} from 'lucide-react'
+import { Search, GripVertical, X, Check, Folder, ChevronDown, SquareCheckBig } from 'lucide-react'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -48,7 +35,6 @@ const SortableField = ({ field, index, onRemove, onDisplayChange }) => {
   )
 
   const nestedDisplay = selectedDisplay?.display
-  const hasNestedDisplayOptions = nestedDisplay?.options?.length > 0
 
   return (
     <div ref={setNodeRef} style={style} className="report-sortable-field">
@@ -338,7 +324,6 @@ const ReportColumnsModal = ({
       const newFields = groupItems
         .filter((field) => !existingKeys.has(field.data_key))
         .map((field, index) => {
-
           return {
             ...field,
             groupKey,

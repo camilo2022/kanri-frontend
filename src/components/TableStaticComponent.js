@@ -1,5 +1,3 @@
-import api from '../API/api'
-import { getConfig } from '../axiosConfig'
 import {
   CFormInput,
   CButton,
@@ -11,7 +9,7 @@ import {
   CCol,
 } from '@coreui/react'
 import { Form, BadgeCheck, BadgeAlert, Info, Plus, Edit3, Layout, Trash2 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import FieldRules from '@/components/FieldRules'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
@@ -405,7 +403,7 @@ const TableStaticComponent = ({
         rules: updatedRules,
       }))
 
-      return 
+      return
     }
 
     const exists = rules.some((r) => r.startsWith(`${key}:`))

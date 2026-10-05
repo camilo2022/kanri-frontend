@@ -444,7 +444,7 @@ export const List = ({
           <div className="d-flex gap-2 w-50 ms-4">
             <CFormInput
               className="custom-input font-inter"
-              placeholder="Buscar entidad de salud..."
+              placeholder="Buscar..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />

@@ -1,10 +1,8 @@
 import { CFormInput, CButton, CTooltip, CPopover } from '@coreui/react'
-import { Plus, Trash2, ClipboardPaste, ScissorsLineDashed, Shell, BadgeAlert } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Plus, Trash2, Shell, BadgeAlert } from 'lucide-react'
+import { useState } from 'react'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
-import Select from 'react-select'
-import { getSelectStylesInsert } from '@/components/StyleManagementCollection'
 import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
 import LoadingForm from '@/components/LoadingForm'
 

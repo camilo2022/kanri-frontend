@@ -364,6 +364,7 @@ const ManagementProduction = () => {
         delete_builder={delete_builder}
         errors_builder={errorsBuilder}
         builders={builders}
+        fetchBuilders={fetchBuilders}
         processes={processes}
         priority_checks={priorityChecks}
         priority_levels={priorityLevels}

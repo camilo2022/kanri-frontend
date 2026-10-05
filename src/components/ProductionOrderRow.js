@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import {
   CFormInput,
   CTooltip,
@@ -84,6 +84,7 @@ const ProductionOrderRow = ({
   priority_checks,
   priority_levels,
   priority_rules,
+  builders,
 }) => {
   const curveDestinations = ['NACIONAL', 'MEDELLIN', 'STARA']
   const errorIconRef = useRef(null)
@@ -98,7 +99,6 @@ const ProductionOrderRow = ({
   const [dataModal, setDataModal] = useState(null)
   const [selectedReferences, setSelectedReferences] = useState([])
   const [modalAddProductStara, setModalAddProductStara] = useState(false)
-  const [builderTotal, setBuilderTotal] = useState('')
   const [builderTotals, setBuilderTotals] = useState({})
   const [formData, setFormData] = useState({
     fabric_id: production_changes.fabric_id ?? production_order.fabric?.model_id ?? null,
@@ -634,6 +634,65 @@ const ProductionOrderRow = ({
     })
   }
 
+  const builder = useMemo(() => {
+    if (!builders?.length) {
+      return null
+    }
+
+    const trademarkId = String(technical_sheet.product?.trademark_id)
+    const categoryId = String(technical_sheet.product?.subcategory?.category?.[0]?.id)
+    const subcategoryId = String(technical_sheet.product?.subcategory_id)
+
+    const exactBuilder = builders.find((builder) => {
+      const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
+
+      const categories = builder.categories?.map((item) => String(item.id)) ?? []
+
+      const subcategories = builder.subcategories?.map((item) => String(item.id)) ?? []
+
+      return (
+        trademarks.includes(trademarkId) &&
+        categories.includes(categoryId) &&
+        subcategories.includes(subcategoryId)
+      )
+    })
+
+    if (exactBuilder) {
+      return exactBuilder
+    }
+
+    const categoryBuilder = builders.find((builder) => {
+      const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
+
+      const categories = builder.categories?.map((item) => String(item.id)) ?? []
+
+      const subcategories = builder.subcategories?.map((item) => String(item.id)) ?? []
+
+      return (
+        trademarks.includes(trademarkId) &&
+        categories.includes(categoryId) &&
+        subcategories.length === 0
+      )
+    })
+
+    if (categoryBuilder) {
+      return categoryBuilder
+    }
+    const trademarkBuilder = builders.find((builder) => {
+      const trademarks = builder.trademarks?.map((item) => String(item.id)) ?? []
+
+      const categories = builder.categories?.map((item) => String(item.id)) ?? []
+
+      const subcategories = builder.subcategories?.map((item) => String(item.id)) ?? []
+
+      return (
+        trademarks.includes(trademarkId) && categories.length === 0 && subcategories.length === 0
+      )
+    })
+
+    return trademarkBuilder ?? null
+  }, [builders, technical_sheet])
+
   const executeBuilder = (destination, total) => {
     const numericTotal = Number(total)
 
@@ -641,13 +700,18 @@ const ProductionOrderRow = ({
       return
     }
 
-    if (
-      !production_order?.builder_id ||
-      !production_order?.builder_percentages ||
-      Object.keys(production_order.builder_percentages).length === 0
-    ) {
+    if (!builder) {
       return
     }
+
+    const builder_percentages =
+      builder.percentages?.reduce((acc, item) => {
+        acc[item.size.id] = {
+          percentage: Number(item.percentage),
+        }
+
+        return acc
+      }, {}) ?? {}
 
     const currentRow = getCurveRow(destination)
 
@@ -656,7 +720,7 @@ const ProductionOrderRow = ({
     }
 
     const updatedQuantities = currentRow.quantities.map((item) => {
-      const percentage = Number(production_order.builder_percentages[item.size_id].percentage ?? 0)
+      const percentage = Number(builder_percentages[item.size_id]?.percentage ?? 0)
 
       return {
         ...item,
@@ -984,6 +1048,16 @@ const ProductionOrderRow = ({
                   : []),
             ]
           : []
+
+        const showAddProductButton =
+          destination === 'STARA' &&
+          technical_sheet?.products?.length === 0 &&
+          !production_changes_technical_sheet?.product_stara
+
+        const hasCurveError =
+          errors?.['curve']?.length > 0 || errors?.[`curve.${destination}`]?.length > 0
+
+        const showCurveError = hasCurveError && !showAddProductButton
 
         return (
           <tr
@@ -1397,9 +1471,9 @@ const ProductionOrderRow = ({
                   rowSpan={4}
                   className={`table-cell ${errors?.['production_place'] ? 'table-cell-error' : ''}`}
                 >
-                  <div className="d-flex align-items-center justify-content-center h-100 px-2 w-100">
+                  <div className="d-flex align-items-center justify-content-center h-100 w-100">
                     <span
-                      className="font-inter fw-semibold text-center"
+                      className="font-inter fw-semibold text-center px-2"
                       style={{
                         fontSize: '14px',
                         color: '#334155',
@@ -1412,66 +1486,71 @@ const ProductionOrderRow = ({
                           ? suppliers[formData?.supplier_id]?.label || 'SATÉLITE'
                           : '-'}
                     </span>
-                  </div>
-                  {errors?.['production_place']?.length > 0 && (
-                    <div style={{ position: 'relative' }}>
-                      <span
-                        style={{ cursor: 'pointer', color: '#ef4444' }}
-                        onClick={() =>
-                          setOpenPopover(
-                            openPopover === 'production_place' ? null : 'production_place',
-                          )
-                        }
-                      >
-                        <BadgeAlert size={16} />
-                      </span>
-
-                      <CPopover
-                        visible={openPopover === 'production_place'}
-                        placement="top"
-                        onHide={() => setOpenPopover(null)}
-                        title={
-                          <div
-                            className="d-flex align-items-center gap-2 font-montserrat fw-bold"
-                            style={{
-                              color: '#991B1B',
-                              fontSize: '0.85rem',
-                              padding: '2px 0',
-                            }}
-                          >
-                            <BadgeAlert size={15} className="text-danger" />
-                            <span>Errores de validación</span>
-                          </div>
-                        }
-                        content={
-                          <div
-                            className="font-inter custom-popover-error"
-                            style={{
-                              maxWidth: '260px',
-                              fontSize: '0.82rem',
-                            }}
-                          >
-                            {errors?.['production_place'].map((err, i) => (
-                              <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
-                                <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
-                              </div>
-                            ))}
-                          </div>
-                        }
-                      >
+                    {errors?.['production_place']?.length > 0 && (
+                      <div style={{ position: 'relative' }}>
                         <span
-                          className="position-absolute"
-                          style={{ transform: 'translateY(-10px)' }}
-                        />
-                      </CPopover>
-                    </div>
-                  )}
+                          style={{ cursor: 'pointer', color: '#ef4444' }}
+                          onClick={() =>
+                            setOpenPopover(
+                              openPopover === 'production_place' ? null : 'production_place',
+                            )
+                          }
+                        >
+                          <BadgeAlert size={16} />
+                        </span>
+
+                        <CPopover
+                          visible={openPopover === 'production_place'}
+                          placement="top"
+                          onHide={() => setOpenPopover(null)}
+                          title={
+                            <div
+                              className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                              style={{
+                                color: '#991B1B',
+                                fontSize: '0.85rem',
+                                padding: '2px 0',
+                              }}
+                            >
+                              <BadgeAlert size={15} className="text-danger" />
+                              <span>Errores de validación</span>
+                            </div>
+                          }
+                          content={
+                            <div
+                              className="font-inter custom-popover-error"
+                              style={{
+                                maxWidth: '260px',
+                                fontSize: '0.82rem',
+                              }}
+                            >
+                              {errors?.['production_place'].map((err, i) => (
+                                <div
+                                  key={i}
+                                  className="d-flex align-items-start gap-2 p-1 rounded-2"
+                                >
+                                  <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                                </div>
+                              ))}
+                            </div>
+                          }
+                        >
+                          <span
+                            className="position-absolute"
+                            style={{ transform: 'translateY(-10px)' }}
+                          />
+                        </CPopover>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </>
             )}
 
             <td
-              className={`table-cell paddig-unique ${errors?.['curve'] ? 'table-cell-error' : ''}`}
+              className={`table-cell text-center align-middle ${
+                showCurveError ? 'table-cell-error' : ''
+              }`}
               style={{
                 borderLeft: `4px solid ${destinationStyle.border}`,
                 background: destinationStyle.background,
@@ -1483,68 +1562,138 @@ const ProductionOrderRow = ({
             </td>
 
             <td
-              className={`table-cell text-center align-middle ${errors?.['curve'] ? 'table-cell-error' : ''}`}
+              className={`table-cell text-center align-middle ${
+                showCurveError ? 'table-cell-error' : ''
+              }`}
               style={curveCellStyle}
             >
-              {destination !== 'STARA' ? (
-                <Select
-                  value={options.find((option) => option.value === curveRow?.reference_id) ?? null}
-                  options={options}
-                  onChange={(selected) =>
-                    handleChangeReference(
-                      destination,
-                      selected?.value ?? null,
-                      selected?.label ?? null,
-                    )
-                  }
-                  isSearchable
-                  className="font-inter w-100"
-                  placeholder="Seleccione..."
-                  menuPortalTarget={document.body}
-                  menuPosition="fixed"
-                  isDisabled={is_reference_reasigned}
-                  styles={getSelectStylesInsertUniq()}
-                />
-              ) : technical_sheet?.products?.length > 0 ||
-                !!production_changes_technical_sheet?.product_stara ? (
-                <Select
-                  value={options.find((option) => option.value === curveRow?.reference_id) ?? null}
-                  options={options}
-                  onChange={(selected) =>
-                    handleChangeReference(
-                      destination,
-                      selected?.value ?? null,
-                      selected?.label ?? null,
-                    )
-                  }
-                  isSearchable
-                  isDisabled={is_reference_reasigned}
-                  className="font-inter w-100"
-                  placeholder="Seleccione..."
-                  menuPortalTarget={document.body}
-                  menuPosition="fixed"
-                  styles={getSelectStylesInsertUniq()}
-                />
-              ) : (
-                <CButton
-                  color="primary"
-                  variant="outline"
-                  size="sm"
-                  className="d-inline-flex align-items-center gap-1 py-1 px-2 border-dashed"
-                  style={{
-                    fontSize: '0.78rem',
-                    fontWeight: '500',
-                    borderStyle: 'dashed',
-                  }}
-                  disabled={is_reference_reasigned}
-                  onClick={() => {
-                    setModalAddProductStara(true)
-                  }}
-                >
-                  <Plus size={14} />
-                  <span>Agregar producto</span>
-                </CButton>
-              )}
+              <div className="d-flex align-items-center justify-content-center h-100 px-2">
+                {destination !== 'STARA' ? (
+                  <Select
+                    value={
+                      options.find((option) => option.value === curveRow?.reference_id) ?? null
+                    }
+                    options={options}
+                    onChange={(selected) =>
+                      handleChangeReference(
+                        destination,
+                        selected?.value ?? null,
+                        selected?.label ?? null,
+                      )
+                    }
+                    isSearchable
+                    className="font-inter w-100"
+                    placeholder="Seleccione..."
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    isDisabled={is_reference_reasigned}
+                    styles={getSelectStylesInsertUniq()}
+                  />
+                ) : technical_sheet?.products?.length > 0 ||
+                  !!production_changes_technical_sheet?.product_stara ? (
+                  <Select
+                    value={
+                      options.find((option) => option.value === curveRow?.reference_id) ?? null
+                    }
+                    options={options}
+                    onChange={(selected) =>
+                      handleChangeReference(
+                        destination,
+                        selected?.value ?? null,
+                        selected?.label ?? null,
+                      )
+                    }
+                    isSearchable
+                    isDisabled={is_reference_reasigned}
+                    className="font-inter w-100"
+                    placeholder="Seleccione..."
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={getSelectStylesInsertUniq()}
+                  />
+                ) : (
+                  <CButton
+                    color="primary"
+                    variant="outline"
+                    size="sm"
+                    className="d-inline-flex align-items-center gap-1 py-1 px-2 border-dashed"
+                    style={{
+                      fontSize: '0.78rem',
+                      fontWeight: '500',
+                      borderStyle: 'dashed',
+                    }}
+                    disabled={is_reference_reasigned}
+                    onClick={() => {
+                      setModalAddProductStara(true)
+                    }}
+                  >
+                    <Plus size={14} />
+                    <span>Agregar producto</span>
+                  </CButton>
+                )}
+
+                {showCurveError && (
+                  <div style={{ position: 'relative' }}>
+                    <span
+                      style={{
+                        cursor: 'pointer',
+                        color: '#ef4444',
+                      }}
+                      onClick={() =>
+                        setOpenPopover(
+                          openPopover === `curve-${destination}` ? null : `curve-${destination}`,
+                        )
+                      }
+                    >
+                      <BadgeAlert size={16} />
+                    </span>
+
+                    <CPopover
+                      visible={openPopover === `curve-${destination}`}
+                      placement="top"
+                      onHide={() => setOpenPopover(null)}
+                      title={
+                        <div
+                          className="d-flex align-items-center gap-2 font-montserrat fw-bold"
+                          style={{
+                            color: '#991B1B',
+                            fontSize: '0.85rem',
+                            padding: '2px 0',
+                          }}
+                        >
+                          <BadgeAlert size={15} className="text-danger" />
+                          <span>Errores de validación</span>
+                        </div>
+                      }
+                      content={
+                        <div
+                          className="font-inter custom-popover-error"
+                          style={{
+                            maxWidth: '260px',
+                            fontSize: '0.82rem',
+                          }}
+                        >
+                          {[
+                            ...(errors?.['curve'] || []),
+                            ...(errors?.[`curve.${destination}`] || []),
+                          ].map((err, i) => (
+                            <div key={i} className="d-flex align-items-start gap-2 p-1 rounded-2">
+                              <span style={{ whiteSpace: 'pre-line' }}>{err}</span>
+                            </div>
+                          ))}
+                        </div>
+                      }
+                    >
+                      <span
+                        className="position-absolute"
+                        style={{
+                          transform: 'translateY(-10px)',
+                        }}
+                      />
+                    </CPopover>
+                  </div>
+                )}
+              </div>
             </td>
 
             {sizes.map((size) => {
@@ -1559,7 +1708,9 @@ const ProductionOrderRow = ({
               return (
                 <td
                   key={size.id}
-                  className={`table-cell text-center align-middle ${errors?.['curve'] ? 'table-cell-error' : ''}`}
+                  className={`table-cell text-center align-middle ${
+                    showCurveError ? 'table-cell-error' : ''
+                  }`}
                   style={curveCellStyle}
                 >
                   <CFormInput
@@ -1605,10 +1756,12 @@ const ProductionOrderRow = ({
             })}
 
             <td
-              className={`table-cell text-center align-middle ${errors?.['curve'] ? 'table-cell-error' : ''}`}
+              className={`table-cell text-center align-middle ${
+                showCurveError ? 'table-cell-error' : ''
+              }`}
               style={curveCellStyle}
             >
-              {!!production_order.builder_id ? (
+              {!!builder ? (
                 <CFormInput
                   type="number"
                   min={0}
@@ -1636,7 +1789,6 @@ const ProductionOrderRow = ({
               <>
                 {processes.map((process) => {
                   const detail = details.find((item) => item.model_id === process.id)
-                  console.log(detail)
 
                   return (
                     <td

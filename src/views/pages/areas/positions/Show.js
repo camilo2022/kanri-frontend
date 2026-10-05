@@ -26,7 +26,7 @@ import {
 import { Toast } from '@/components/Toast'
 import LoadingForm from '@/components/LoadingForm'
 
-const Show = ({ position, onChangeView, onSubmit, errors, roles = [], assign, remove }) => {
+const Show = ({ position, onChangeView, errors, roles = [], assign, remove }) => {
   const [visibleRole, setVisibleRole] = useState(null)
 
   const toggleRole = (roleId) => {

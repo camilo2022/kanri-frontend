@@ -6,11 +6,10 @@ import {
   CModalTitle,
   CModalBody,
   CModalFooter,
-  CForm,
   CPopover,
   CFormCheck,
 } from '@coreui/react'
-import { X, Plus, BadgeAlert, Save, Layers, ArrowDownRight } from 'lucide-react'
+import { Plus, BadgeAlert, Save, Layers, ArrowDownRight } from 'lucide-react'
 import { useEffect, useState, useMemo } from 'react'
 import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
 import { Toast } from '@/components/Toast'
@@ -24,21 +23,16 @@ const ModalAddReassignmentCurveProgramation = ({
   production_order,
   fetchProducts,
   product_stara,
-  product_stara_aux,
-  sizes_data,
   curve,
-  setCurve,
   onReassignmentsChange,
   onOrderChange,
   technical_sheet,
   dataModal,
-  setDataModal,
   production_changes,
   selectedReference,
   production_reassignments,
   sizes,
   data,
-  setData,
   errors,
   openModalReasigned,
   setOpenModalReasigned,
@@ -48,7 +42,6 @@ const ModalAddReassignmentCurveProgramation = ({
   hasReassignment,
   setHasReassignment,
 }) => {
-
   const [optReasigned, setOptReasigned] = useState([])
   const [activeReferenceId, setActiveReferenceId] = useState(null)
   const [curvesByReference, setCurvesByReference] = useState({})
@@ -281,7 +274,6 @@ const ModalAddReassignmentCurveProgramation = ({
           const currentCurveOriginal = production_reassignments?.curve_original
 
           if (!currentCurveOriginal) {
-
             onReassignmentsChange?.(technical_sheet.id, production_order.id, 'curve_original', [
               ...curve.map((item) => ({
                 ...item,

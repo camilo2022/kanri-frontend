@@ -1,33 +1,7 @@
-import { CFormInput, CButton, CTooltip, CFormSelect, CBadge, CPopover } from '@coreui/react'
-import {
-  Plus,
-  Trash2,
-  ClipboardPaste,
-  ScissorsLineDashed,
-  Shell,
-  ChartSpline,
-  ArrowRightLeft,
-  X,
-  ChartNetwork,
-  TrendingDown,
-  TrendingUp,
-  CheckCircle2,
-  AlertTriangle,
-  RulerDimensionLine,
-  BadgeAlert,
-} from 'lucide-react'
+import { CFormInput, CBadge, CPopover } from '@coreui/react'
+import { RulerDimensionLine, BadgeAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { Toast } from '@/components/Toast'
-import Select from 'react-select'
-import { getSelectStylesInsertSpec } from '@/components/StyleManagementCollection'
-import {
-  thStyle,
-  thStyleGroup,
-  thStyleSpc,
-  thStyleSpcf,
-} from '@/components/StyleManagementCollection'
-import LoadingForm from '@/components/LoadingForm'
+import { thStyle } from '@/components/StyleManagementCollection'
 
 const TableLengthCurveGroup = ({ sizes, rows, aux, setAux, errors, larges }) => {
   const [focusedInput, setFocusedInput] = useState(null)
@@ -45,17 +19,6 @@ const TableLengthCurveGroup = ({ sizes, rows, aux, setAux, errors, larges }) => 
       ),
     )
   }
-
-  const buildSizes = () =>
-    sizes.reduce((acc, size) => {
-      acc[size.id] = {
-        id: size.id,
-        name: size.name,
-        quantity: 0,
-      }
-
-      return acc
-    }, {})
 
   useEffect(() => {
     if (rows.length === 0) return

@@ -6,7 +6,6 @@ import {
   CFormLabel,
   CFormTextarea,
   CFormCheck,
-  CFormFeedback,
   CTooltip,
   CButton,
 } from '@coreui/react'
@@ -20,7 +19,6 @@ import {
   ImageMinus,
   ZoomIn,
   X,
-  Save,
   Check,
 } from 'lucide-react'
 import Select from 'react-select'
@@ -99,7 +97,6 @@ const InformationTechnicalSheet = ({
   waistband_types,
   fetchEmployees,
   employees,
-  handleSubmit,
   errors,
   validated,
   formData,

@@ -6,9 +6,7 @@ import {
   CFormLabel,
   CFormTextarea,
   CFormCheck,
-  CFormFeedback,
   CTooltip,
-  CButton,
 } from '@coreui/react'
 import { useEffect } from 'react'
 import {
@@ -20,7 +18,6 @@ import {
   ImageMinus,
   ZoomIn,
   X,
-  Save,
   Check,
 } from 'lucide-react'
 import Select from 'react-select'
@@ -99,7 +96,6 @@ const InformationTransformation = ({
   waistband_types,
   fetchEmployees,
   employees,
-  handleSubmit,
   errors,
   validated,
   formData,

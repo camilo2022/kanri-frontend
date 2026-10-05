@@ -1,5 +1,3 @@
-import api from '../API/api'
-import { getConfig } from '../axiosConfig'
 import { useState } from 'react'
 import {
   CButton,
@@ -39,7 +37,6 @@ import Select from 'react-select'
 import { tableSelectStyles } from '@/components/StyleManagementCollection'
 
 export const TechnicalSheetDetail = ({
-  product,
   technical_sheet = null,
   processes,
   errors,
@@ -661,7 +658,6 @@ export const TechnicalSheetDetail = ({
                                 checked={
                                   details?.[process?.id]?.settings?.dinamic?.insert_values || false
                                 }
-                                disabled={details?.[process.id]?.status === 'Pendiente'}
                                 onChange={(e) =>
                                   setDetails((prev) => ({
                                     ...prev,

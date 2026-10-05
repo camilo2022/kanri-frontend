@@ -172,7 +172,6 @@ export const List = ({
                   !user_active?.permissions.some((p) => p.name === 'products.update')
                 }
                 onClick={() => {
-                  console.log(production_order.uuid)
                   pdf_technical_sheet(production_order.uuid)
                 }}
               >

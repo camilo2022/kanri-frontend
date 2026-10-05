@@ -1,12 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import ManagementCollectionTechnicalSheetBody from './ManegementCollectionTechnicalSheetBody'
 import { thStyle, thStyleGroup } from '@/components/StyleManagementCollection'
-import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton } from '@coreui/react'
-import Select from 'react-select'
-import { tableSelectStyles } from '@/components/StyleManagementCollection'
-import { Save } from 'lucide-react'
-import Swal from 'sweetalert2'
-import { Toast } from '@/components/Toast'
 import { useDispatch } from 'react-redux'
 import ManagementProductionTechnicalSheetRow from '@/components/ManagementProductionTechnicalSheetRow'
 
@@ -40,7 +33,6 @@ const ManagementProductionOrders = ({
   priority_levels,
   priority_rules,
 }) => {
-  const dispath = useDispatch()
   const [editingOrderId, setEditingOrderId] = useState(null)
 
   const handleEditOrder = useCallback((orderId) => {

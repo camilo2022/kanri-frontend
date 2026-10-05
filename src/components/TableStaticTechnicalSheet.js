@@ -1,23 +1,7 @@
-import {
-  CFormInput,
-  CButton,
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,
-  CFormTextarea,
-  CFormCheck,
-  CTooltip,
-  CPopover,
-} from '@coreui/react'
-import { BadgeAlert, Database, Info, Plus, Trash2 } from 'lucide-react'
+import { CFormInput, CFormTextarea, CFormCheck, CPopover } from '@coreui/react'
+import { BadgeAlert, Info } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { Toast } from '@/components/Toast'
 import Select from 'react-select'
-import { useRef } from 'react'
 import { getSelectStylesInsert } from '@/components/StyleManagementCollection'
 
 const TableStaticTechnicalSheet = ({
@@ -30,10 +14,7 @@ const TableStaticTechnicalSheet = ({
   status,
   dataGet,
   errors,
-  validated,
 }) => {
-  const [editing, setEditing] = useState({})
-  const [rows, setRows] = useState([])
   const [openPopover, setOpenPopover] = useState({
     field: null,
   })

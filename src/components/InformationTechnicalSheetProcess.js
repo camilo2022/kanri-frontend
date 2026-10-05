@@ -1,37 +1,11 @@
 import { useState } from 'react'
-import {
-  CFormInput,
-  CRow,
-  CCol,
-  CFormLabel,
-  CFormTextarea,
-  CFormCheck,
-  CFormFeedback,
-  CTooltip,
-  CButton,
-} from '@coreui/react'
+import { CRow, CCol, CFormLabel, CTooltip } from '@coreui/react'
 import { useEffect } from 'react'
-import {
-  Sheet,
-  ImagePlus,
-  BadgeCheck,
-  BadgeAlert,
-  Images,
-  ImageMinus,
-  ZoomIn,
-  X,
-  Save,
-  Check,
-} from 'lucide-react'
-import Select from 'react-select'
-import { useRef } from 'react'
-import { getSelectStyles } from '@/components/StyleManagementCollection'
+import { Sheet, ImagePlus, ImageMinus, ZoomIn, X } from 'lucide-react'
 
 const InformationTechnicalSheetProcess = ({
   product,
   technical_sheet,
-  errors,
-  validated,
   formData,
   setFormData,
   photoDPreview,
@@ -39,15 +13,7 @@ const InformationTechnicalSheetProcess = ({
   photoTPreview,
   setPhotoTPreview,
 }) => {
-  const [editingField, setEditingField] = useState(null)
-  const inputRefs = useRef({})
-
   const [showFullscreen, setShowFullscreen] = useState(false)
-
-  const isInvalidPhotoD = !!errors?.['photo_d.file']
-  const isValidPhotoD = !errors?.['photo_d.file'] && photoDPreview !== '' && validated
-  const isInvalidPhotoT = !!errors?.['photo_t.file']
-  const isValidPhotoT = !errors?.['photo_t.file'] && photoTPreview !== '' && validated
 
   const STATUS_BADGE_STYLES = {
     Pendiente: 'badge-status-pending',
@@ -55,19 +21,6 @@ const InformationTechnicalSheetProcess = ({
     Aprobado: 'badge-status-approved',
     Cancelado: 'badge-status-cancelled',
   }
-
-  useEffect(() => {
-    if (!editingField) return
-
-    const ref = inputRefs.current[editingField]
-
-    if (ref) {
-      ref.focus()
-      if (typeof ref.openMenu === 'function') {
-        ref.openMenu('first')
-      }
-    }
-  }, [editingField])
 
   useEffect(() => {
     if (Object.values(technical_sheet || {}).length !== 0) {

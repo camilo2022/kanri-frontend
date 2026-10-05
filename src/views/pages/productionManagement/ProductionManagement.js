@@ -42,6 +42,7 @@ export const ProductionManagement = ({
   delete_builder,
   errors_builder,
   builders,
+  fetchBuilders,
   processes,
   priority_checks,
   priority_levels,
@@ -1230,6 +1231,7 @@ export const ProductionManagement = ({
           delete_builder={delete_builder}
           errors_builder={errors_builder}
           builders={builders}
+          fetchBuilders={fetchBuilders}
         />
       )}
     </CCard>

@@ -339,7 +339,6 @@ const ProductionOrders = ({ technical_sheet_id, action }) => {
   }
 
   const pdf_technical_sheet = (production_order_uuid) => {
-    console.log(production_order_uuid)
     const url = TechnicalSheetsService.pdf(production_order_uuid)
 
     window.open(url, '_blank')

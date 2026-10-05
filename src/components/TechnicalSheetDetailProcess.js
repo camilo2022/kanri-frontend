@@ -1,5 +1,3 @@
-import api from '../API/api'
-import { getConfig } from '../axiosConfig'
 import { useState } from 'react'
 import {
   CButton,
@@ -29,7 +27,6 @@ import {
   RefreshCw,
   ClipboardType,
 } from 'lucide-react'
-import LoadingForm from '@/components/LoadingForm'
 import { useRef } from 'react'
 import TableDinamicTechnicalSheet from '@/components/TableDinamicTechnicalSheet'
 import TableStaticTechnicalSheet from '@/components/TableStaticTechnicalSheet'
@@ -55,7 +52,6 @@ export const TechnicalSheetDetailProcess = ({
   catalogsData,
   dataGet,
   loadCatalog,
-  process_edit = null,
   process,
   typologies,
 }) => {

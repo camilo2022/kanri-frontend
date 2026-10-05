@@ -372,8 +372,6 @@ const ManagementCollectionTechnicalSheetRow = ({
         classes += ' table-cell-error'
       }
 
-      console.log(modified, field)
-
       if (modified) {
         classes += ' table-cell-row-modified'
         if (modified[field]) {

@@ -1,5 +1,3 @@
-import api from '../API/api'
-import { getConfig } from '../axiosConfig'
 import { useState } from 'react'
 import {
   CButton,
@@ -28,7 +26,6 @@ import {
   Plus,
   RefreshCw,
 } from 'lucide-react'
-import LoadingForm from '@/components/LoadingForm'
 import { useRef } from 'react'
 import TableDinamicTechnicalSheet from '@/components/TableDinamicTechnicalSheet'
 import TableStaticTechnicalSheet from '@/components/TableStaticTechnicalSheet'
@@ -39,7 +36,6 @@ import Select from 'react-select'
 import { tableSelectStyles } from '@/components/StyleManagementCollection'
 
 export const TechnicalSheetDetail = ({
-  product,
   technical_sheet = null,
   processes,
   errors,

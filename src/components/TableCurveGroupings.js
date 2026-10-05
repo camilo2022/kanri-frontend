@@ -1,15 +1,8 @@
-import { CFormInput, CButton, CTooltip, CFormSelect, CBadge, CPopover } from '@coreui/react'
+import { CFormInput, CButton, CTooltip, CPopover } from '@coreui/react'
 import {
   Plus,
   Trash2,
-  ClipboardPaste,
-  ScissorsLineDashed,
-  Shell,
-  ChartSpline,
-  ArrowRightLeft,
-  X,
   ChartNetwork,
-  TrendingDown,
   TrendingUp,
   CheckCircle2,
   AlertTriangle,
@@ -18,15 +11,12 @@ import {
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import { Toast } from '@/components/Toast'
-import Select from 'react-select'
-import { getSelectStylesInsertSpec } from '@/components/StyleManagementCollection'
 import {
   thStyle,
   thStyleGroup,
   thStyleSpc,
   thStyleSpcf,
 } from '@/components/StyleManagementCollection'
-import LoadingForm from '@/components/LoadingForm'
 
 const TableCurveGroupings = ({ sizes, data, fabric, rows, setRows, color, errors }) => {
   const [info, setInfo] = useState(null)

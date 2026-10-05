@@ -3,7 +3,7 @@ import { getConfig } from '../axiosConfig'
 
 const all = async (params) => {
   try {
-    const response = await api.get(`/cache/all`, getConfig())
+    const response = await api.get(`/cache/builders/all`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -15,7 +15,7 @@ const all = async (params) => {
 
 const store = async (data) => {
   try {
-    const response = await api.post(`/cache/store`, data, getConfig())
+    const response = await api.post(`/cache/builders/store`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -27,7 +27,7 @@ const store = async (data) => {
 
 const update = async (data, uuid) => {
   try {
-    const response = await api.put(`/cache/update/${uuid}`, data, getConfig())
+    const response = await api.put(`/cache/builders/update/${uuid}`, data, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {
@@ -39,7 +39,7 @@ const update = async (data, uuid) => {
 
 const destroy = async (id) => {
   try {
-    const response = await api.delete(`/cache/delete/${id}`, getConfig())
+    const response = await api.delete(`/cache/builders/delete/${id}`, getConfig())
     return response.data
   } catch (error) {
     if (error.response && error.response.data) {

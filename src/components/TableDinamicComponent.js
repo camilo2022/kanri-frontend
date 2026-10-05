@@ -1,5 +1,3 @@
-import api from '../API/api'
-import { getConfig } from '../axiosConfig'
 import {
   CFormInput,
   CButton,
@@ -25,7 +23,7 @@ import {
   Ruler,
   Trash2,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import FieldRules from '@/components/FieldRules'
 import Swal from 'sweetalert2'
 import Select from 'react-select'

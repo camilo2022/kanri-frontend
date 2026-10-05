@@ -90,6 +90,7 @@ const ModalBuilderCurveProgramationManagement = ({
   delete_builder,
   errors_builder,
   builders,
+  fetchBuilders
 }) => {
   const [editingBuilderId, setEditingBuilderId] = useState(null)
   const [selectedTrademarks, setSelectedTrademarks] = useState([])
@@ -365,18 +366,18 @@ const ModalBuilderCurveProgramationManagement = ({
     try {
       if (editingBuilderId && update_builder) {
         await update_builder(payload, editingBuilderId)
+        fetchBuilders()
         Toast.fire({
           icon: 'success',
           title: 'Constructor editado correctamente',
         })
-        setOpenModalBuilder(false)
       } else if (create_builder) {
         await create_builder(payload)
+        fetchBuilders()
         Toast.fire({
           icon: 'success',
           title: 'Constructor creado correctamente',
         })
-        setOpenModalBuilder(false)
       }
       resetForm()
     } catch (error) {
@@ -408,11 +409,11 @@ const ModalBuilderCurveProgramationManagement = ({
 
     try {
       await delete_builder(builder_id)
+      fetchBuilders()
       Toast.fire({
         icon: 'success',
         title: 'Constructor eliminado correctamente',
       })
-      setOpenModalBuilder(false)
     } catch (error) {}
   }
 

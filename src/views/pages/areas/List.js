@@ -24,9 +24,7 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
-  Boxes,
   FileText,
-  UsersRound,
   ListTree,
 } from 'lucide-react'
 import no_data from '../../../assets/images/no-data.png'
